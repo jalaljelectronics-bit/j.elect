@@ -60,13 +60,11 @@ export default function Home() {
   const [hoveredFeature, setHoveredFeature] = useState(null);
   const [pressedFeature, setPressedFeature] = useState(null);
 
-  // ─── Live counts for the hero stats (replaces the hardcoded 100+ / 50+) ───
   const [productCount, setProductCount] = useState(0);
   const [projectCount, setProjectCount] = useState(0);
 
   const navigate = useNavigate();
 
-  // ─── Carousels References ───
   const carouselRef = useRef(null);
   const catCarouselRef = useRef(null);
   const newArrivalsRef = useRef(null);
@@ -74,14 +72,9 @@ export default function Home() {
   const laserCarouselRef = useRef(null);
 
   useEffect(() => {
-    // Only items created within this many days count as "New Arrivals".
     const NEW_ARRIVAL_WINDOW_DAYS = 30;
     const windowStart = Date.now() - NEW_ARRIVAL_WINDOW_DAYS * 24 * 60 * 60 * 1000;
 
-    // Pull live products, categories, and projects together so every section
-    // reflects whatever is actually in the database — including anything the
-    // admin just added — instead of the frozen JSON snapshots / mock arrays.
-    // Products come back newest-first (the backend's default sort).
     Promise.all([
       getProducts({ limit: 200 }),
       getCategories(),
@@ -91,23 +84,13 @@ export default function Home() {
         const products = (productData.products || []).map(normalizeProduct);
         const projects = projectData.projects || [];
 
-        // ── Hero Stats (live counts) ──
-        // Prefer the backend's unpaginated total if it sends one; otherwise
-        // fall back to the number of items we actually fetched.
         setProductCount(productData.total ?? productData.count ?? products.length);
         setProjectCount(projectData.total ?? projectData.count ?? projects.length);
 
-        // ── Featured Products ──
         setFeaturedProducts(products.slice(0, 8));
 
-        // ── Laser Modules ──
-        // Resolve the real "Laser Modules" category from the DB, then ask the
-        // backend for that category's products directly (?category=<id>) so the
-        // row never depends on the item happening to fall inside the 200-product
-        // page fetched above. Nothing matches => section renders nothing.
         const laserCategory = findLaserCategory(cats);
 
-        // Temporary diagnostic — open DevTools > Console to see what's resolving.
         console.debug('[Laser] categories from API:', cats.map((c) => `${c.id}:${c.name}`));
         console.debug('[Laser] matched category:', laserCategory);
 
@@ -122,8 +105,6 @@ export default function Home() {
             })
             .catch((err) => {
               console.error('[Laser] category fetch failed, falling back:', err);
-              // Fall back to filtering the already-loaded page. Ids are compared
-              // loosely (Number()) in case one side arrives as a string.
               setLaserProducts(
                 products
                   .filter((p) => Number(p.categoryId) === Number(laserCategory.id))
@@ -138,7 +119,6 @@ export default function Home() {
           setLaserProducts([]);
         }
 
-        // ── Categories (derive per-category product counts client-side) ──
         setCategories(
           cats.map((c) => ({
             ...c,
@@ -147,17 +127,10 @@ export default function Home() {
           }))
         );
 
-        // ── Featured Projects (real DB projects) ──
-        // Prefer admin-flagged featured projects; otherwise fall back to the
-        // most recent real projects. Placeholders only if the DB has none.
         const featured = projects.filter((p) => p.isFeatured);
         const projectList = featured.length > 0 ? featured : projects;
         setFeaturedProjects(projectList.length > 0 ? projectList.slice(0, 10) : DUMMY_PROJECTS);
 
-        // ── New Arrivals (only genuinely recent additions) ──
-        // Combine newly added products with projects the admin flagged as new
-        // arrivals, keep only those created within the recency window, newest
-        // first.
         const toArrival = (item, type) => ({
           id: item.id,
           type,
@@ -180,15 +153,11 @@ export default function Home() {
           (item) => new Date(item.createdAt).getTime() >= windowStart
         );
 
-        // Show only items added within the recency window. If nothing is that
-        // recent yet, fall back to the newest real items overall so the
-        // section still reflects the database (never a hardcoded mock list).
         setNewArrivals((recent.length > 0 ? recent : combined).slice(0, 12));
       })
       .catch((err) => console.error('Failed to load home data:', err));
   }, []);
 
-  // Auto-advance the featured carousel
   useEffect(() => {
     if (featuredProducts.length === 0) return;
     const timer = setInterval(() => {
@@ -207,7 +176,6 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [featuredProducts]);
 
-  // Auto-advance the category carousel
   useEffect(() => {
     if (categories.length === 0) return;
     const timer = setInterval(() => {
@@ -224,7 +192,6 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [categories]);
 
-  // Auto-advance the new arrivals carousel
   useEffect(() => {
     if (newArrivals.length === 0) return;
     const timer = setInterval(() => {
@@ -241,7 +208,6 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [newArrivals]);
 
-  // Auto-advance the featured projects carousel
   useEffect(() => {
     if (featuredProjects.length === 0) return;
     const timer = setInterval(() => {
@@ -260,7 +226,6 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [featuredProjects]);
 
-  // Auto-advance the laser modules carousel
   useEffect(() => {
     if (laserProducts.length === 0) return;
     const timer = setInterval(() => {
@@ -279,7 +244,6 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [laserProducts]);
 
-  // ─── Manual Navigation Controls ───
   const scrollCarousel = (dir) => {
     const el = carouselRef.current;
     if (!el) return;
@@ -350,7 +314,7 @@ export default function Home() {
           <button className="btn-primary" onClick={() => navigate('/projects')}>Explore Projects</button>
           <button className="btn-ghost" onClick={() => navigate('/contact')}>Get in Touch</button>
         </div>
-        <div style={{ display: 'flex', gap: '32px', justifyContent: 'center', marginTop: '48px' }}>
+        <div className="hero-stats">
           {[
             [productCount, 'Products'],
             [projectCount, 'Projects'],
@@ -561,16 +525,7 @@ export default function Home() {
             <h2>Why Vision Giants?</h2>
             <p style={{ maxWidth: '520px', margin: '0 auto' }}>We're built for tech lovers who refuse to settle. Every order, every pixel, every watt — obsessively curated.</p>
           </div>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '28px',
-              maxWidth: '1140px',
-              margin: '0 auto',
-              alignItems: 'stretch',
-            }}
-          >
+          <div className="features-grid">
             {FEATURES.map(([title, desc]) => (
               <div
                 key={title}
@@ -620,7 +575,7 @@ export default function Home() {
 
         <section className="section" style={{ paddingBottom: '0' }}>
           <div className="section-divider" />
-          <div className="form-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
+          <div className="form-card newsletter-inner">
             <div>
               <h2 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '1.3rem' }}>Stay Ahead of the <span style={{ color: 'var(--cyan)' }}>Tech Curve</span></h2>
               <p style={{ fontSize: '0.9rem', color: 'var(--text-sub)', marginTop: '8px' }}>Get early access to launches, exclusive deals, and expert picks — straight to your inbox.</p>

@@ -132,7 +132,7 @@ export const ProductForm: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '700px', backgroundColor: '#fff', padding: '2rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', margin: '0 auto' }}>
+    <div className="form-card" style={{ maxWidth: '700px', backgroundColor: '#fff', padding: '2rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', margin: '0 auto' }}>
       <h2 style={{ marginTop: 0, marginBottom: '1.5rem', color: '#1e293b' }}>
         {isEditMode ? '✏️ Edit Product Details' : '➕ Add New Catalog Product'}
       </h2>
@@ -174,7 +174,7 @@ export const ProductForm: React.FC = () => {
         </div>
 
         {/* Price & Stock Flex Block */}
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div className="form-row" style={{ display: 'flex', gap: '1rem' }}>
           <div style={{ flex: 1 }}>
             <label style={{ display: 'block', fontWeight: '600', marginBottom: '0.375rem', color: '#4b5563' }}>Price (Rs) *</label>
             <input

@@ -2,14 +2,24 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Product } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-interface ProductWithCategory extends Product {
+// Standalone type matching the real backend product shape
+// (the shared Product type in ../types describes the old static-JSON shape,
+//  so extending it caused string/number mismatches).
+interface ProductWithCategory {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  categoryId: number;
+  imageUrl: string;
+  stock: number;
+  averageRating?: number | null;
   category?: { id: number; name: string };
-  stockQuantity?: number;
-  status?: string;
+  stockQuantity: number;
+  status: 'active' | 'inactive';
 }
 
 export const ProductsList: React.FC = () => {
@@ -113,7 +123,7 @@ export const ProductsList: React.FC = () => {
   return (
     <div>
       {/* Header Area */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
           <h1 style={{ fontSize: '1.75rem', fontWeight: '700', color: '#1e293b', margin: 0 }}>Product Catalog</h1>
           <p style={{ color: '#64748b', marginTop: '0.25rem' }}>Manage your product inventory - changes sync to frontend in real-time</p>
@@ -133,7 +143,7 @@ export const ProductsList: React.FC = () => {
       )}
 
       {/* FILTER BAR SECTION */}
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+      <div className="filter-bar" style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
         {/* Search Bar */}
         <div style={{ flex: 1, minWidth: '280px' }}>
           <input
@@ -213,7 +223,7 @@ export const ProductsList: React.FC = () => {
       </div>
 
       {/* Products Table */}
-      <div style={{ backgroundColor: '#fff', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflowX: 'auto' }}>
+      <div className="table-wrap" style={{ backgroundColor: '#fff', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflowX: 'auto' }}>
         {filteredProducts.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b', fontSize: '0.95rem' }}>
             {searchQuery || selectedCategory !== 'All' 
@@ -235,7 +245,7 @@ export const ProductsList: React.FC = () => {
             </thead>
             <tbody>
               {filteredProducts.map((product) => (
-                <tr key={product.id} style={{ borderBottom: '1px solid #f1f5f9', hoverColor: '#f8fafc' }}>
+                <tr key={product.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                   <td style={{ padding: '1rem' }}>
                     <div style={{ fontWeight: '600', color: '#0f172a' }}>{product.name}</div>
                     <div style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.25rem' }}>ID: {product.id}</div>

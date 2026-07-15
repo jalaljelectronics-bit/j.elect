@@ -253,7 +253,7 @@ export const ProductsList: React.FC = () => {
                   <td style={{ padding: '1rem', color: '#475569' }}>
                     {categories.find(c => c.id === product.categoryId)?.name || 'Unknown'}
                   </td>
-                  <td style={{ padding: '1rem', fontWeight: '500', color: '#0f172a' }}>₹{product.price.toFixed(2)}</td>
+                  <td style={{ padding: '1rem', fontWeight: '500', color: '#0f172a' }}>Rs{product.price.toFixed(2)}</td>
                   <td style={{ padding: '1rem', color: product.stockQuantity < 10 ? '#ef4444' : '#0f172a' }}>
                     <span style={{ fontWeight: product.stockQuantity < 10 ? '700' : '400' }}>
                       {product.stockQuantity} units

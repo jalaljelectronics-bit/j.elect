@@ -91,7 +91,7 @@ export default function Header() {
           <li><Link to="/">Home</Link></li>
           <li>
             <span className="nav-link-btn" style={{ cursor: 'pointer' }}>
-              Products
+             <Link to="/products">Products</Link>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9" /></svg>
             </span>
             <div className="dropdown">

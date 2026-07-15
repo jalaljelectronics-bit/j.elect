@@ -43,7 +43,7 @@ export default function Header() {
     <header className="site-header">
       <div className="announcement-bar">
         <div className="announce-inner">
-          <span className="announce-text">✦ Free Delivery on Orders Above Rs 25,000 · 2-Year Warranty on All Devices</span>
+          <span className="announce-text">✦ Free Delivery on Orders Above Rs 25,000 · </span>
           <div className="announce-links">
             <a href="https://instagram.com/visiongiants" target="_blank" rel="noreferrer" title="Instagram">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

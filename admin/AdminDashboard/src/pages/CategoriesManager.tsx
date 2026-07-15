@@ -20,6 +20,12 @@ export const CategoriesManager: React.FC = () => {
   const [newCatImageUrl, setNewCatImageUrl] = useState('');
   const [saving, setSaving] = useState(false);
 
+  // ----- Inline edit state -----
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editImageUrl, setEditImageUrl] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
+
   // ----- Load categories + product counts from the real backend -----
   const fetchCategories = async () => {
     try {
@@ -106,6 +112,51 @@ export const CategoriesManager: React.FC = () => {
       const errorMessage = err.response?.data?.message || 'Failed to delete category';
       alert(`Error: ${errorMessage}`);
       console.error('Error deleting category:', err);
+    }
+  };
+
+  // ----- Start editing a category -----
+  const handleStartEdit = (cat: Category) => {
+    setEditingId(cat.id);
+    setEditName(cat.name);
+    setEditImageUrl(cat.imageUrl || '');
+  };
+
+  // ----- Cancel editing -----
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditName('');
+    setEditImageUrl('');
+  };
+
+  // ----- Save an edited category (persists to the database) -----
+  const handleSaveEdit = async (id: number) => {
+    if (!editName.trim()) {
+      alert('Please enter a valid category name.');
+      return;
+    }
+
+    try {
+      setEditSaving(true);
+      await axios.put(
+        `${API_URL}/api/categories/${id}`,
+        { name: editName.trim(), imageUrl: editImageUrl.trim() || null },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+      setEditingId(null);
+      setEditName('');
+      setEditImageUrl('');
+      await fetchCategories();
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to update category';
+      alert(`Error: ${errorMessage}`);
+      console.error('Error updating category:', err);
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -199,6 +250,73 @@ export const CategoriesManager: React.FC = () => {
             )}
             {categories.map(cat => {
               const itemsCount = productCounts[cat.id] ?? 0;
+              const isEditing = editingId === cat.id;
+
+              if (isEditing) {
+                return (
+                  <tr key={cat.id} style={{ borderBottom: '1px solid #f1f5f9', backgroundColor: '#f8fafc' }}>
+                    <td style={{ padding: '1rem' }}>
+                      {editImageUrl ? (
+                        <img
+                          src={editImageUrl}
+                          alt={editName}
+                          style={{ width: '60px', height: '40px', objectFit: 'cover', borderRadius: '0.25rem', border: '1px solid #e2e8f0' }}
+                        />
+                      ) : (
+                        <div style={{ width: '60px', height: '40px', backgroundColor: '#f1f5f9', borderRadius: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', color: '#94a3b8' }}>No Img</div>
+                      )}
+                    </td>
+                    <td style={{ padding: '0.75rem 1rem' }} colSpan={1}>
+                      <input
+                        type="text"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        disabled={editSaving}
+                        placeholder="Category name"
+                        style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #cbd5e1', fontSize: '0.9rem', width: '100%', boxSizing: 'border-box' }}
+                      />
+                      <input
+                        type="text"
+                        value={editImageUrl}
+                        onChange={(e) => setEditImageUrl(e.target.value)}
+                        disabled={editSaving}
+                        placeholder="Image URL (https://...)"
+                        style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #cbd5e1', fontSize: '0.85rem', width: '100%', boxSizing: 'border-box', marginTop: '0.5rem' }}
+                      />
+                    </td>
+                    <td style={{ padding: '1rem', color: '#64748b', fontFamily: 'monospace' }}>{cat.id}</td>
+                    <td style={{ padding: '1rem' }}>
+                      <span style={{
+                        padding: '0.25rem 0.625rem',
+                        borderRadius: '9999px',
+                        fontSize: '0.8rem',
+                        fontWeight: '600',
+                        backgroundColor: itemsCount > 0 ? '#e0f2fe' : '#f1f5f9',
+                        color: itemsCount > 0 ? '#0369a1' : '#64748b'
+                      }}>
+                        {itemsCount} {itemsCount === 1 ? 'item' : 'items'}
+                      </span>
+                    </td>
+                    <td style={{ padding: '1rem', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                      <button
+                        onClick={() => handleSaveEdit(cat.id)}
+                        disabled={editSaving}
+                        style={{ backgroundColor: '#10b981', color: '#fff', border: 'none', borderRadius: '0.375rem', padding: '0.4rem 0.75rem', fontSize: '0.8rem', fontWeight: '600', cursor: editSaving ? 'not-allowed' : 'pointer', marginRight: '0.5rem', opacity: editSaving ? 0.6 : 1 }}
+                      >
+                        {editSaving ? 'Saving...' : 'Save'}
+                      </button>
+                      <button
+                        onClick={handleCancelEdit}
+                        disabled={editSaving}
+                        style={{ backgroundColor: '#e2e8f0', color: '#334155', border: 'none', borderRadius: '0.375rem', padding: '0.4rem 0.75rem', fontSize: '0.8rem', fontWeight: '600', cursor: editSaving ? 'not-allowed' : 'pointer' }}
+                      >
+                        Cancel
+                      </button>
+                    </td>
+                  </tr>
+                );
+              }
+
               return (
                 <tr key={cat.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                   <td style={{ padding: '1rem' }}>
@@ -226,7 +344,17 @@ export const CategoriesManager: React.FC = () => {
                       {itemsCount} {itemsCount === 1 ? 'item' : 'items'}
                     </span>
                   </td>
-                  <td style={{ padding: '1rem', textAlign: 'right' }}>
+                  <td style={{ padding: '1rem', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                    <button
+                      onClick={() => handleStartEdit(cat)}
+                      style={{ backgroundColor: 'transparent', border: 'none', cursor: 'pointer', padding: '0.25rem', marginRight: '0.5rem' }}
+                      title="Edit Category"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                      </svg>
+                    </button>
                     <button
                       onClick={() => handleDeleteCategory(cat.id, cat.name)}
                       style={{ backgroundColor: 'transparent', border: 'none', cursor: 'pointer', padding: '0.25rem' }}

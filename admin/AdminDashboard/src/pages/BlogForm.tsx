@@ -162,7 +162,7 @@ export const BlogForm: React.FC = () => {
   const trimmedImage = imageUrl.trim();
 
   return (
-    <div style={{ maxWidth: '760px', backgroundColor: '#fff', padding: '2rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', margin: '0 auto' }}>
+    <div className="form-card" style={{ maxWidth: '760px', backgroundColor: '#fff', padding: '2rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', margin: '0 auto' }}>
       <h2 style={{ marginTop: 0, marginBottom: '1.5rem', color: '#1e293b' }}>
         {isEditMode ? '✏️ Edit Blog Article' : '✍️ Compose New Article'}
       </h2>
@@ -175,7 +175,7 @@ export const BlogForm: React.FC = () => {
         </div>
 
         {/* URL + Status */}
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+        <div className="form-row" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <div style={{ flex: 2, minWidth: '260px' }}>
             <label style={{ display: 'block', fontWeight: '600', marginBottom: '0.375rem', color: '#4b5563' }}>Article URL</label>
             <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="/blog/introducing-the-provision-max" style={inputStyle} />
@@ -280,7 +280,7 @@ export const BlogForm: React.FC = () => {
                     </select>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                  <div className="form-row" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                     <div style={{ flex: 1, minWidth: '200px' }}>
                       <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#475569', marginBottom: '0.375rem' }}>Display Label</label>
                       <input type="text" value={link.label} onChange={(e) => updateLink(link.id, { label: e.target.value, productId: '' })} placeholder="e.g. ProVision X15 Ultra" style={inputStyle} />

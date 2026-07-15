@@ -44,7 +44,7 @@ export const BlogsManager: React.FC = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
           <h1 style={{ fontSize: '1.75rem', fontWeight: '700', color: '#1e293b', margin: 0 }}>Blog Articles Manager</h1>
           <p style={{ color: '#64748b', marginTop: '0.25rem' }}>Draft corporate press releases, announce inventory updates, and publish consumer resources.</p>
@@ -78,7 +78,7 @@ export const BlogsManager: React.FC = () => {
       </div>
 
       {/* Content Table Block */}
-      <div style={{ backgroundColor: '#fff', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
+      <div className="table-wrap" style={{ backgroundColor: '#fff', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
             <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
@@ -175,7 +175,7 @@ export const BlogsManager: React.FC = () => {
       {/* ============ DETAIL VIEW MODAL ============ */}
       {viewingPost && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '1rem' }}>
-          <div style={{ backgroundColor: '#fff', borderRadius: '0.5rem', width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto', boxSizing: 'border-box', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+          <div className="modal-card" style={{ backgroundColor: '#fff', borderRadius: '0.5rem', width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto', boxSizing: 'border-box', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
 
             {viewingPost.imageUrl && (
               <div style={{ position: 'relative' }}>
@@ -184,7 +184,7 @@ export const BlogsManager: React.FC = () => {
               </div>
             )}
 
-            <div style={{ padding: '2rem' }}>
+            <div className="modal-pad" style={{ padding: '2rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
                 <div>
                   <div style={{ fontFamily: 'monospace', color: '#64748b', fontSize: '0.85rem', marginBottom: '0.25rem' }}>#{viewingPost.id}</div>

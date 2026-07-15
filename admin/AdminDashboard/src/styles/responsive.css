@@ -1,0 +1,145 @@
+/* ============================================================
+   src/styles/responsive.css
+   Global responsive rules for the admin panel.
+   The components keep their inline styles for desktop;
+   these media queries (with !important) override them on
+   smaller screens via the classNames added in each file.
+   ============================================================ */
+
+/* Tables: always scroll sideways instead of breaking the page */
+.table-wrap {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+.table-wrap table {
+  min-width: 700px;
+}
+
+/* Mobile-only elements are hidden on desktop */
+.mobile-topbar { display: none; }
+.sidebar-overlay { display: none; }
+
+/* ---------- Small desktop / laptop (≤1280px) ---------- */
+@media (max-width: 1280px) {
+  .cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* ---------- Tablet (≤1024px) ---------- */
+@media (max-width: 1024px) {
+  .quick-links-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .admin-sidebar {
+    width: 220px !important;
+    padding: 1rem !important;
+  }
+  .admin-main {
+    padding: 1.5rem !important;
+  }
+}
+
+/* ---------- Mobile (≤768px) ---------- */
+@media (max-width: 768px) {
+  .admin-shell {
+    flex-direction: column !important;
+  }
+
+  /* Top bar with hamburger, shown only on mobile */
+  .mobile-topbar {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #1e293b;
+    color: #fff;
+    padding: 0.75rem 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+  .mobile-topbar button {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.5rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0.25rem 0.5rem;
+  }
+
+  /* Sidebar becomes a slide-in drawer */
+  .admin-sidebar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 260px !important;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 1200;
+    overflow-y: auto;
+    box-sizing: border-box;
+  }
+  .admin-sidebar.open {
+    transform: translateX(0);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.35);
+  }
+
+  /* Dark overlay behind the open drawer */
+  .sidebar-overlay.show {
+    display: block !important;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+    z-index: 1100;
+  }
+
+  .admin-main { padding: 1rem !important; }
+  .admin-topbar { padding: 0.75rem 1rem !important; }
+
+  /* Page headers (title + action button) stack vertically */
+  .page-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 1rem;
+  }
+  .page-header button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Stat cards & quick links: single column */
+  .cards-grid,
+  .quick-links-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Search / filter bars stack vertically, full width */
+  .filter-bar { flex-direction: column !important; align-items: stretch !important; }
+  .filter-bar > div,
+  .filter-bar > input,
+  .filter-bar > select,
+  .filter-bar > button {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Form cards: tighter padding, side-by-side fields stack */
+  .form-card { padding: 1.25rem !important; }
+  .form-row { flex-direction: column !important; gap: 1.25rem !important; }
+  .form-row > div { width: 100% !important; min-width: 0 !important; flex: unset !important; }
+
+  /* Modals: tighter padding, use full width */
+  .modal-card { max-width: 100% !important; }
+  .modal-pad { padding: 1.25rem !important; }
+
+  h1 { font-size: 1.35rem !important; }
+}
+
+/* ---------- Very small phones (≤480px) ---------- */
+@media (max-width: 480px) {
+  .admin-main { padding: 0.75rem !important; }
+  .form-card { padding: 1rem !important; }
+  .modal-pad { padding: 1rem !important; }
+}

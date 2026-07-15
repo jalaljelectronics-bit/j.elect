@@ -121,7 +121,7 @@ export const ProjectForm: React.FC = () => {
   if (loading) return <div style={{ padding: '2rem' }}>Loading project...</div>;
 
   return (
-    <div style={{ maxWidth: '760px', backgroundColor: '#fff', padding: '2rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', margin: '0 auto' }}>
+    <div className="form-card" style={{ maxWidth: '760px', backgroundColor: '#fff', padding: '2rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', margin: '0 auto' }}>
       <h2 style={{ marginTop: 0, marginBottom: '1.5rem', color: '#1e293b' }}>
         {isEditMode ? 'Edit Project Details' : 'Log New Project Entry'}
       </h2>
@@ -149,7 +149,7 @@ export const ProjectForm: React.FC = () => {
         </div>
 
         {/* Cover image + Category */}
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+        <div className="form-row" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: '220px' }}>
             <label style={{ display: 'block', fontWeight: '600', marginBottom: '0.375rem', color: '#4b5563' }}>Cover Image URL</label>
             <input type="text" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="Paste image address (https://...)" style={inputStyle} />

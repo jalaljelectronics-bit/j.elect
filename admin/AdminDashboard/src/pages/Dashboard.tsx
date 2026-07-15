@@ -109,7 +109,7 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Summary Cards Grid */}
-      <div style={{ 
+      <div className="cards-grid" style={{ 
         display: 'grid', 
         gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', 
         gap: '1.5rem', 
@@ -157,7 +157,7 @@ export const Dashboard: React.FC = () => {
           ⚡ Quick Administrative Actions
         </h3>
         
-        <div style={{ 
+        <div className="quick-links-grid" style={{ 
           display: 'grid', 
           gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', 
           gap: '1rem' 

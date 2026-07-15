@@ -24,14 +24,14 @@ export default function Dashboard() {
         <Link to="/account/details">password and account details</Link>.
       </p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginTop: '24px' }}>
+      <div className="dashboard-cards">
         {CARDS.map(([to, label]) => (
           <Link
             key={to}
             to={to}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              padding: '32px 16px', border: '1px solid var(--border, #e2e8f0)', borderRadius: '6px',
+              border: '1px solid var(--border, #e2e8f0)', borderRadius: '6px',
               color: '#3b5a80', fontSize: '1.1rem', textDecoration: 'none'
             }}
           >

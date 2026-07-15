@@ -45,19 +45,7 @@ export default function LoginRegister() {
 
   return (
     <div className="container" style={{ padding: '60px 0' }}>
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '48px',
-          maxWidth: '900px',
-          margin: '0 auto',
-          background: 'var(--bg2, #fff)',
-          border: '1px solid var(--border, #e2e8f0)',
-          borderRadius: '12px',
-          padding: '48px',
-        }}
-      >
+      <div className="auth-split">
         {/* LOGIN */}
         <div>
           <h2 style={{ letterSpacing: '0.05em', fontSize: '1.1rem', marginBottom: '24px' }}>LOGIN</h2>
@@ -95,7 +83,7 @@ export default function LoginRegister() {
         </div>
 
         {/* Divider */}
-        <div style={{ borderLeft: '1px solid var(--border, #e2e8f0)', paddingLeft: '48px' }}>
+        <div className="auth-divider">
           <h2 style={{ letterSpacing: '0.05em', fontSize: '1.1rem', marginBottom: '24px' }}>REGISTER</h2>
           <form onSubmit={handleRegister} className="form-card" style={{ border: 'none', padding: 0 }}>
             <div className="field">

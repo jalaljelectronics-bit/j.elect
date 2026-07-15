@@ -1,99 +1,63 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { getProjects } from '../api/projectService';
-import ProjectCard from '../components/ProjectCard';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { getMyOrders } from '../api/orderService';
 
-const BADGE_FILTERS = [
-  { id: 'all', label: 'All Projects' },
-  { id: 'new', label: '🆕 New Arrivals' },
-  { id: 'featured', label: '⭐ Featured' },
-];
+const STATUS_LABELS = {
+  pending: '⏳ Pending',
+  processing: '⚙️ Processing',
+  shipped: '📦 Shipped',
+  delivered: '✅ Delivered',
+  cancelled: '❌ Cancelled',
+};
 
-function matchesBadgeFilter(project, filterId) {
-  if (filterId === 'all') return true;
-  if (filterId === 'new') return Boolean(project.isNewArrival);
-  if (filterId === 'featured') return Boolean(project.isFeatured);
-  return true;
-}
-
-export default function Projects() {
-  const [params, setParams] = useSearchParams();
-  const [projects, setProjects] = useState([]);
+export default function Orders() {
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [badgeFilter, setBadgeFilter] = useState('all');
-  const activeCategory = params.get('category') || 'University';
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchProjects = async () => {
-      setLoading(true);
-      try {
-        const res = await getProjects({ category: activeCategory });
-        setProjects(res.projects || []);
-      } catch (error) {
-        console.error('Error fetching projects:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    getMyOrders()
+      .then(setOrders)
+      .catch((err) => setError(err.response?.data?.message || 'Could not load orders.'))
+      .finally(() => setLoading(false));
+  }, []);
 
-    fetchProjects();
-  }, [activeCategory]);
+  if (loading) return <div className="container" style={{ padding: '60px 0' }}>Loading your orders...</div>;
+  if (error) return <div className="container" style={{ padding: '60px 0', color: '#c0392b' }}>{error}</div>;
 
-  const filtered = useMemo(
-    () => projects.filter((p) => matchesBadgeFilter(p, badgeFilter)),
-    [projects, badgeFilter]
-  );
-
-  if (loading) return <div className="container">Loading projects...</div>;
+  if (orders.length === 0) {
+    return (
+      <div className="container" style={{ padding: '60px 0', textAlign: 'center' }}>
+        <h1>No orders yet</h1>
+        <p>Once you place an order, it'll show up here.</p>
+        <Link to="/products" className="btn-primary">Browse Products</Link>
+      </div>
+    );
+  }
 
   return (
-    <div className="container" style={{ paddingBottom: '80px' }}>
-      <div className="page-header">
-        <h1>Project Kits & Build Guides</h1>
-        <p>From semester assignments to enterprise deployments — ready-to-build project kits with full component lists.</p>
+    <div className="container" style={{ padding: '60px 0' }}>
+      <h1>My Orders</h1>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '24px' }}>
+        {orders.map((order) => (
+          <Link
+            key={order.id}
+            to={`/orders/${order.id}`}
+            className="order-list-item"
+          >
+            <div>
+              <div style={{ fontWeight: 600 }}>Order #{order.id}</div>
+              <div style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                {new Date(order.createdAt).toLocaleDateString()} · {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+              </div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontWeight: 600 }}>Rs {order.total.toLocaleString()}</div>
+              <div style={{ fontSize: '0.85rem' }}>{STATUS_LABELS[order.status] || order.status}</div>
+            </div>
+          </Link>
+        ))}
       </div>
-
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
-          gap: '16px',
-          alignItems: 'center',
-          marginBottom: '40px',
-        }}
-      >
-        <div className="level-tabs">
-          {['University', 'Commercial'].map((cat) => (
-            <button
-              key={cat}
-              className={`level-tab${activeCategory === cat ? ' active' : ''}`}
-              onClick={() => setParams({ category: cat })}
-            >
-              {cat === 'University' ? 'University Lab' : 'Commercial Core'}
-            </button>
-          ))}
-        </div>
-
-        <select
-          value={badgeFilter}
-          onChange={(e) => setBadgeFilter(e.target.value)}
-          style={{ background: 'var(--bg3)', border: '1px solid var(--border)', color: 'var(--text)', padding: '12px 16px', borderRadius: '10px', fontSize: '0.9rem', width: '100%', maxWidth: '280px', justifySelf: 'end' }}
-        >
-          {BADGE_FILTERS.map((opt) => (
-            <option key={opt.id} value={opt.id}>{opt.label}</option>
-          ))}
-        </select>
-      </div>
-
-      {filtered.length === 0 ? (
-        <div className="empty-state">No projects in this category yet.</div>
-      ) : (
-        <div className="product-grid">
-          {filtered.map((p) => (
-            <ProjectCard key={p.id} project={p} />
-          ))}
-        </div>
-      )}
     </div>
   );
 }

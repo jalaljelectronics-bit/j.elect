@@ -28,7 +28,7 @@ export default function OrderDetail() {
   if (!order) return null;
 
   return (
-    <div className="container" style={{ padding: '60px 0', maxWidth: '700px' }}>
+    <div className="container order-detail-wrap">
       <Link to="/orders" style={{ fontSize: '0.85rem' }}>&larr; Back to Orders</Link>
       <h1 style={{ marginTop: '12px' }}>Order #{order.id}</h1>
       <p style={{ color: '#64748b' }}>
@@ -55,7 +55,7 @@ export default function OrderDetail() {
         ))}
       </div>
 
-      <div style={{ width: '240px', marginLeft: 'auto', marginTop: '20px', fontSize: '0.9rem' }}>
+      <div className="order-summary-box">
         <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Subtotal</span><span>Rs {order.subtotal.toLocaleString()}</span></div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Shipping</span><span>Rs {order.shippingCost.toLocaleString()}</span></div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Tax</span><span>Rs {order.taxAmount.toLocaleString()}</span></div>

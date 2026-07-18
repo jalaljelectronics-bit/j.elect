@@ -14,6 +14,7 @@ const blogRoutes = require('./routes/blog');
 const projectRoutes = require('./routes/projects');
 const queryRoutes = require('./routes/queries');
 const statsRoutes = require('./routes/stats');
+const subcategoryRoutes = require('./routes/subcategories');
 
 const app = express();
 
@@ -69,6 +70,7 @@ app.use('/api/blog', blogRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/queries', queryRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/subcategories', subcategoryRoutes);
 
 // Health check — Render pings this, and it's handy for confirming the
 // service is alive without hitting the database.

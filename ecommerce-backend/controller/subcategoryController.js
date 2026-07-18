@@ -1,7 +1,7 @@
 const prisma = require("../prisma/client");
 
 // =============================
-// GET SUBCATEGORIES (optionally filtered by category)
+// GET SUBCATEGORIES (optionally filtered by category) ve
 // =============================
 exports.getSubcategories = async (req, res) => {
     try {

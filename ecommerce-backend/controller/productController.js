@@ -1,7 +1,7 @@
 const prisma = require("../prisma/client");
 
 // =============================
-// Create Product
+// Create Product as a procuct is being created
 // =============================
 exports.createProduct = async (req, res) => {
     try {

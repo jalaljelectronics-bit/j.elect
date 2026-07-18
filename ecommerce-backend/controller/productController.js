@@ -1,7 +1,7 @@
 const prisma = require("../prisma/client");
 
 // =============================
-// Create Product as a procuct is being created
+// Create Product
 // =============================
 exports.createProduct = async (req, res) => {
     try {
@@ -11,8 +11,7 @@ exports.createProduct = async (req, res) => {
             price,
             stock,
             imageUrl,
-            categoryId,
-            subcategoryId
+            categoryId
         } = req.body;
 
         if (
@@ -26,7 +25,7 @@ exports.createProduct = async (req, res) => {
                 message: "All required fields must be provided."
             });
         }
-        if (!imageUrl || !imageUrl.startsWith("http")) {
+if (!imageUrl || !imageUrl.startsWith("http")) {
             return res.status(400).json({
                 message: "A valid image URL is required."
             });
@@ -43,23 +42,6 @@ exports.createProduct = async (req, res) => {
             });
         }
 
-        // Subcategory is optional — only validate it if one was actually provided
-        if (subcategoryId) {
-            const subcategory = await prisma.subcategory.findUnique({
-                where: { id: Number(subcategoryId) }
-            });
-
-            if (!subcategory) {
-                return res.status(404).json({ message: "Subcategory not found." });
-            }
-
-            if (subcategory.categoryId !== Number(categoryId)) {
-                return res.status(400).json({
-                    message: "Subcategory does not belong to the selected category."
-                });
-            }
-        }
-
         const product = await prisma.product.create({
             data: {
                 name: name.trim(),
@@ -67,8 +49,7 @@ exports.createProduct = async (req, res) => {
                 price: Number(price),
                 stock: Number(stock),
                 imageUrl,
-                categoryId: Number(categoryId),
-                subcategoryId: subcategoryId ? Number(subcategoryId) : null
+                categoryId: Number(categoryId)
             }
         });
 
@@ -95,7 +76,6 @@ exports.getProducts = async (req, res) => {
         const {
             search,
             category,
-            subcategory,
             minPrice,
             maxPrice,
             sort,
@@ -119,10 +99,6 @@ exports.getProducts = async (req, res) => {
 
         if (category) {
             where.categoryId = Number(category);
-        }
-
-        if (subcategory) {
-            where.subcategoryId = Number(subcategory);
         }
 
         if (minPrice || maxPrice) {
@@ -163,8 +139,7 @@ exports.getProducts = async (req, res) => {
                 skip,
                 take: limitNum,
                 include: {
-                    category: true,
-                    subcategory: true
+                    category: true
                 }
             })
         ]);
@@ -188,7 +163,6 @@ exports.getProducts = async (req, res) => {
 
     }
 };
-
 // =============================
 // Get Product By ID
 // =============================
@@ -203,8 +177,7 @@ exports.getProductById = async (req, res) => {
                 id
             },
             include: {
-                category: true,
-                subcategory: true
+                category: true
             }
         });
 
@@ -243,8 +216,7 @@ exports.updateProduct = async (req, res) => {
             price,
             stock,
             imageUrl,
-            categoryId,
-            subcategoryId
+            categoryId
         } = req.body;
 
         const existingProduct = await prisma.product.findUnique({
@@ -270,25 +242,7 @@ exports.updateProduct = async (req, res) => {
                 message: "Category not found."
             });
         }
-
-        // Subcategory is optional — only validate it if one was actually provided
-        if (subcategoryId) {
-            const subcategory = await prisma.subcategory.findUnique({
-                where: { id: Number(subcategoryId) }
-            });
-
-            if (!subcategory) {
-                return res.status(404).json({ message: "Subcategory not found." });
-            }
-
-            if (subcategory.categoryId !== Number(categoryId)) {
-                return res.status(400).json({
-                    message: "Subcategory does not belong to the selected category."
-                });
-            }
-        }
-
-        if (!imageUrl || !imageUrl.startsWith("http")) {
+if (!imageUrl || !imageUrl.startsWith("http")) {
             return res.status(400).json({
                 message: "A valid image URL is required."
             });
@@ -303,8 +257,7 @@ exports.updateProduct = async (req, res) => {
                 price: Number(price),
                 stock: Number(stock),
                 imageUrl,
-                categoryId: Number(categoryId),
-                subcategoryId: subcategoryId ? Number(subcategoryId) : null
+                categoryId: Number(categoryId)
             }
         });
 

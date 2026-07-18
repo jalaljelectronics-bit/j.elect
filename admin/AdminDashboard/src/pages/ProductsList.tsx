@@ -38,7 +38,7 @@ export const ProductsList: React.FC = () => {
       setLoading(true);
       setError('');
       
-      const params: any = {};
+      const params: any = { limit: 1000 };
       if (searchQuery) {
         params.search = searchQuery;
       }

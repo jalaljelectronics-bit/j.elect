@@ -165,6 +165,7 @@ model Project {
   introImageUrl    String?
   isFeatured       Boolean     @default(false)
   isNewArrival     Boolean     @default(false)
+  linkedProducts   Json        @default("[]")
   price            Float       @default(0)
   sections         Json        @default("[]")
   status           String      @default("In Progress")

@@ -17,12 +17,10 @@ api.interceptors.request.use((config: any) => {
 // ---------------------------------------------------------------------------
 // Types (canonical home for the blog shapes the admin UI uses)
 // ---------------------------------------------------------------------------
-export interface LinkedProduct {
-  id: string;
-  productId?: string; // set when picked from the catalog dropdown in the form
-  label: string;
-  url: string;
-}
+// The canonical LinkedProduct shape now lives with the shared editor component
+// so the blog and project forms can never drift apart.
+export type { LinkedProduct } from '../components/LinkedProductsEditor';
+import type { LinkedProduct } from '../components/LinkedProductsEditor';
 
 export type BlogStatus = 'Published' | 'Draft';
 
@@ -50,8 +48,7 @@ export interface BlogInput {
   linkedProducts?: LinkedProduct[];
 }
 
-export const makeLinkId = () =>
-  `link-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+export { makeLinkId } from '../components/LinkedProductsEditor';
 
 // ---------------------------------------------------------------------------
 // Mapping helpers: DB record <-> admin UI model

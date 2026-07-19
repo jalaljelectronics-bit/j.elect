@@ -2,6 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getProjectById, createProject, updateProject, ContentSection } from '../api/projectService';
+import LinkedProductsEditor, {
+  LinkedProduct,
+  cleanLinks,
+  validateLinks
+} from '../components/LinkedProductsEditor';
 
 const makeSectionId = () => `sec-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
@@ -39,6 +44,7 @@ export const ProjectForm: React.FC = () => {
   const [introDescription, setIntroDescription] = useState('');
   const [introImageUrl, setIntroImageUrl] = useState('');
   const [sections, setSections] = useState<ContentSection[]>([]);
+  const [linkedProducts, setLinkedProducts] = useState<LinkedProduct[]>([]);
 
   // Pre-populate data if in Edit Mode — real backend fetch
   useEffect(() => {
@@ -57,6 +63,7 @@ export const ProjectForm: React.FC = () => {
           setIntroDescription(p.introDescription || '');
           setIntroImageUrl(p.introImageUrl || '');
           setSections(Array.isArray(p.sections) ? p.sections : []);
+          setLinkedProducts(Array.isArray(p.linkedProducts) ? p.linkedProducts : []);
         })
         .catch((err) => {
           console.error(err);
@@ -84,6 +91,12 @@ export const ProjectForm: React.FC = () => {
       return;
     }
 
+    const linkError = validateLinks(linkedProducts);
+    if (linkError) {
+      alert(linkError);
+      return;
+    }
+
     const payload = {
       title: title.trim(),
       category,
@@ -97,7 +110,8 @@ export const ProjectForm: React.FC = () => {
       introImageUrl: introImageUrl.trim(),
       sections: sections
         .filter(s => s.title.trim() || s.imageUrl.trim() || s.description.trim())
-        .map(s => ({ ...s, title: s.title.trim(), imageUrl: s.imageUrl.trim(), description: s.description.trim() }))
+        .map(s => ({ ...s, title: s.title.trim(), imageUrl: s.imageUrl.trim(), description: s.description.trim() })),
+      linkedProducts: cleanLinks(linkedProducts)
     };
 
     setSubmitting(true);
@@ -229,6 +243,15 @@ export const ProjectForm: React.FC = () => {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Linked products */}
+        <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '1.25rem' }}>
+          <LinkedProductsEditor
+            value={linkedProducts}
+            onChange={setLinkedProducts}
+            helperText="(products used in or related to this project — visitors can click through to buy them)"
+          />
         </div>
 
         {/* Status */}

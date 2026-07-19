@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getProjectById, getProjects } from '../api/projectService';
 import { useCart } from '../context/CartContext';
 import ProjectCard from '../components/ProjectCard';
+import { resolveProductLink, isExternalLink, usableLinks } from '../utils/productLink';
 
 export default function ProjectDetail() {
   const { id } = useParams();
@@ -54,6 +55,7 @@ export default function ProjectDetail() {
   if (!project) return <div className="container" style={{ padding: '80px 0' }} />;
 
   const imgSrc = typeof project.imageUrl === 'string' && project.imageUrl.startsWith('http') ? project.imageUrl : null;
+  const productLinks = usableLinks(project.linkedProducts);
   const badgeLabel = project.isNewArrival ? '🆕 New' : project.isFeatured ? '⭐ Featured' : null;
 
   return (
@@ -136,6 +138,30 @@ export default function ProjectDetail() {
                 <p style={{ color: 'var(--text-sub)', lineHeight: 1.6 }}>{section.description}</p>
               </div>
             ))}
+          </div>
+        </section>
+      )}
+
+      {productLinks.length > 0 && (
+        <section className="section">
+          <div className="section-head"><h2>Products Used In This Project</h2></div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {productLinks.map((link) => {
+              const href = resolveProductLink(link);
+              const rowStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', border: '1px solid var(--border)', borderRadius: '10px', textDecoration: 'none', color: 'inherit' };
+
+              return isExternalLink(href) ? (
+                <a key={link.id} href={href} target="_blank" rel="noreferrer" style={rowStyle}>
+                  <span style={{ fontWeight: 600 }}>🔗 {link.label}</span>
+                  <span style={{ color: 'var(--cyan)', fontSize: '0.85rem' }}>View product →</span>
+                </a>
+              ) : (
+                <Link key={link.id} to={href} style={rowStyle}>
+                  <span style={{ fontWeight: 600 }}>🔗 {link.label}</span>
+                  <span style={{ color: 'var(--cyan)', fontSize: '0.85rem' }}>View product →</span>
+                </Link>
+              );
+            })}
           </div>
         </section>
       )}

@@ -14,6 +14,9 @@ api.interceptors.request.use((config: any) => {
   return config;
 });
 
+export type { LinkedProduct } from '../components/LinkedProductsEditor';
+import type { LinkedProduct } from '../components/LinkedProductsEditor';
+
 export interface ContentSection {
   id: string;
   title: string;
@@ -33,6 +36,7 @@ export interface ProjectPayload {
   introDescription: string;
   introImageUrl: string;
   sections: ContentSection[];
+  linkedProducts: LinkedProduct[];
 }
 
 export const getProjects = async (filters: Record<string, any> = {}) => {

@@ -1,30 +1,21 @@
 // src/pages/BlogForm.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import productsData from '../products.json';
 import {
   BlogPost,
-  LinkedProduct,
   BlogStatus,
-  makeLinkId,
   getBlog,
   createBlog,
   updateBlog
 } from '../api/blogService';
-
-const blankLink = (): LinkedProduct => ({
-  id: makeLinkId(),
-  productId: '',
-  label: '',
-  url: ''
-});
+import LinkedProductsEditor, {
+  LinkedProduct,
+  cleanLinks,
+  validateLinks
+} from '../components/LinkedProductsEditor';
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '0.625rem', border: '1px solid #d1d5db', borderRadius: '0.375rem', boxSizing: 'border-box', fontSize: '0.95rem'
-};
-
-const linkCardStyle: React.CSSProperties = {
-  border: '1px solid #e2e8f0', borderRadius: '0.5rem', padding: '1rem', backgroundColor: '#f8fafc', display: 'flex', flexDirection: 'column', gap: '0.75rem'
 };
 
 export const BlogForm: React.FC = () => {
@@ -77,27 +68,6 @@ export const BlogForm: React.FC = () => {
     setImgStatus(trimmed ? 'loading' : 'idle');
   }, [imageUrl]);
 
-  const addLink = () => setLinkedProducts(prev => [...prev, blankLink()]);
-  const removeLink = (linkId: string) => setLinkedProducts(prev => prev.filter(l => l.id !== linkId));
-  const updateLink = (linkId: string, patch: Partial<LinkedProduct>) =>
-    setLinkedProducts(prev => prev.map(l => (l.id === linkId ? { ...l, ...patch } : l)));
-
-  // When a user picks a catalog product from the dropdown, auto-fill the label & link
-  const handlePickCatalogProduct = (linkId: string, productId: string) => {
-    if (!productId) {
-      updateLink(linkId, { productId: '' });
-      return;
-    }
-    const product = productsData.products.find((p: any) => p.id === productId);
-    if (product) {
-      updateLink(linkId, {
-        productId,
-        label: product.name,
-        url: `/products/${product.id}`
-      });
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -112,15 +82,13 @@ export const BlogForm: React.FC = () => {
       return;
     }
 
-    const cleanedLinks = linkedProducts
-      .filter(l => l.label.trim() || l.url.trim())
-      .map(l => ({ ...l, label: l.label.trim(), url: l.url.trim() }));
-
-    const missingUrl = cleanedLinks.find(l => l.label && !l.url);
-    if (missingUrl) {
-      alert(`Please add a link URL for "${missingUrl.label}", or remove that entry.`);
+    const linkError = validateLinks(linkedProducts);
+    if (linkError) {
+      alert(linkError);
       return;
     }
+
+    const cleanedLinks = cleanLinks(linkedProducts);
 
     const payload = {
       title: title.trim(),
@@ -237,63 +205,13 @@ export const BlogForm: React.FC = () => {
           <textarea rows={5} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Write the article summary or full content..." style={{ ...inputStyle, fontFamily: 'inherit', resize: 'vertical' }} />
         </div>
 
-        {/* Dynamic linked products */}
+        {/* Linked products */}
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-            <label style={{ fontSize: '0.95rem', fontWeight: '700', color: '#1e293b' }}>
-              Linked Products <span style={{ fontWeight: 400, color: '#94a3b8', fontSize: '0.8rem' }}>(readers can click through to view these on the site)</span>
-            </label>
-            <button type="button" onClick={addLink} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', padding: '0.4rem 0.75rem', backgroundColor: '#e0f2fe', color: '#0369a1', border: 'none', borderRadius: '0.375rem', fontWeight: '600', fontSize: '0.8rem', cursor: 'pointer' }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-              Add Product Link
-            </button>
-          </div>
-
-          {linkedProducts.length === 0 ? (
-            <p style={{ color: '#94a3b8', fontStyle: 'italic', margin: 0, fontSize: '0.875rem' }}>No product links added yet. Click "Add Product Link" to let readers click through to a product page.</p>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {linkedProducts.map((link, idx) => (
-                <div key={link.id} style={linkCardStyle}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#334155' }}>Product Link {idx + 1}</span>
-                    <button type="button" onClick={() => removeLink(link.id)} title="Remove link" style={{ backgroundColor: 'transparent', border: 'none', cursor: 'pointer', padding: '0.2rem' }}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2M10 11v6M14 11v6" />
-                      </svg>
-                    </button>
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#475569', marginBottom: '0.375rem' }}>Pick from Catalog (optional)</label>
-                    <select
-                      value={link.productId || ''}
-                      onChange={(e) => handlePickCatalogProduct(link.id, e.target.value)}
-                      style={{ ...inputStyle, backgroundColor: '#fff', cursor: 'pointer' }}
-                    >
-                      <option value="">-- Custom link (no catalog product) --</option>
-                      {productsData.products.map((p: any) => (
-                        <option key={p.id} value={p.id}>{p.name}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="form-row" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                    <div style={{ flex: 1, minWidth: '200px' }}>
-                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#475569', marginBottom: '0.375rem' }}>Display Label</label>
-                      <input type="text" value={link.label} onChange={(e) => updateLink(link.id, { label: e.target.value, productId: '' })} placeholder="e.g. ProVision X15 Ultra" style={inputStyle} />
-                    </div>
-                    <div style={{ flex: 1, minWidth: '200px' }}>
-                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#475569', marginBottom: '0.375rem' }}>Link URL</label>
-                      <input type="text" value={link.url} onChange={(e) => updateLink(link.id, { url: e.target.value, productId: '' })} placeholder="/products/provisionx15" style={inputStyle} />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <LinkedProductsEditor
+            value={linkedProducts}
+            onChange={setLinkedProducts}
+            helperText="(readers can click through to view these products on the site)"
+          />
         </div>
 
         {/* Footer buttons */}

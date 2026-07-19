@@ -1,9 +1,21 @@
 const prisma = require("../prisma/client");
 
-// Normalize whatever the client sends for linkedProducts into a plain array,
-// so the Json column always holds a predictable shape.
-const cleanLinks = (linkedProducts) =>
-    Array.isArray(linkedProducts) ? linkedProducts : [];
+// Normalize whatever the client sends for linkedProducts into a predictable
+// array of { id, productId, label, url } objects. `productId` is the real
+// numeric Product id from the database — it is what the storefront uses to
+// build the /product/:id link, so it must survive the round-trip.
+const cleanLinks = (linkedProducts) => {
+    if (!Array.isArray(linkedProducts)) return [];
+
+    return linkedProducts
+        .filter((l) => l && (l.label || l.url || l.productId))
+        .map((l, i) => ({
+            id: String(l.id || `link-${Date.now()}-${i}`),
+            productId: l.productId != null && l.productId !== "" ? String(l.productId) : "",
+            label: String(l.label || "").trim(),
+            url: String(l.url || "").trim()
+        }));
+};
 
 // =============================
 // Get All Blog Posts (Public)

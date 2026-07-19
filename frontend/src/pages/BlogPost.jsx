@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getBlog } from '../api/blogService';
+import { resolveProductLink, isExternalLink, usableLinks } from '../utils/productLink';
 
 const formatDate = (iso) => {
   if (!iso) return '';
@@ -51,7 +52,7 @@ export default function BlogPost() {
   }
 
   const paragraphs = toParagraphs(post.content);
-  const links = Array.isArray(post.linkedProducts) ? post.linkedProducts : [];
+  const links = usableLinks(post.linkedProducts);
 
   return (
     <div className="container" style={{ paddingBottom: '80px', maxWidth: '820px' }}>
@@ -85,16 +86,24 @@ export default function BlogPost() {
         <div style={{ marginTop: '32px' }}>
           <h3 style={{ fontFamily: 'Space Grotesk, sans-serif', marginBottom: '12px' }}>Featured Products</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {links.map((link) => (
-              <Link
-                key={link.id}
-                to={link.url}
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', border: '1px solid var(--border)', borderRadius: '10px', textDecoration: 'none', color: 'inherit' }}
-              >
-                <span style={{ fontWeight: 600 }}>🔗 {link.label}</span>
-                <span style={{ color: 'var(--cyan)', fontSize: '0.85rem' }}>View product →</span>
-              </Link>
-            ))}
+            {links.map((link) => {
+              const href = resolveProductLink(link);
+              const rowStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', border: '1px solid var(--border)', borderRadius: '10px', textDecoration: 'none', color: 'inherit' };
+
+              // External links need a plain <a>; internal ones use <Link> so
+              // the SPA router handles them.
+              return isExternalLink(href) ? (
+                <a key={link.id} href={href} target="_blank" rel="noreferrer" style={rowStyle}>
+                  <span style={{ fontWeight: 600 }}>🔗 {link.label}</span>
+                  <span style={{ color: 'var(--cyan)', fontSize: '0.85rem' }}>View product →</span>
+                </a>
+              ) : (
+                <Link key={link.id} to={href} style={rowStyle}>
+                  <span style={{ fontWeight: 600 }}>🔗 {link.label}</span>
+                  <span style={{ color: 'var(--cyan)', fontSize: '0.85rem' }}>View product →</span>
+                </Link>
+              );
+            })}
           </div>
         </div>
       )}

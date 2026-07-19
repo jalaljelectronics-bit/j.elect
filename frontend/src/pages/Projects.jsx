@@ -1,62 +1,117 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { getMyOrders } from '../api/orderService';
+import { useSearchParams } from 'react-router-dom';
+import { getProjects } from '../api/projectService';
+import ProjectCard from '../components/ProjectCard';
 
-const STATUS_LABELS = {
-  pending: '⏳ Pending',
-  processing: '⚙️ Processing',
-  shipped: '📦 Shipped',
-  delivered: '✅ Delivered',
-  cancelled: '❌ Cancelled',
-};
+const CATEGORIES = ['Commercial', 'University'];
 
-export default function Orders() {
-  const [orders, setOrders] = useState([]);
+export default function Projects() {
+  const [params, setParams] = useSearchParams();
+  const [projects, setProjects] = useState([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalProjects, setTotalProjects] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const activeCategory = params.get('category') || '';
+  const page = Number(params.get('page') || 1);
+
   useEffect(() => {
-    getMyOrders()
-      .then(setOrders)
-      .catch((err) => setError(err.response?.data?.message || 'Could not load orders.'))
+    setLoading(true);
+    setError(null);
+
+    getProjects({
+      category: activeCategory || undefined,
+      page,
+      limit: 12,
+    })
+      .then((data) => {
+        setProjects(data.projects || []);
+        setTotalPages(data.totalPages || 1);
+        setTotalProjects(data.totalProjects || 0);
+      })
+      .catch((err) => {
+        console.error('Failed to load projects:', err);
+        setError('Could not load projects. Please try again.');
+      })
       .finally(() => setLoading(false));
-  }, []);
+  }, [activeCategory, page]);
 
-  if (loading) return <div className="container" style={{ padding: '60px 0' }}>Loading your orders...</div>;
-  if (error) return <div className="container" style={{ padding: '60px 0', color: '#c0392b' }}>{error}</div>;
-
-  if (orders.length === 0) {
-    return (
-      <div className="container" style={{ padding: '60px 0', textAlign: 'center' }}>
-        <h1>No orders yet</h1>
-        <p>Once you place an order, it'll show up here.</p>
-        <Link to="/products" className="btn-primary">Browse Products</Link>
-      </div>
-    );
-  }
+  const updateParams = (overrides) => {
+    const next = {
+      ...(activeCategory ? { category: activeCategory } : {}),
+      ...(page > 1 ? { page: String(page) } : {}),
+      ...overrides,
+    };
+    if (!('page' in overrides)) delete next.page;
+    Object.keys(next).forEach((k) => (next[k] === '' || next[k] == null) && delete next[k]);
+    setParams(next);
+  };
 
   return (
-    <div className="container" style={{ padding: '60px 0' }}>
-      <h1>My Orders</h1>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '24px' }}>
-        {orders.map((order) => (
-          <Link
-            key={order.id}
-            to={`/orders/${order.id}`}
-            className="order-list-item"
+    <div className="container">
+      <div className="page-header">
+        <h1>Project Kits</h1>
+        <p>Browse commercial builds and university lab projects.</p>
+      </div>
+
+      <div className="shop-layout" style={{ paddingBottom: '80px' }}>
+        <aside className="sidebar">
+          <h4>Categories</h4>
+          <div
+            className={`sidebar-cat${!activeCategory ? ' active' : ''}`}
+            onClick={() => updateParams({})}
           >
-            <div>
-              <div style={{ fontWeight: 600 }}>Order #{order.id}</div>
-              <div style={{ fontSize: '0.85rem', color: '#64748b' }}>
-                {new Date(order.createdAt).toLocaleDateString()} · {order.items.length} item{order.items.length !== 1 ? 's' : ''}
-              </div>
+            <span>All Projects</span>
+          </div>
+          {CATEGORIES.map((cat) => (
+            <div
+              key={cat}
+              className={`sidebar-cat${activeCategory === cat ? ' active' : ''}`}
+              onClick={() => updateParams({ category: cat })}
+            >
+              <span>{cat}</span>
             </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontWeight: 600 }}>Rs {order.total.toLocaleString()}</div>
-              <div style={{ fontSize: '0.85rem' }}>{STATUS_LABELS[order.status] || order.status}</div>
+          ))}
+        </aside>
+
+        <div>
+          <div className="toolbar">
+            <span style={{ fontSize: '0.85rem', color: 'var(--gray-mid)' }}>
+              {loading ? 'Loading…' : `${totalProjects} project${totalProjects !== 1 ? 's' : ''} found`}
+            </span>
+          </div>
+
+          {error && <div className="empty-state">{error}</div>}
+
+          {!error && !loading && projects.length === 0 ? (
+            <div className="empty-state">No projects match your filters.</div>
+          ) : (
+            <div className="product-grid">
+              {projects.map((p) => <ProjectCard key={p.id} project={p} />)}
             </div>
-          </Link>
-        ))}
+          )}
+
+          {totalPages > 1 && (
+            <div className="pagination" style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '30px' }}>
+              <button
+                className="btn-ghost"
+                disabled={page <= 1}
+                onClick={() => updateParams({ page: String(page - 1) })}
+              >
+                Previous
+              </button>
+              <span style={{ alignSelf: 'center', fontSize: '0.85rem' }}>Page {page} of {totalPages}</span>
+              <button
+                className="btn-ghost"
+                disabled={page >= totalPages}
+                onClick={() => updateParams({ page: String(page + 1) })}
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

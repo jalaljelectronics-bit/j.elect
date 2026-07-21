@@ -47,6 +47,7 @@ export default function OrderDetail() {
           <div key={item.id} style={{
             display: 'flex', justifyContent: 'space-between', padding: '12px 16px',
             background: i % 2 === 0 ? '#fff' : '#f8fafc',
+            color: '#000',
             borderBottom: i === order.items.length - 1 ? 'none' : '1px solid #e2e8f0'
           }}>
             <span>{item.itemName} <span style={{ color: '#64748b' }}>x{item.quantity}</span></span>
@@ -64,7 +65,7 @@ export default function OrderDetail() {
         </div>
       </div>
 
-      <div style={{ marginTop: '20px', fontSize: '0.85rem', color: '#334155' }}>
+      <div style={{ marginTop: '20px', fontSize: '0.85rem', color: '#fff' }}>
         <div><strong>Shipping to:</strong> {order.shippingAddress}</div>
         <div><strong>Method:</strong> {order.shippingMethod}</div>
         <div><strong>Payment:</strong> {order.paymentMethod}</div>

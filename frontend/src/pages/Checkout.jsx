@@ -163,11 +163,11 @@ export default function Checkout() {
               <button
                 type="button"
                 className="btn-secondary"
-                style={{ marginTop: '10px' }}
+                style={{ marginTop: '10px', color: '#fff' }}
                 onClick={() => setEditing(true)}
               >
-                Use a different address
-              </button>
+  Use a different address
+</button>
             </div>
           ) : (
             <div className="form-grid">

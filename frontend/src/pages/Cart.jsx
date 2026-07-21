@@ -121,7 +121,7 @@ export default function Cart() {
 
             <div style={{ marginTop: '20px' }}>
               {!showAddressBox ? (
-                <button className="btn-secondary" onClick={() => setShowAddressBox(true)}>
+                <button className="btn-secondary" style={{ color: '#fff' }} onClick={() => setShowAddressBox(true)}>
                   📍 Change delivery address
                 </button>
               ) : (
@@ -188,12 +188,12 @@ export default function Cart() {
             </button>
             <button
               className="btn-secondary"
-              style={{ width: '100%', justifyContent: 'center', marginTop: '10px' }}
+              style={{ width: '100%', justifyContent: 'center', marginTop: '10px', color: '#fff' }}
               onClick={handleWhatsAppOrder}
               disabled={!selectedShipping || placingWhatsApp}
             >
-              {placingWhatsApp ? 'Placing order...' : '💬 Order via WhatsApp'}
-            </button>
+  {placingWhatsApp ? 'Placing order...' : '💬 Order via WhatsApp'}
+</button>
           </div>
         </div>
       )}

@@ -599,20 +599,6 @@ export default function Home() {
             ))}
           </div>
         </section>
-
-        <section className="section" style={{ paddingBottom: '0' }}>
-          <div className="section-divider" />
-          <div className="form-card newsletter-inner">
-            <div>
-              <h2 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '1.3rem' }}>Stay Ahead of the <span style={{ color: 'var(--cyan)' }}>Tech Curve</span></h2>
-              <p style={{ fontSize: '0.9rem', color: 'var(--text-sub)', marginTop: '8px' }}>Get early access to launches, exclusive deals, and expert picks — straight to your inbox.</p>
-            </div>
-            <form style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }} onSubmit={(e) => e.preventDefault()}>
-              <input type="email" placeholder="Your email address" required style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: '10px', padding: '12px 16px', color: 'var(--text)', minWidth: '220px' }} />
-              <button className="btn-primary" type="submit">Subscribe →</button>
-            </form>
-          </div>
-        </section>
       </div>
     </>
   );

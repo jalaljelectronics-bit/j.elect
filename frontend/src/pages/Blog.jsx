@@ -40,7 +40,7 @@ export default function Blog() {
   return (
     <div className="container" style={{ paddingBottom: '80px' }}>
       <div className="page-header">
-        <h1>The Vision Giants Blog</h1>
+        <h1>The J.Electronics Blog</h1>
         <p>Tutorials, build guides, and tips from makers and engineers — for makers and engineers.</p>
       </div>
 

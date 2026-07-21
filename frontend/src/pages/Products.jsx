@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getProducts } from '../api/productService';
 import { getCategories } from '../api/categoryService';
@@ -21,6 +21,9 @@ export default function Products() {
   const [totalProducts, setTotalProducts] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const gridRef = useRef(null);
+  const isFirstRender = useRef(true);
 
   const activeCategory = params.get('category') || '';
   const query = params.get('q') || '';
@@ -62,6 +65,21 @@ export default function Products() {
       })
       .finally(() => setLoading(false));
   }, [activeCategory, query, sort, page]);
+
+  // The Previous/Next buttons sit at the BOTTOM of the grid, so after a page
+  // change the user would otherwise be left staring at the footer while a
+  // fresh set of products loads off-screen above them. Scroll back up to the
+  // top of the results column whenever the page number changes.
+  //
+  // Skipped on first render so that deep-linking to ?page=3 (or landing here
+  // from a shared URL) doesn't yank the viewport around on arrival.
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [page]);
 
   // Single source of truth for building the next URL params — always carries forward
   // the current category/query/sort/page unless explicitly overridden, so no filter
@@ -107,7 +125,7 @@ export default function Products() {
           ))}
         </aside>
 
-        <div>
+        <div ref={gridRef} style={{ scrollMarginTop: '110px' }}>
           <div className="toolbar">
             <span style={{ fontSize: '0.85rem', color: 'var(--gray-mid)' }}>
               {loading ? 'Loading…' : `${totalProducts} products found`}

@@ -50,10 +50,10 @@ export default function Addresses() {
 
     return (
       <div>
-        <h3 style={{ marginBottom: '8px' }}>{label}</h3>
+        <h3 style={{ marginBottom: '12px' }}>{label}</h3>
 
         {isEditing ? (
-          <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '320px' }}>
+          <form onSubmit={handleSave} className="address-form">
             <input placeholder="Full name" required value={form.fullName}
               onChange={(e) => setForm((f) => ({ ...f, fullName: e.target.value }))} />
             <input placeholder="Street address" required value={form.street}
@@ -62,11 +62,11 @@ export default function Addresses() {
               onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} />
             <input placeholder="Phone" required value={form.phone}
               onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} />
-            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+            <div className="address-form-actions">
               <button className="btn-primary" type="submit" disabled={saving}>
                 {saving ? 'Saving...' : 'Save address'}
               </button>
-              <button type="button" onClick={() => setEditingType(null)} style={{ background: 'none', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0 14px' }}>
+              <button type="button" className="btn-cancel" onClick={() => setEditingType(null)}>
                 Cancel
               </button>
             </div>
@@ -77,16 +77,18 @@ export default function Addresses() {
             <div>{addr.street}</div>
             <div>{addr.city}</div>
             <div>{addr.phone}</div>
-            <span onClick={() => startEdit(type)} style={{ color: '#3b5a80', cursor: 'pointer', textDecoration: 'underline', fontSize: '0.85rem' }}>
+            <span onClick={() => startEdit(type)} className="account-link"
+              style={{ cursor: 'pointer', textDecoration: 'underline', fontSize: '0.85rem' }}>
               Edit address
             </span>
           </div>
         ) : (
           <div>
-            <span onClick={() => startEdit(type)} style={{ color: '#3b5a80', cursor: 'pointer', textDecoration: 'underline' }}>
+            <span onClick={() => startEdit(type)} className="account-link"
+              style={{ cursor: 'pointer', textDecoration: 'underline' }}>
               Add {label.toLowerCase()}
             </span>
-            <p style={{ fontStyle: 'italic', color: 'var(--text-sub, #64748b)', fontSize: '0.85rem', marginTop: '4px' }}>
+            <p style={{ fontStyle: 'italic', color: 'var(--text-sub)', fontSize: '0.85rem', marginTop: '4px' }}>
               You have not set up this type of address yet.
             </p>
           </div>
@@ -97,10 +99,10 @@ export default function Addresses() {
 
   return (
     <div>
-      <p style={{ color: 'var(--text-sub, #64748b)', marginBottom: '24px' }}>
+      <p style={{ color: 'var(--text-sub)', marginBottom: '24px' }}>
         The following addresses will be used on the checkout page by default.
       </p>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
+      <div className="address-grid">
         {renderColumn('billing', 'Billing address')}
         {renderColumn('shipping', 'Shipping address')}
       </div>

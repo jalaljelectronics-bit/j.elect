@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext';
 import { getCategories } from '../api/categoryService';
 
 export default function Footer() {
-  const { theme } = useTheme();
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
@@ -20,7 +18,7 @@ export default function Footer() {
           <div className="footer-col">
             <Link to="/" className="logo" style={{ marginBottom: '14px', display: 'flex' }}>
               <img
-                src={theme === 'light' ? '/logo-light.png' : '/logo-dark.png'}
+                src="/logo-dark.png"
                 alt="J. Electronics"
                 className="logo-wordmark"
               />

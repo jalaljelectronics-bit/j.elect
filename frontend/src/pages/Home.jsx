@@ -7,10 +7,14 @@ import ProductCard from '../components/ProductCard';
 import ProjectCard from '../components/ProjectCard';
 import BorderGlow from '../components/BorderGlow';
 import SpotlightCard from '../components/SpotlightCard';
+import { useCart } from '../context/CartContext';
+import { formatPrice } from '../data/catalog';
+
+const WHATSAPP_NUMBER = '923176572690';
 
 const FEATURES = [
   ['Same-Day Dispatch', "Order before 3 PM and your gear ships the same day. We don't believe in waiting when you're excited about new tech."],
-  ['2-Year Warranty', "Every device sold on Vision Giants includes a full 2-year manufacturer's warranty — no asterisks, no hidden terms."],
+  ['2-Year Warranty', "Every device sold on J.Electronics includes a full 2-year manufacturer's warranty — no asterisks, no hidden terms."],
   ['100% Authentic', 'We source directly from certified distributors. Counterfeits never touch our shelves. Your trust is non-negotiable.'],
   ['0% Instalments', 'Split any purchase into 3, 6, or 12 months with zero interest via EasyPaisa, JazzCash, or bank instalments.'],
   ['30-Day Returns', 'Changed your mind? Return anything within 30 days, no questions asked. Full refund, hassle-free.'],
@@ -51,6 +55,7 @@ const MARQUEE = [
 ];
 
 export default function Home() {
+  const { addToCart } = useCart();
   const [categories, setCategories] = useState([]);
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [featuredProjects, setFeaturedProjects] = useState([]);
@@ -303,28 +308,39 @@ export default function Home() {
   return (
     <>
       <section className="hero" style={{ paddingTop: '64px' }}>
-        <div className="hero-eyebrow">✨ New 2025 Collection Live Now</div>
-        <h1>See the <span>Future</span> of Technology</h1>
-        <p>
-          From 3D printers to Arduino modules and robotics parts — Vision Giants brings you the sharpest
-          electronics and DIY components, curated for makers who demand more.
-        </p>
-        <div className="hero-actions">
-          <button className="btn-primary" onClick={() => navigate('/products')}>Explore Products</button>
-          <button className="btn-primary" onClick={() => navigate('/projects')}>Explore Projects</button>
-          <button className="btn-ghost" onClick={() => navigate('/contact')}>Get in Touch</button>
-        </div>
-        <div className="hero-stats">
-          {[
-            [productCount, 'Products'],
-            [projectCount, 'Projects'],
-            ['98%', 'Satisfaction'],
-          ].map(([val, label]) => (
-            <div key={label}>
-              <div style={{ fontFamily: 'Orbitron, monospace', fontWeight: 700, fontSize: '1.4rem', color: 'var(--cyan)' }}>{val}</div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--gray-mid)' }}>{label}</div>
-            </div>
-          ))}
+        <video
+          className="hero-video-bg"
+          src="/hero.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+        />
+        <div className="hero-video-overlay" />
+
+        <div className="hero-content">
+          <h1>See the <span>Future</span> of Technology</h1>
+          <p>
+            From 3D printers to Arduino modules and robotics parts — J.Electronics brings you the sharpest
+            electronics and DIY components, curated for makers who demand more.
+          </p>
+          <div className="hero-actions">
+            <button className="btn-primary" onClick={() => navigate('/products')}>Explore Products</button>
+            <button className="btn-primary" onClick={() => navigate('/projects')}>Explore Projects</button>
+            <button className="btn-ghost" onClick={() => navigate('/contact')}>Get in Touch</button>
+          </div>
+          <div className="hero-stats">
+            {[
+              [productCount, 'Products'],
+              [projectCount, 'Projects'],
+              ['98%', 'Satisfaction'],
+            ].map(([val, label]) => (
+              <div key={label}>
+                <div style={{ fontFamily: 'Orbitron, monospace', fontWeight: 700, fontSize: '1.4rem', color: 'var(--cyan)' }}>{val}</div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--gray-mid)' }}>{label}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -384,7 +400,11 @@ export default function Home() {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg>
             </button>
             <div className="product-carousel" ref={newArrivalsRef}>
-              {newArrivals.map((item) => (
+              {newArrivals.map((item) => {
+                const whatsappLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+                  `Hi! I want to buy: ${item.name} (${formatPrice(item.price)})`
+                )}`;
+                return (
                 <div key={item.id} className="product-card">
                   <div style={{ position: 'absolute', top: '10px', left: '10px', background: 'var(--cyan)', color: '#000', fontSize: '0.7rem', fontWeight: 700, padding: '3px 8px', borderRadius: '6px', zIndex: 1 }}>
                     NEW
@@ -406,35 +426,42 @@ export default function Home() {
                     >
                       {item.name}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                      <span style={{ fontSize: '0.95rem', color: 'var(--cyan)', fontWeight: 700 }}>Rs {item.price.toLocaleString()}</span>
-                      <button
-                        onClick={(e) => e.stopPropagation()}
-                        style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'var(--bg3)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                        aria-label="Add to cart"
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-                      </button>
+                    <div style={{ marginBottom: '10px' }}>
+                      <span style={{ fontSize: '0.95rem', color: 'var(--cyan)', fontWeight: 700 }}>{formatPrice(item.price)}</span>
                     </div>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <button
-                        onClick={(e) => { e.stopPropagation(); navigate(item.type === 'project' ? `/project/${item.id}` : `/product/${item.id}`); }}
+                        onClick={(e) => { e.stopPropagation(); addToCart(item.id, item.type, 1); navigate('/checkout'); }}
                         className="btn-primary"
                         style={{ flex: 1, padding: '9px', fontSize: '0.8rem' }}
                       >
                         Buy Now
                       </button>
                       <button
-                        onClick={(e) => { e.stopPropagation(); navigate(item.type === 'project' ? `/project/${item.id}` : `/product/${item.id}`); }}
+                        onClick={(e) => { e.stopPropagation(); addToCart(item.id, item.type, 1); }}
                         className="btn-ghost"
                         style={{ flex: 1, padding: '9px', fontSize: '0.8rem' }}
                       >
-                        Quick View
+                        🛒 Add to Cart
                       </button>
                     </div>
+                    <a
+                      href={whatsappLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="btn-ghost"
+                      style={{ display: 'flex', marginTop: '8px', padding: '9px', fontSize: '0.8rem', alignItems: 'center', justifyContent: 'center', gap: '6px', textDecoration: 'none' }}
+                    >
+                      <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15">
+                        <path d="M17.6 6.32A8.86 8.86 0 0 0 12.05 4a8.94 8.94 0 0 0-7.74 13.4L3 21l3.7-1.27a8.93 8.93 0 0 0 4.34 1.1h.01a8.94 8.94 0 0 0 8.93-8.93 8.87 8.87 0 0 0-2.38-5.58zM12.05 19.4h-.01a7.4 7.4 0 0 1-3.77-1.03l-.27-.16-2.8.95.94-2.73-.18-.28A7.42 7.42 0 1 1 19.5 12a7.45 7.45 0 0 1-7.45 7.4z" />
+                      </svg>
+                      WhatsApp
+                    </a>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
             <button className="carousel-arrow next" onClick={() => scrollNewArrivals(1)} aria-label="Next">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
@@ -522,7 +549,7 @@ export default function Home() {
         <section className="section">
           <div className="section-divider" />
           <div className="section-head" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center', flexDirection: 'column' }}>
-            <h2>Why Vision Giants?</h2>
+            <h2>Why J.Electronics?</h2>
             <p style={{ maxWidth: '520px', margin: '0 auto' }}>We're built for tech lovers who refuse to settle. Every order, every pixel, every watt — obsessively curated.</p>
           </div>
           <div className="features-grid">

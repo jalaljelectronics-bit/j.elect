@@ -26,14 +26,14 @@ export default function Orders() {
   if (error) return <div className="container" style={{ padding: '60px 0', color: '#c0392b' }}>{error}</div>;
 
   if (orders.length === 0) {
-    return (
-      <div className="container" style={{ padding: '60px 0', textAlign: 'center' }}>
-        <h1>No orders yet</h1>
-        <p>Once you place an order, it'll show up here.</p>
-        <Link to="/products" className="btn-primary">Browse Products</Link>
-      </div>
-    );
-  }
+  return (
+    <div className="container" style={{ padding: '60px 0', textAlign: 'center' }}>
+      <h1 style={{ marginBottom: '12px' }}>No orders yet</h1>
+      <p style={{ marginBottom: '28px' }}>Once you place an order, it'll show up here.</p>
+      <Link to="/products" className="btn-primary">Browse Products</Link>
+    </div>
+  );
+}
 
   return (
     <div className="container" style={{ padding: '60px 0' }}>

@@ -7,7 +7,7 @@ import ProductCard from '../components/ProductCard';
 // Maps the UI's sort labels to the exact keys the backend switch statement understands.
 // "rating" has no backend equivalent — sorted client-side on the current page only (see below).
 const SORT_MAP = {
-  featured: undefined, // backend defaults to newest-first when sort is omitted
+  featured: undefined, // backend defaults       to newest-first when sort is omitted
   'price-asc': 'price_asc',
   'price-desc': 'price_desc',
   rating: undefined,

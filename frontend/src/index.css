@@ -429,6 +429,9 @@ footer.site-footer { background: var(--footer-bg); color: #E5E7EB; padding: 64px
   position: relative; overflow: hidden; min-height: 340px;
   display: flex; align-items: center;
   background: var(--bg); border-bottom: 1px solid var(--border); margin-bottom: 8px;
+  margin-top: -114px;
+  padding-top: 114px;
+  box-sizing: border-box;
 }
 .page-banner-media { position: absolute; inset: 0; background-image: var(--banner-image); background-size: cover; background-position: center left; filter: saturate(0.55); }
 .page-banner-veil {
@@ -640,7 +643,8 @@ footer.site-footer { background: var(--footer-bg); color: #E5E7EB; padding: 64px
 .account-link:hover { color: var(--cyan-dim); }
 @media (max-width: 960px) { .dashboard-cards { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 560px) {
-  .dashboard-cards { grid-template-columns: 1fr; }
+  .dashboard-cards { grid-template-columns: 1fr; gap: 14px; }
+  .dashboard-card { min-height: 120px; padding: 20px; }
 }
 
 .address-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
@@ -682,9 +686,12 @@ footer.site-footer { background: var(--footer-bg); color: #E5E7EB; padding: 64px
 .projects-slider {
   position: relative;
   width: 100%;
-  min-height: 460px;
+  min-height: 600px;
   overflow: hidden;
   background: var(--bg2);
+  margin-top: -114px;
+  padding-top: 114px;
+  box-sizing: border-box;
 }
 
 .projects-slide {
@@ -711,8 +718,6 @@ footer.site-footer { background: var(--footer-bg); color: #E5E7EB; padding: 64px
   background: linear-gradient(100deg, rgba(10,15,25,0.15) 0%, rgba(10,15,25,0.55) 45%, rgba(10,15,25,0.15) 100%);
 }
 
-/* The circle itself: holds the badge image + a dark veil so text stays readable
-   regardless of what's in the photo. */
 .projects-slide-badge {
   position: relative;
   z-index: 2;
@@ -804,7 +809,7 @@ footer.site-footer { background: var(--footer-bg); color: #E5E7EB; padding: 64px
 }
 
 @media (max-width: 860px) {
-  .projects-slider { min-height: 380px; }
+  .projects-slider { min-height: 480px; }
   .projects-slide-badge {
     margin: 0 auto;
     max-width: 90%;

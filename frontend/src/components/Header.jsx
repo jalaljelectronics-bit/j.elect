@@ -144,9 +144,9 @@ export default function Header() {
                   )}
                   {[
                     ['/account', 'Dashboard'],
-                    ['/orders', 'My Orders'],
-                    ['/account', 'Account details'],
-                    ['/addresses', 'Addresses'],
+                    ['/account/orders', 'My Orders'],
+                    ['/account/details', 'Account details'],
+                    ['/account/addresses', 'Addresses'],
                   ].map(([to, label]) => (
                     <Link
                       key={label}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getProjects } from '../api/projectService';
 import ProjectCard from '../components/ProjectCard';
+import ProjectsBannerSlider from '../components/ProjectsBannerSlider';
 
 const CATEGORIES = ['Commercial', 'University'];
 
@@ -49,68 +50,67 @@ export default function Projects() {
   };
 
   return (
-    <div className="container">
-      <div className="page-header">
-        <h1>Project Kits</h1>
-        <p>Browse commercial builds and university lab projects.</p>
-      </div>
+    <div className="page-wrap">
+      <ProjectsBannerSlider />
 
-      <div className="shop-layout" style={{ paddingBottom: '80px' }}>
-        <aside className="sidebar">
-          <h4>Categories</h4>
-          <div
-            className={`sidebar-cat${!activeCategory ? ' active' : ''}`}
-            onClick={() => updateParams({})}
-          >
-            <span>All Projects</span>
-          </div>
-          {CATEGORIES.map((cat) => (
+      <div className="container">
+        <div className="shop-layout" style={{ paddingBottom: '80px', paddingTop: '32px' }}>
+          <aside className="sidebar">
+            <h4>Categories</h4>
             <div
-              key={cat}
-              className={`sidebar-cat${activeCategory === cat ? ' active' : ''}`}
-              onClick={() => updateParams({ category: cat })}
+              className={`sidebar-cat${!activeCategory ? ' active' : ''}`}
+              onClick={() => updateParams({})}
             >
-              <span>{cat}</span>
+              <span>All Projects</span>
             </div>
-          ))}
-        </aside>
+            {CATEGORIES.map((cat) => (
+              <div
+                key={cat}
+                className={`sidebar-cat${activeCategory === cat ? ' active' : ''}`}
+                onClick={() => updateParams({ category: cat })}
+              >
+                <span>{cat}</span>
+              </div>
+            ))}
+          </aside>
 
-        <div>
-          <div className="toolbar">
-            <span style={{ fontSize: '0.85rem', color: 'var(--gray-mid)' }}>
-              {loading ? 'Loading…' : `${totalProjects} project${totalProjects !== 1 ? 's' : ''} found`}
-            </span>
+          <div>
+            <div className="toolbar">
+              <span style={{ fontSize: '0.85rem', color: 'var(--gray-mid)' }}>
+                {loading ? 'Loading…' : `${totalProjects} project${totalProjects !== 1 ? 's' : ''} found`}
+              </span>
+            </div>
+
+            {error && <div className="empty-state">{error}</div>}
+
+            {!error && !loading && projects.length === 0 ? (
+              <div className="empty-state">No projects match your filters.</div>
+            ) : (
+              <div className="product-grid">
+                {projects.map((p) => <ProjectCard key={p.id} project={p} />)}
+              </div>
+            )}
+
+            {totalPages > 1 && (
+              <div className="pagination" style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '30px' }}>
+                <button
+                  className="btn-ghost"
+                  disabled={page <= 1}
+                  onClick={() => updateParams({ page: String(page - 1) })}
+                >
+                  Previous
+                </button>
+                <span style={{ alignSelf: 'center', fontSize: '0.85rem' }}>Page {page} of {totalPages}</span>
+                <button
+                  className="btn-ghost"
+                  disabled={page >= totalPages}
+                  onClick={() => updateParams({ page: String(page + 1) })}
+                >
+                  Next
+                </button>
+              </div>
+            )}
           </div>
-
-          {error && <div className="empty-state">{error}</div>}
-
-          {!error && !loading && projects.length === 0 ? (
-            <div className="empty-state">No projects match your filters.</div>
-          ) : (
-            <div className="product-grid">
-              {projects.map((p) => <ProjectCard key={p.id} project={p} />)}
-            </div>
-          )}
-
-          {totalPages > 1 && (
-            <div className="pagination" style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '30px' }}>
-              <button
-                className="btn-ghost"
-                disabled={page <= 1}
-                onClick={() => updateParams({ page: String(page - 1) })}
-              >
-                Previous
-              </button>
-              <span style={{ alignSelf: 'center', fontSize: '0.85rem' }}>Page {page} of {totalPages}</span>
-              <button
-                className="btn-ghost"
-                disabled={page >= totalPages}
-                onClick={() => updateParams({ page: String(page + 1) })}
-              >
-                Next
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </div>

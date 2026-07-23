@@ -63,7 +63,7 @@ export default function Footer() {
         </div>
         <div className="footer-bottom">
           <span>© {new Date().getFullYear()} Vision Giants. All rights reserved.</span>
-          <span>Built with 🖤 in Multan, Pakistan</span>
+          
         </div>
       </div>
     </footer>

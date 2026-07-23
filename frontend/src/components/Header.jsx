@@ -61,7 +61,7 @@ export default function Header() {
                 <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" />
               </svg>
             </a>
-            <a href="https://facebook.com/visiongiants" target="_blank" rel="noreferrer" title="Facebook">
+            <a href="https://www.facebook.com/profile.php?id=61552590364369&sk=directory_links&fb_profile_edit_entry_point=%7B%22feature%22%3A%22profile_directory%22%2C%22click_point%22%3A%22pencil_edit_directory_section%22%2C%22additional_metadata%22%3A%7B%22section_type%22%3A%22links%22%7D%7" target="_blank" rel="noreferrer" title="Facebook">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
               </svg>
@@ -87,6 +87,8 @@ export default function Header() {
 
         <ul className="nav-links">
           <li><Link to="/">Home</Link></li>
+          <li><Link to="/about">About Us</Link></li>
+
           <li>
             <span className="nav-link-btn" style={{ cursor: 'pointer' }}>
              <Link to="/products">Products</Link>
@@ -144,9 +146,9 @@ export default function Header() {
                   )}
                   {[
                     ['/account', 'Dashboard'],
-                    ['/account/orders', 'My Orders'],
-                    ['/account/details', 'Account details'],
-                    ['/account/addresses', 'Addresses'],
+                    ['/orders', 'My Orders'],
+                    ['/account', 'Account details'],
+                    ['/addresses', 'Addresses'],
                   ].map(([to, label]) => (
                     <Link
                       key={label}
@@ -199,6 +201,7 @@ export default function Header() {
           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {[
               ['/', 'Home'],
+              ['/about', 'About Us'],
               ['/products', 'Products'],
               ['/projects', 'Projects'],
               ['/blog', 'Blog'],

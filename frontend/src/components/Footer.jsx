@@ -18,7 +18,7 @@ export default function Footer() {
           <div className="footer-col">
             <Link to="/" className="logo" style={{ marginBottom: '14px', display: 'flex' }}>
               <img
-                src="/logo-dark.png"
+                src="https://res.cloudinary.com/r2fk1fws/image/upload/v1784458624/nexbyte/images/gqmakxnysvk2iaqykjjy.jpg"
                 alt="J. Electronics"
                 className="logo-wordmark"
               />
@@ -27,7 +27,7 @@ export default function Footer() {
               Next-generation electronics, gadgets, and maker project kits — curated for builders in Pakistan and beyond.
             </p>
             <div className="footer-social" style={{ marginTop: '18px' }}>
-              <a href="https://facebook.com" target="_blank" rel="noreferrer">f</a>
+              <a href="https://www.facebook.com/profile.php?id=61552590364369&sk=directory_links&fb_profile_edit_entry_point=%7B%22feature%22%3A%22profile_directory%22%2C%22click_point%22%3A%22pencil_edit_directory_section%22%2C%22additional_metadata%22%3A%7B%22section_type%22%3A%22links%22%7D%7" target="_blank" rel="noreferrer">f</a>
               <a href="https://instagram.com/visiongiants" target="_blank" rel="noreferrer">◎</a>
               <a href="https://wa.me/923176572690" target="_blank" rel="noreferrer">✆</a>
             </div>
@@ -45,6 +45,7 @@ export default function Footer() {
           <div className="footer-col">
             <h4>Company</h4>
             <ul>
+              <li><Link to="/about">About Us</Link></li>
               <li><Link to="/projects">Projects</Link></li>
               <li><Link to="/blog">Blog</Link></li>
               <li><Link to="/contact">Contact</Link></li>
@@ -62,8 +63,8 @@ export default function Footer() {
           </div>
         </div>
         <div className="footer-bottom">
-          <span>© {new Date().getFullYear()} Vision Giants. All rights reserved.</span>
-          <span>Built with 🖤 in Multan, Pakistan</span>
+          <center>          <span>© {new Date().getFullYear()} J. Electronics. All rights reserved.</span>
+</center>
         </div>
       </div>
     </footer>

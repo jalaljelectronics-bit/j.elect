@@ -18,11 +18,6 @@
   --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
   --nav-bg: rgba(17, 24, 39, 0.92);
   --footer-bg: #0B0F1A;
-
-  /* Fixed header height: 44px announcement bar + 68px nav. Anything that
-     sticks below the header should offset from this instead of hard-coding
-     a number that drifts out of sync. */
-  --header-h: 112px;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -564,221 +559,51 @@ footer.site-footer { background: var(--footer-bg); color: #E5E7EB; padding: 64px
 .search-result-price { font-family: 'Orbitron', monospace; font-size: 0.82rem; font-weight: 700; color: var(--cyan); white-space: nowrap; flex-shrink: 0; }
 .search-empty { padding: 18px 12px; text-align: center; font-size: 0.82rem; color: var(--gray-mid); }
 
-/* ═══ PAGE HEADER (now only used by Policies — the other pages use .page-banner) ═══ */
-.page-header { padding: 56px 0 32px; text-align: center; }
-.page-header h1 { font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 700; margin-bottom: 10px; }
-.page-header p { color: var(--text-sub); font-size: 1rem; max-width: 620px; margin: 0 auto; }
-.breadcrumb { font-size: 0.82rem; color: var(--gray-mid); margin-bottom: 10px; }
-.breadcrumb a { color: var(--cyan); }
-
-/* ═══ PAGE BANNER (Products / Projects / Blog / Contact) ═══
-   Full-bleed hero strip: photo bleeding off the left edge, a teal gradient
-   wash pulling it into the site palette, and content anchored right. Lives
-   inside .page-wrap, whose 114px top padding already clears the header. */
+/* ═══ PAGE HEADER (used by Products/Projects/Blog/Contact/Policies) ═══ */
+/* ═══ PAGE BANNER (every page except Home) ═══ */
 .page-banner {
   position: relative;
   overflow: hidden;
-  min-height: 340px;
-  display: flex;
-  align-items: center;
-  background: var(--bg);
+  background: linear-gradient(180deg, var(--bg2) 0%, var(--bg) 100%);
   border-bottom: 1px solid var(--border);
+  padding: 56px 0 44px;
+  text-align: center;
   margin-bottom: 8px;
 }
-
-/* Layer 1: the photograph. Desaturated so the cyan overlay stays dominant
-   rather than fighting whatever colours are in the image. */
-.page-banner-media {
+.page-banner-glow {
   position: absolute;
-  inset: 0;
-  background-image: var(--banner-image);
-  background-size: cover;
-  background-position: center left;
-  filter: saturate(0.55);
+  inset: -60% -10% auto -10%;
+  height: 260px;
+  background: radial-gradient(ellipse at 50% 0%, var(--cyan-glow), transparent 70%);
+  pointer-events: none;
 }
-
-/* Layer 2: the gradient wash. Left stays open so the photo reads; the right
-   darkens to near-solid so white text sits on it at full contrast. */
-.page-banner-veil {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(
-      100deg,
-      rgba(17, 24, 39, 0.35) 0%,
-      rgba(12, 51, 63, 0.78) 38%,
-      rgba(11, 34, 44, 0.95) 68%,
-      var(--bg) 96%
-    );
-}
-
-/* Gradient-only variant, used when no `image` prop is passed. */
-.page-banner.no-image .page-banner-media { display: none; }
-.page-banner.no-image .page-banner-veil {
-  background:
-    radial-gradient(ellipse at 15% 40%, var(--cyan-glow) 0%, transparent 60%),
-    linear-gradient(100deg, var(--bg2) 0%, var(--surface) 55%, var(--bg) 100%);
-}
-
-.page-banner-inner {
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 56px 32px;
-}
-
-.page-banner-content {
-  max-width: 620px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.page-banner.align-right  .page-banner-content { margin-left: auto;  text-align: right; }
-.page-banner.align-left   .page-banner-content { margin-right: auto; text-align: left; }
-.page-banner.align-center .page-banner-content { margin: 0 auto;     text-align: center; }
-
+.page-banner-inner { position: relative; z-index: 1; }
 .page-banner-eyebrow {
-  font-family: 'Orbitron', monospace;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--cyan);
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--cyan-glow); color: var(--cyan);
+  font-size: 0.78rem; font-weight: 600; padding: 6px 14px;
+  border-radius: 999px; border: 1px solid var(--border); margin-bottom: 16px;
 }
-
-.page-banner-title {
+.page-banner h1 {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: clamp(2rem, 5.5vw, 3.4rem);
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
   font-weight: 700;
-  line-height: 1.08;
-  color: #fff;
-  margin: 0;
+  margin-bottom: 10px;
 }
+.page-banner h1 span { color: var(--cyan); }
+.page-banner p { color: var(--text-sub); font-size: 1rem; max-width: 620px; margin: 0 auto; }
 
-.page-banner-subtitle {
-  font-size: 1rem;
-  line-height: 1.6;
-  color: var(--gray);
-  margin: 0;
-}
+.breadcrumb { font-size: 0.82rem; color: var(--gray-mid); margin-bottom: 10px; }
+.breadcrumb a { color: var(--cyan); }
 
-.page-banner-meta {
-  font-family: 'Orbitron', monospace;
-  font-size: 0.78rem;
-  letter-spacing: 0.06em;
-  color: var(--text-sub);
-}
-
-.page-banner-crumbs { font-size: 0.85rem; color: var(--gray-mid); margin-top: 4px; }
-.page-banner-crumbs a { color: var(--gray); transition: color 0.2s; }
-.page-banner-crumbs a:hover { color: var(--cyan); }
-.page-banner-crumbs .crumb-sep { margin: 0 8px; color: var(--gray-mid); }
-.page-banner-crumbs .crumb-current { color: var(--cyan); }
-
-/* Below tablet the photo has almost no room left of the text, so the veil
-   goes vertical and the content recentres over the top of it. */
-@media (max-width: 860px) {
-  .page-banner { min-height: 280px; }
-  .page-banner-veil {
-    background:
-      linear-gradient(
-        180deg,
-        rgba(17, 24, 39, 0.55) 0%,
-        rgba(12, 51, 63, 0.85) 55%,
-        rgba(11, 34, 44, 0.96) 100%
-      );
-  }
-  .page-banner-media { background-position: center; }
-  .page-banner-inner { padding: 44px 24px; }
-  .page-banner.align-right .page-banner-content,
-  .page-banner.align-left  .page-banner-content { margin: 0 auto; text-align: center; }
-}
-
-@media (max-width: 640px) {
-  .page-banner { min-height: 230px; }
-  .page-banner-inner { padding: 36px 18px; }
-  .page-banner-subtitle { font-size: 0.92rem; }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .page-banner-content > * { animation: banner-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
-  .page-banner-content > *:nth-child(2) { animation-delay: 0.06s; }
-  .page-banner-content > *:nth-child(3) { animation-delay: 0.12s; }
-  .page-banner-content > *:nth-child(4) { animation-delay: 0.18s; }
-  .page-banner-content > *:nth-child(5) { animation-delay: 0.24s; }
-}
-
-@keyframes banner-rise {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ═══ SIDEBAR + LAYOUT (Products / Projects) ═══ */
+/* ═══ SIDEBAR + LAYOUT (Products page) ═══ */
 .shop-layout { display: grid; grid-template-columns: 240px 1fr; gap: 32px; align-items: start; }
 @media (max-width: 860px) { .shop-layout { grid-template-columns: 1fr; } }
-
-.sidebar {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-
-  /* No top padding — the sticky h4 below supplies its own, so it sits flush
-     against the top of the scroll area and fully masks items passing under. */
-  padding: 0 14px 16px 20px;
-
-  position: sticky;
-  top: calc(var(--header-h) + 12px);
-
-  /* The category list outgrows the viewport, which is what stopped the
-     sticky behaviour from being noticeable — a box taller than the screen
-     has nothing to pin. Cap it and give it its own scroll. */
-  max-height: calc(100vh - var(--header-h) - 36px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
-}
-
-/* Keep the "Categories" heading pinned while the list scrolls under it. */
-.sidebar h4 {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  font-size: 0.85rem;
-  font-weight: 700;
-  margin: 0 0 6px;
-  padding: 20px 0 12px;
-  background: var(--card);
-  border-bottom: 1px solid var(--border);
-}
-
-/* The global scrollbar rule paints the track with --bg, which reads as a
-   dark gutter against the lighter --card sidebar. */
-.sidebar::-webkit-scrollbar { width: 6px; }
-.sidebar::-webkit-scrollbar-track { background: transparent; }
-.sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-.sidebar::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
-
+.sidebar { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; position: sticky; top: 84px; }
+.sidebar h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 14px; }
 .sidebar-cat { display: flex; align-items: center; justify-content: space-between; padding: 9px 10px; border-radius: 8px; font-size: 0.85rem; color: var(--text-sub); cursor: pointer; }
 .sidebar-cat:hover, .sidebar-cat.active { background: var(--cyan-glow); color: var(--cyan); }
 .sidebar-cat .count { font-size: 0.72rem; color: var(--gray-mid); }
-
-/* Below 860px the sidebar stacks above the grid, where pinning it would eat
-   most of the screen. Let it scroll away with the page instead. */
-@media (max-width: 860px) {
-  .sidebar {
-    position: static;
-    max-height: none;
-    overflow-y: visible;
-    padding: 20px;
-  }
-  .sidebar h4 { position: static; padding: 0 0 12px; }
-}
-
 .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
 .toolbar select { background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; }
 .empty-state { text-align: center; padding: 60px 20px; color: var(--gray-mid); }
@@ -795,9 +620,7 @@ footer.site-footer { background: var(--footer-bg); color: #E5E7EB; padding: 64px
 .qty-control button { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; color: var(--text); font-size: 1rem; }
 .qty-control span { min-width: 18px; text-align: center; font-weight: 600; }
 .remove-btn { color: #EF4444; font-size: 0.8rem; font-weight: 600; }
-/* Offset from the header like the sidebar does — 84px tucked the top of the
-   box behind the fixed nav. */
-.summary-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; position: sticky; top: calc(var(--header-h) + 12px); }
+.summary-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; position: sticky; top: 84px; }
 .summary-box h3 { font-size: 1.05rem; margin-bottom: 18px; }
 .summary-row { display: flex; justify-content: space-between; font-size: 0.9rem; color: var(--text-sub); margin-bottom: 12px; }
 .summary-row.total { color: var(--text); font-weight: 700; font-size: 1.1rem; border-top: 1px solid var(--border); padding-top: 14px; margin-top: 4px; }
@@ -906,8 +729,7 @@ footer.site-footer { background: var(--footer-bg); color: #E5E7EB; padding: 64px
     width: 100%;
   }
 }
-
-/* ═══ RESPONSIVE: Projects toolbar / Auth split ═══ */
+/* ═══ RESPONSIVE: Projects toolbar / Dashboard cards / Auth split ═══ */
 .projects-toolbar {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -925,127 +747,20 @@ footer.site-footer { background: var(--footer-bg); color: #E5E7EB; padding: 64px
   .projects-toolbar select { justify-self: stretch; max-width: none; }
 }
 
-/* ═══ ACCOUNT DASHBOARD CARDS ═══ */
 .dashboard-cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  margin-top: 32px;
+  gap: 16px;
+  margin-top: 24px;
 }
-
-.dashboard-card {
-  /* Was a one-line flex row roughly 44px tall. With real height and padding
-     these read as targets rather than empty outlines. */
-  min-height: 150px;
-
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 8px;
-  padding: 26px 24px;
-
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  box-shadow: var(--card-shadow);
-
-  text-decoration: none;
-  transition: transform 0.2s, border-color 0.2s, background 0.2s, box-shadow 0.2s;
+@media (max-width: 860px) {
+  .dashboard-cards { grid-template-columns: repeat(2, 1fr); }
+  .ceo-section-grid { grid-template-columns: 1fr !important; padding: 28px !important; }
+  .ceo-section-grid > div:first-child { max-width: 220px; margin: 0 auto; }
 }
-
-.dashboard-card:hover {
-  transform: translateY(-4px);
-  border-color: var(--cyan);
-  background: var(--bg2);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
-}
-
-/* The old #3b5a80 was a light-theme holdover — near-invisible against the
-   dark card. */
-.dashboard-card-label {
-  color: #fff;
-  font-size: 1.15rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-}
-
-.dashboard-card-desc { color: var(--text-sub); font-size: 0.82rem; line-height: 1.45; }
-
-/* Typographic arrow instead of an icon: pushed to the bottom of the card by
-   margin-top:auto so the extra height reads as deliberate rather than empty. */
-.dashboard-card-arrow {
-  margin-top: auto;
-  color: var(--cyan);
-  font-size: 1.1rem;
-  line-height: 1;
-  opacity: 0.55;
-  transition: opacity 0.2s, transform 0.2s;
-}
-
-.dashboard-card:hover .dashboard-card-label { color: var(--cyan); }
-.dashboard-card:hover .dashboard-card-arrow { opacity: 1; transform: translateX(4px); }
-
-/* Inline links in the account pages had the same washed-out blue. */
-.account-link { color: var(--cyan); transition: color 0.2s; }
-.account-link:hover { color: var(--cyan-dim); }
-
-@media (max-width: 960px) { .dashboard-cards { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 560px) {
-  .dashboard-cards { grid-template-columns: 1fr; gap: 14px; }
-  .dashboard-card { min-height: 120px; padding: 20px; }
+  .dashboard-cards { grid-template-columns: 1fr; }
 }
-
-/* ═══ ADDRESS FORM (account → addresses) ═══ */
-.address-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
-}
-@media (max-width: 860px) { .address-grid { grid-template-columns: 1fr; gap: 32px; } }
-
-.address-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  /* Was capped at 320px, which left the fields visibly short of the column.
-     Fill the column instead, with a ceiling so they don't stretch absurdly
-     wide on a large monitor. */
-  width: 100%;
-  max-width: 460px;
-}
-
-/* These inputs sit outside a .field wrapper, so they were falling through to
-   the browser default — white box, dark text — against the dark page. */
-.address-form input {
-  width: 100%;
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 14px;
-  font-size: 0.9rem;
-  color: var(--text);
-  outline: none;
-  transition: border-color 0.2s;
-}
-.address-form input::placeholder { color: var(--gray-mid); }
-.address-form input:focus { border-color: var(--cyan); }
-
-.address-form-actions { display: flex; gap: 10px; margin-top: 6px; }
-
-/* Cancel had no colour of its own, so it inherited the browser default
-   (near-black) and disappeared into the dark background. */
-.btn-cancel {
-  color: #fff;
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 22px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: background 0.2s, border-color 0.2s, color 0.2s;
-}
-.btn-cancel:hover { background: var(--bg3); border-color: var(--cyan); color: var(--cyan); }
 
 .auth-split {
   display: grid;

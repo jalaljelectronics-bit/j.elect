@@ -14,7 +14,7 @@ const WHATSAPP_NUMBER = '923176572690';
 
 const FEATURES = [
   ['Same-Day Dispatch', "Order before 3 PM and your gear ships the same day. We don't believe in waiting when you're excited about new tech."],
-  ['2-Year Warranty', "Every device sold on J.Electronics includes a full 2-year manufacturer's warranty — no asterisks, no hidden terms."],
+  ['2-Year Warranty', "Every device sold on Vision Giants includes a full 2-year manufacturer's warranty — no asterisks, no hidden terms."],
   ['100% Authentic', 'We source directly from certified distributors. Counterfeits never touch our shelves. Your trust is non-negotiable.'],
   ['0% Instalments', 'Split any purchase into 3, 6, or 12 months with zero interest via EasyPaisa, JazzCash, or bank instalments.'],
   ['30-Day Returns', 'Changed your mind? Return anything within 30 days, no questions asked. Full refund, hassle-free.'],
@@ -81,16 +81,16 @@ export default function Home() {
     const windowStart = Date.now() - NEW_ARRIVAL_WINDOW_DAYS * 24 * 60 * 60 * 1000;
 
     Promise.all([
-      getProducts({ limit: 200 }),
+      getProducts({ limit: 4000 }),
       getCategories(),
-      getProjects({ limit: 100 }),
+      getProjects({ limit: 4000 }),
     ])
       .then(([productData, cats, projectData]) => {
         const products = (productData.products || []).map(normalizeProduct);
         const projects = projectData.projects || [];
 
-        setProductCount(productData.total ?? productData.count ?? products.length);
-        setProjectCount(projectData.total ?? projectData.count ?? projects.length);
+        setProductCount(productData.totalProducts ?? products.length);
+        setProjectCount(projectData.totalProjects ?? projects.length);
 
         setFeaturedProducts(products.slice(0, 8));
 
@@ -321,7 +321,7 @@ export default function Home() {
         <div className="hero-content">
           <h1>See the <span>Future</span> of Technology</h1>
           <p>
-            From 3D printers to Arduino modules and robotics parts — J.Electronics brings you the sharpest
+            From 3D printers to Arduino modules and robotics parts — Vision Giants brings you the sharpest
             electronics and DIY components, curated for makers who demand more.
           </p>
           <div className="hero-actions">
@@ -549,7 +549,7 @@ export default function Home() {
         <section className="section">
           <div className="section-divider" />
           <div className="section-head" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center', flexDirection: 'column' }}>
-            <h2>Why J.Electronics?</h2>
+            <h2>Why Vision Giants?</h2>
             <p style={{ maxWidth: '520px', margin: '0 auto' }}>We're built for tech lovers who refuse to settle. Every order, every pixel, every watt — obsessively curated.</p>
           </div>
           <div className="features-grid">
@@ -599,6 +599,70 @@ export default function Home() {
             ))}
           </div>
         </section>
+
+        <section className="section">
+          <div className="section-divider" />
+          <div className="section-head section-head-center">
+            <h2>A Message From Our CEO</h2>
+            <p style={{ maxWidth: '520px', margin: '0 auto' }}>The vision behind J.Electronics, straight from the founder.</p>
+          </div>
+
+          <BorderGlow
+            backgroundColor="var(--card)"
+            glowColor="190 90% 65%"
+            colors={['#38bdf8', '#818cf8', '#f472b6']}
+            borderRadius={22}
+            glowRadius={36}
+            edgeSensitivity={35}
+          >
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '260px 1fr',
+                gap: '36px',
+                alignItems: 'center',
+                padding: '40px',
+              }}
+              className="ceo-section-grid"
+            >
+              <div
+                style={{
+                  width: '100%',
+                  aspectRatio: '1',
+                  borderRadius: '18px',
+                  overflow: 'hidden',
+                  background: 'var(--bg3)',
+                  border: '1px solid var(--border)',
+                  flexShrink: 0,
+                }}
+              >
+                <img
+                  src="https://res.cloudinary.com/r2fk1fws/image/upload/v1784458624/nexbyte/images/gqmakxnysvk2iaqykjjy.jpg"
+                  alt="Jalal Khan — CEO, Vision Giants"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              </div>
+
+              <div>
+                <p style={{ fontSize: '1.05rem', lineHeight: 1.8, color: 'var(--text-sub)', fontStyle: 'italic', marginBottom: '20px' }}>
+                  "At J Electronics, we believe innovation is meaningful only when it solves real-world problems. 
+                  Our mission is to deliver high-quality electronic products, innovative FYP solutions,
+                  and reliable commercial projects that empower individuals and businesses alike. 
+                  We are committed to excellence, trust, and continuous innovation, ensuring every solution
+                  we provide creates lasting value. Thank you for being part of our journey toward a smarter future."
+                </p>
+                <div style={{ fontFamily: 'Space Grotesk, sans-serif', fontWeight: 700, fontSize: '1.1rem', color: 'var(--text)' }}>
+                  Jalal Khan
+                </div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--cyan)' }}>
+                  Founder &amp; CEO, Vision Giants
+                </div>
+              </div>
+            </div>
+          </BorderGlow>
+        </section>
+
+        
       </div>
     </>
   );

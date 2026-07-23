@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { getProjects } from '../api/projectService';
 import ProjectCard from '../components/ProjectCard';
 import ProjectsBannerSlider from '../components/ProjectsBannerSlider';
-
+//update
 const CATEGORIES = ['Commercial', 'University'];
 
 export default function Projects() {

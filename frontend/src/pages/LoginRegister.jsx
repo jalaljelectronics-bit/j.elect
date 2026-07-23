@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const GMAIL_REGEX = /^[^\s@]+@gmail\.com$/i;
+
 export default function LoginRegister() {
   const { login, signup } = useAuth();
   const navigate = useNavigate();
@@ -17,9 +20,16 @@ export default function LoginRegister() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoginError(null);
+
+    const email = loginForm.email.trim().toLowerCase();
+    if (!EMAIL_REGEX.test(email)) {
+      setLoginError('Please enter a valid email address.');
+      return;
+    }
+
     setLoginSubmitting(true);
     try {
-      await login({ email: loginForm.email, password: loginForm.password });
+      await login({ email, password: loginForm.password });
       navigate('/products');
     } catch (err) {
       setLoginError(err.response?.data?.message || 'Invalid email or password.');
@@ -31,10 +41,17 @@ export default function LoginRegister() {
   const handleRegister = async (e) => {
     e.preventDefault();
     setRegError(null);
+
+    const email = regForm.email.trim().toLowerCase();
+    if (!GMAIL_REGEX.test(email)) {
+      setRegError('enter a valid email address');
+      return;
+    }
+
     setRegSubmitting(true);
     try {
-      await signup({ name: regForm.name, email: regForm.email, password: regForm.password });
-      await login({ email: regForm.email, password: regForm.password });
+      await signup({ name: regForm.name, email, password: regForm.password });
+      await login({ email, password: regForm.password });
       navigate('/products');
     } catch (err) {
       setRegError(err.response?.data?.message || 'Could not create account. Please try again.');
@@ -102,6 +119,9 @@ export default function LoginRegister() {
                 value={regForm.email}
                 onChange={(e) => setRegForm((f) => ({ ...f, email: e.target.value }))}
               />
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-sub, #64748b)' }}>
+              
+              </span>
             </div>
             <div className="field" style={{ marginTop: '16px' }}>
               <label>Password *</label>

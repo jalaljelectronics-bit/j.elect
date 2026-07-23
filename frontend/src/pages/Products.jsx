@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { getProducts } from '../api/productService';
 import { getCategories } from '../api/categoryService';
 import ProductCard from '../components/ProductCard';
@@ -12,6 +12,10 @@ const SORT_MAP = {
   'price-desc': 'price_desc',
   rating: undefined,
 };
+
+// Set this to your image URL when you decide, e.g. '/products-banner.jpg'.
+// Leave empty for the gradient-only look (matches .page-banner.no-image).
+const BANNER_IMAGE = '';
 
 export default function Products() {
   const [params, setParams] = useSearchParams();
@@ -99,74 +103,91 @@ export default function Products() {
   };
 
   return (
-    <div className="container">
-      <div className="page-header">
-        <h1>Shop All Products</h1>
-        <p>Browse our full catalog of electronics, components, and maker gear.</p>
+    <div className="page-wrap">
+      <div
+        className={`page-banner align-left${BANNER_IMAGE ? '' : ' no-image'}`}
+        style={BANNER_IMAGE ? { '--banner-image': `url(${BANNER_IMAGE})` } : undefined}
+      >
+        {BANNER_IMAGE && <div className="page-banner-media" />}
+        <div className="page-banner-veil" />
+        <div className="page-banner-inner">
+          <div className="page-banner-content">
+            <span className="page-banner-eyebrow">Shop</span>
+            <h1 className="page-banner-title">Shop All Products</h1>
+            <p className="page-banner-subtitle">Browse our full catalog of electronics, components, and maker gear.</p>
+            <div className="page-banner-crumbs">
+              <Link to="/">Home</Link>
+              <span className="crumb-sep">/</span>
+              <span className="crumb-current">Products</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="shop-layout" style={{ paddingBottom: '80px' }}>
-        <aside className="sidebar">
-          <h4>Categories</h4>
-          <div
-            className={`sidebar-cat${!activeCategory ? ' active' : ''}`}
-            onClick={() => updateParams({})}
-          >
-            <span>All Products</span>
-          </div>
-          {categories.map((cat) => (
+      <div className="container">
+        <div className="shop-layout" style={{ paddingBottom: '80px', paddingTop: '32px' }}>
+          <aside className="sidebar">
+            <h4>Categories</h4>
             <div
-              key={cat.id}
-              className={`sidebar-cat${Number(activeCategory) === cat.id ? ' active' : ''}`}
-              onClick={() => updateParams({ category: String(cat.id) })}
+              className={`sidebar-cat${!activeCategory ? ' active' : ''}`}
+              onClick={() => updateParams({})}
             >
-              <span>{cat.name}</span>
+              <span>All Products</span>
             </div>
-          ))}
-        </aside>
+            {categories.map((cat) => (
+              <div
+                key={cat.id}
+                className={`sidebar-cat${Number(activeCategory) === cat.id ? ' active' : ''}`}
+                onClick={() => updateParams({ category: String(cat.id) })}
+              >
+                <span>{cat.name}</span>
+              </div>
+            ))}
+          </aside>
 
-        <div ref={gridRef} style={{ scrollMarginTop: '110px' }}>
-          <div className="toolbar">
-            <span style={{ fontSize: '0.85rem', color: 'var(--gray-mid)' }}>
-              {loading ? 'Loading…' : `${totalProducts} products found`}
-            </span>
-            <select value={sort} onChange={(e) => updateParams({ sort: e.target.value })}>
-              <option value="featured">Sort: Featured</option>
-              <option value="price-asc">Price: Low to High</option>
-              <option value="price-desc">Price: High to Low</option>
-              <option value="rating">Highest Rated (this page only)</option>
-            </select>
+          <div ref={gridRef} style={{ scrollMarginTop: '110px' }}>
+            <div className="toolbar">
+              <span style={{ fontSize: '0.85rem', color: 'var(--gray-mid)' }}>
+                {loading ? 'Loading…' : `${totalProducts} products found`}
+              </span>
+              <select value={sort} onChange={(e) => updateParams({ sort: e.target.value })}>
+                <option value="featured">Sort: Featured</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+                <option value="rating">Highest Rated (this page only)</option>
+              </select>
+            </div>
+
+            {error && <div className="empty-state">{error}</div>}
+
+            {!error && !loading && products.length === 0 ? (
+              <div className="empty-state">No products match your filters.</div>
+            ) : (
+              <div className="product-grid">
+                {products.map((p) => <ProductCard key={p.id} product={p} />)}
+              </div>
+            )}
+
+            {totalPages > 1 && (
+              <div className="pagination" style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '30px' }}>
+                <button
+                  className="btn-ghost"
+                  disabled={page <= 1}
+                  onClick={() => updateParams({ page: String(page - 1) })}
+                >
+                  Previous
+                </button>
+                <span style={{ alignSelf: 'center', fontSize: '0.85rem' }}>Page {page} of {totalPages}</span>
+                <button
+                  className="btn-ghost"
+                  disabled={page >= totalPages}
+                  onClick={() => updateParams({ page: String(page + 1) })}
+                >
+                  Next
+                </button>
+              </div>
+            )}
           </div>
-
-          {error && <div className="empty-state">{error}</div>}
-
-          {!error && !loading && products.length === 0 ? (
-            <div className="empty-state">No products match your filters.</div>
-          ) : (
-            <div className="product-grid">
-              {products.map((p) => <ProductCard key={p.id} product={p} />)}
-            </div>
-          )}
-
-          {totalPages > 1 && (
-            <div className="pagination" style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '30px' }}>
-              <button
-                className="btn-ghost"
-                disabled={page <= 1}
-                onClick={() => updateParams({ page: String(page - 1) })}
-              >
-                Previous
-              </button>
-              <span style={{ alignSelf: 'center', fontSize: '0.85rem' }}>Page {page} of {totalPages}</span>
-              <button
-                className="btn-ghost"
-                disabled={page >= totalPages}
-                onClick={() => updateParams({ page: String(page + 1) })}
-              >
-                Next
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </div>

@@ -6,6 +6,9 @@ const auth = require('../middleware/auth');
 
 const router = express.Router();
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const GMAIL_REGEX = /^[^\s@]+@gmail\.com$/i;
+
 // ==========================
 // SIGNUP
 // ==========================
@@ -17,7 +20,13 @@ router.post('/signup', async (req, res) => {
       return res.status(400).json({ message: 'Please provide name, email and password.' });
     }
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (!GMAIL_REGEX.test(email)) {
+      return res.status(400).json({ message: 'Please sign up with a Gmail address (name@gmail.com).' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (existingUser) {
       return res.status(400).json({ message: 'Email already registered.' });
     }
@@ -25,7 +34,7 @@ router.post('/signup', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
-      data: { email, password: hashedPassword, name, role: 'USER' },
+      data: { email: normalizedEmail, password: hashedPassword, name, role: 'USER' },
     });
 
     const token = jwt.sign(
@@ -56,7 +65,13 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Please provide email and password.' });
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    if (!EMAIL_REGEX.test(email)) {
+      return res.status(401).json({ message: 'Invalid email or password.' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
 
     // Same message whether the email is unknown or the password is wrong —
     // otherwise this endpoint tells attackers which emails are registered.
@@ -113,7 +128,13 @@ router.put('/me', auth, async (req, res) => {
 
     const updateData = {};
     if (name) updateData.name = name;
-    if (email) updateData.email = email;
+
+    if (email) {
+      if (!EMAIL_REGEX.test(email)) {
+        return res.status(400).json({ message: 'Please provide a valid email address.' });
+      }
+      updateData.email = email.trim().toLowerCase();
+    }
 
     if (newPassword) {
       if (!currentPassword) {

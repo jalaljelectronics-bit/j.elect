@@ -65,7 +65,6 @@ export default function Footer() {
         <div className="footer-bottom">
           <center>          <span>© {new Date().getFullYear()} J. Electronics. All rights reserved.</span>
 </center>
-          <span>© {new Date().getFullYear()} Vision Giants. All rights reserved.</span>
           
         </div>
       </div>

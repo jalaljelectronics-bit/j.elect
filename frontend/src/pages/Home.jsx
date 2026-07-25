@@ -39,7 +39,7 @@ const MARQUEE = [
   'New Arrivals Every Week',
   'Authentic Products Only',
   '24/7 Expert Support',
-  '0% Instalment Plans Available',
+  
 ];
 
 export default function Home() {

@@ -3,13 +3,10 @@ import BorderGlow from '../components/BorderGlow';
 import SpotlightCard from '../components/SpotlightCard';
 
 const FEATURES = [
-  ['Same-Day Dispatch', "Order before 3 PM and your gear ships the same day. We don't believe in waiting when you're excited about new tech."]
-
-[  'Semester Projects' ,  'We provide professionally developed semester projects across various technologies, helping students achieve academic excellence with quality solutions and proper documentation.']  
-['100% Authentic', 'We source directly from certified distributors. Counterfeits never touch our shelves. Your trust is non-negotiable.'],
-  ['0% Instalments', 'Split any purchase into 3, 6, or 12 months with zero interest via EasyPaisa, JazzCash, or bank instalments.'],
-  ['30-Day Returns', 'Changed your mind? Return anything within 30 days, no questions asked. Full refund, hassle-free.'],
-  ['Expert Support 24/7', 'Real people, real answers — anytime. Our tech-savvy support team is on call around the clock for you.'],
+  ['Same-Day Dispatch', "Get same-day dispatch within Multan. Other cities receive their order within 2-3 working days."],
+  ['100% Authentic', 'We source directly from certified distributors. Counterfeits never touch our shelves. Your trust is non-negotiable.'],
+  ['30-Day Returns', 'Changed your mind? Return anything within 30 days, as long as the product is unopened and unused. Full refund, hassle-free.'],
+  ['Expert Support 24/7', 'Real people, real answers anytime. Our tech-savvy support team is on call around the clock for you.'],
 ];
 
 export default function AboutUs() {
@@ -64,7 +61,7 @@ export default function AboutUs() {
                 <p style={{ fontSize: '1.05rem', lineHeight: 1.8, color: 'var(--text-sub)', fontStyle: 'italic', marginBottom: '20px' }}>
                   "At J Electronics, we believe innovation is meaningful only when it solves real-world problems. Our mission is to deliver
                    high-quality electronic products, innovative FYP solutions, and reliable commercial projects that empower individuals
-                    and businesses alike. We are committed to excellence, trust, and continuous innovation, 
+                    and businesses alike. We are committed to excellence, trust, and continuous innovation,
                   ensuring every solution we provide creates lasting value. Thank you for being part of our journey toward a smarter future."
                 </p>
                 <div style={{ fontFamily: 'Space Grotesk, sans-serif', fontWeight: 700, fontSize: '1.1rem', color: 'var(--text)' }}>
@@ -96,6 +93,7 @@ export default function AboutUs() {
                 style={{
                   cursor: 'pointer',
                   height: '100%',
+                  display: 'flex',
                   transform:
                     pressedFeature === title
                       ? 'translateY(-2px) scale(0.97)'
@@ -122,7 +120,7 @@ export default function AboutUs() {
                     spotlightColor="rgba(56, 189, 248, 0.25)"
                     className="feature-spotlight"
                   >
-                    <div style={{ textAlign: 'left', padding: '32px', minHeight: '190px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <div style={{ textAlign: 'left', padding: '32px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                       <h3 style={{ fontSize: '1.15rem', marginBottom: '10px', fontFamily: 'Space Grotesk, sans-serif', color: 'var(--text)' }}>{title}</h3>
                       <p style={{ fontSize: '0.92rem', color: 'var(--text-sub)', lineHeight: 1.6 }}>{desc}</p>
                     </div>

@@ -18,7 +18,7 @@ export default function Footer() {
           <div className="footer-col">
             <Link to="/" className="logo" style={{ marginBottom: '14px', display: 'flex' }}>
               <img
-                src="https://res.cloudinary.com/r2fk1fws/image/upload/v1784458624/nexbyte/images/gqmakxnysvk2iaqykjjy.jpg"
+                src="/logo-dark.png"
                 alt="J. Electronics"
                 className="logo-wordmark"
               />
@@ -49,15 +49,13 @@ export default function Footer() {
               <li><Link to="/projects">Projects</Link></li>
               <li><Link to="/blog">Blog</Link></li>
               <li><Link to="/contact">Contact</Link></li>
-              <li><Link to="/policies">Policies</Link></li>
+        
             </ul>
           </div>
           <div className="footer-col">
             <h4>Support</h4>
             <ul>
               <li><Link to="/policies?tab=shipping">Shipping Info</Link></li>
-              <li><Link to="/policies?tab=returns">Returns</Link></li>
-              <li><Link to="/policies?tab=warranty">Warranty</Link></li>
               <li><Link to="/contact">Get Help</Link></li>
             </ul>
           </div>

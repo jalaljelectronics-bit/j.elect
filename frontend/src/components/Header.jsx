@@ -13,6 +13,8 @@ export default function Header() {
   const [profileOpen, setProfileOpen] = useState(false);
   const navigate = useNavigate();
   const profileRef = useRef(null);
+  const mobileMenuRef = useRef(null);
+  const mobileToggleRef = useRef(null);
 
   useEffect(() => {
     getCategories()
@@ -30,6 +32,23 @@ export default function Header() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Close the mobile menu when clicking anywhere outside it (or the toggle button)
+  useEffect(() => {
+    const handleClickOutsideMobile = (e) => {
+      if (
+        mobileOpen &&
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(e.target) &&
+        mobileToggleRef.current &&
+        !mobileToggleRef.current.contains(e.target)
+      ) {
+        setMobileOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutsideMobile);
+    return () => document.removeEventListener('mousedown', handleClickOutsideMobile);
+  }, [mobileOpen]);
 
   const handleLogout = () => {
     logout();
@@ -188,7 +207,7 @@ export default function Header() {
             </svg>
             <span className="cartCount" style={{ display: cartCount > 0 ? 'flex' : 'none' }}>{cartCount}</span>
           </Link>
-          <button className="icon-btn mobile-toggle" onClick={() => setMobileOpen((v) => !v)}>
+          <button ref={mobileToggleRef} className="icon-btn mobile-toggle" onClick={() => setMobileOpen((v) => !v)}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" />
             </svg>
@@ -197,7 +216,7 @@ export default function Header() {
       </div>
 
       {mobileOpen && (
-        <div style={{ background: 'var(--bg2)', borderTop: '1px solid var(--border)', padding: '16px 20px' }}>
+        <div ref={mobileMenuRef} style={{ background: 'var(--bg2)', borderTop: '1px solid var(--border)', padding: '16px 20px' }}>
           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {[
               ['/', 'Home'],

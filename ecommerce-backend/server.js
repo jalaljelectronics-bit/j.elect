@@ -33,6 +33,7 @@ const allowedOrigins = [
   'http://localhost:5176',
 
   // TODO: replace these with your real Vercel URLs after deploying
+  'https://j-elect.vercel.app',
   'https://jelectronics-admin.vercel.app',
   'https://jelectronics-store.vercel.app',
 

@@ -50,6 +50,16 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutsideMobile);
   }, [mobileOpen]);
 
+  // Close the mobile menu (and profile dropdown) the moment the user scrolls
+  useEffect(() => {
+    const handleScroll = () => {
+      if (mobileOpen) setMobileOpen(false);
+      if (profileOpen) setProfileOpen(false);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [mobileOpen, profileOpen]);
+
   const handleLogout = () => {
     logout();
     setProfileOpen(false);

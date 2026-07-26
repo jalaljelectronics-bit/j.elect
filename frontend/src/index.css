@@ -142,6 +142,51 @@ header.site-header {
   .mobile-toggle { display: flex; }
 }
 
+/* ═══ MOBILE HEADER LAYOUT FIX ═══
+   Below 640px, the search bar (fixed 320-400px width) was overflowing the
+   viewport and pushing the login/cart/hamburger icons off-screen (clipped
+   by body's overflow-x:hidden). Fix: wrap nav-inner onto two rows — logo
+   + icons on row 1, full-width search bar on row 2. Nothing is hidden. */
+@media (max-width: 640px) {
+  .nav-inner {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 10px 18px;
+    row-gap: 10px;
+  }
+
+  .logo { order: 1; }
+
+  .nav-end {
+    order: 2;
+    margin-left: auto;
+    gap: 8px;
+  }
+
+  .search-bar {
+    order: 3;
+    width: 100%;
+    flex-basis: 100%;
+  }
+
+  .search-bar:focus-within { width: 100%; }
+
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  /* header is now taller on mobile since it wraps to 2 rows — bump the
+     scroll-offset vars so page content/sticky sidebars don't sit under it */
+  :root { --header-h: 138px; }
+  .page-wrap { padding-top: 140px; }
+  .page-banner,
+  .projects-slider {
+    margin-top: -140px;
+    padding-top: 140px;
+  }
+}
+
 .btn-primary {
   background: var(--cyan); color: #fff; font-weight: 600; font-size: 0.9rem;
   padding: 12px 24px; border-radius: 10px; display: inline-flex; align-items: center;

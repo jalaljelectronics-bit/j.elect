@@ -114,7 +114,7 @@ export default function Header() {
             src="/logo-dark.png"
             alt="J. Electronics"
             className="logo-wordmark"
-            style={{ height: '64px', width: 'auto' }}
+            
           />
         </Link>
 

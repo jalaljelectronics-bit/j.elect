@@ -102,6 +102,9 @@ export default function Header() {
                 <circle cx="4" cy="4" r="2" />
               </svg>
             </a>
+            <a href="https://www.daraz.pk/shop/duuuytiz" target="_blank" rel="noreferrer" title="Shop on Daraz">
+              <img src="/daraz.png" alt="Daraz" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+            </a>
           </div>
         </div>
       </div>
@@ -148,8 +151,6 @@ export default function Header() {
         <div className="nav-end">
           <SearchBar />
 
-          {/* Profile: logged out -> link straight to /login.
-              Logged in -> click toggles a dropdown (Dashboard / My Orders / Account details / Addresses / Logout) */}
           {isAuthenticated ? (
             <div ref={profileRef} style={{ position: 'relative' }}>
               <button className="icon-btn" onClick={() => setProfileOpen((v) => !v)} title={user?.name || 'Account'}>

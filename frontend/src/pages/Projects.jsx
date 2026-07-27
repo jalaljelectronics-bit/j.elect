@@ -59,7 +59,7 @@ export default function Projects() {
             <h4>Categories</h4>
             <div
               className={`sidebar-cat${!activeCategory ? ' active' : ''}`}
-              onClick={() => updateParams({})}
+              onClick={() => updateParams({ category: '' })}
             >
               <span>All Projects</span>
             </div>

@@ -132,7 +132,7 @@ export default function Products() {
             <h4>Categories</h4>
             <div
               className={`sidebar-cat${!activeCategory ? ' active' : ''}`}
-              onClick={() => updateParams({})}
+              onClick={() => updateParams({ category: '' })}
             >
               <span>All Products</span>
             </div>

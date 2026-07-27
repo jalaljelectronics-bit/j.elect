@@ -83,7 +83,7 @@ header.site-header {
    either way. */
 .logo-wordmark { height: 68px !important; width: auto !important; display: block; flex-shrink: 0; }
 @media (max-width: 640px) { .logo-wordmark { height: 42px !important; } }
-.logo-text { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.15rem; color: var(--white); letter-spacing: 0.05em; white-space: nowrap; }
+.logo-text { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(0.7rem, 4vw, 1.15rem); color: var(--white); letter-spacing: 0.05em; white-space: nowrap; }
 .logo-text span { color: var(--cyan); }
 
 .nav-links { display: flex; align-items: center; gap: 4px; list-style: none; }
@@ -160,25 +160,11 @@ header.site-header {
 }
 
 .mobile-toggle { display: none; }
-/* Breakpoint raised from 960px to 1080px so this reliably triggers even
-   when a phone forces a "Desktop site" viewport (~980-1024px), where the
-   full nav-links + search-bar + icons would otherwise overflow and get
-   clipped by html/body's overflow-x: hidden. */
 @media (max-width: 1080px) {
   .nav-links { display: none; }
   .mobile-toggle { display: flex; }
 }
 
-/* ═══ MOBILE HEADER LAYOUT — SINGLE ROW ═══
-   Logo stays compact on the left, search bar flex-grows to fill the
-   middle, icon buttons (profile/cart/hamburger) stay fixed-width on the
-   right — all in one row. No stacked/full-width search row. Synced with
-   the .nav-links hamburger breakpoint (1080px) so there's no gap where
-   the hamburger shows but the header hasn't adopted this layout yet, and
-   so "Request Desktop Site" mode on mobile also gets this treatment
-   instead of overflowing. Also caps .dropdown and .section-tinted so
-   neither can force horizontal overflow / auto-zoom on mobile, even
-   while hidden. */
 @media (max-width: 1080px) {
   .nav-inner {
     flex-wrap: nowrap;
@@ -187,17 +173,18 @@ header.site-header {
     gap: 8px;
   }
 
-  /* Logo must be allowed to shrink — it's the biggest fixed-size element
-     in the row on narrow screens. min-width:0 + overflow:hidden stop it
-     from ever forcing the row wider than the viewport, even if the
-     source image's natural aspect ratio is wider than expected. */
   .logo {
-    flex-shrink: 1;
+    flex-shrink: 0;
     min-width: 0;
-    max-width: 34%;
+    max-width: 58%;
     overflow: hidden;
   }
   .logo-wordmark { height: 26px !important; max-width: 100%; }
+
+  /* Brand name is already carried by the logo image at this width —
+     showing the text span too is what was causing the overlap/clipping,
+     so it's hidden here instead of fighting the search bar for space. */
+  .logo-text { display: none; }
 
   .nav-end {
     order: 2;
@@ -210,9 +197,6 @@ header.site-header {
     gap: 6px;
   }
 
-  /* Search bar renders first inside .nav-end and eats remaining space,
-     but never shrinks below a usable width — it's the row's flexible
-     element, everything else (logo, icons) yields to it or shrinks first. */
   .search-bar {
     order: -1;
     flex: 1 1 auto;
@@ -246,8 +230,6 @@ header.site-header {
     padding-right: 0;
   }
 
-  /* Header is a single compact row (no wrap), so use the shorter offset
-     instead of the old 2-row value. */
   :root { --header-h: 104px; }
   .page-wrap { padding-top: 106px; }
   .page-banner,
@@ -257,10 +239,9 @@ header.site-header {
   }
 }
 
-/* Extra squeeze on small phones (<480px) */
 @media (max-width: 480px) {
   .nav-inner { gap: 6px; padding: 8px 12px; }
-  .logo { max-width: 30%; }
+  .logo { max-width: 40%; }
   .logo-wordmark { height: 22px !important; }
   .nav-end { gap: 5px; }
   .icon-btn { width: 32px; height: 32px; min-width: 32px; }
@@ -270,11 +251,9 @@ header.site-header {
   .search-bar input { font-size: 0.76rem; }
 }
 
-/* Extreme squeeze on very small phones (<360px, e.g. iPhone SE) so
-   nothing ever visually overlaps */
 @media (max-width: 360px) {
   .nav-inner { padding: 8px 10px; gap: 5px; }
-  .logo { max-width: 26%; }
+  .logo { max-width: 35%; }
   .logo-wordmark { height: 20px !important; }
   .nav-end { gap: 4px; }
   .icon-btn { width: 30px; height: 30px; min-width: 30px; }

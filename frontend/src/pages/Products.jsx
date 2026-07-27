@@ -102,6 +102,8 @@ export default function Products() {
     setParams(next);
   };
 
+  const clearSearch = () => updateParams({ q: '' });
+
   return (
     <div className="page-wrap">
       <div
@@ -146,6 +148,24 @@ export default function Products() {
           </aside>
 
           <div ref={gridRef} style={{ scrollMarginTop: '110px' }}>
+            {query && (
+              <div
+                className="search-query-banner"
+                style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}
+              >
+                <span style={{ fontSize: '0.95rem' }}>
+                  Showing results for <strong>&ldquo;{query}&rdquo;</strong>
+                </span>
+                <button
+                  className="btn-ghost"
+                  style={{ padding: '4px 12px', fontSize: '0.8rem' }}
+                  onClick={clearSearch}
+                >
+                  Clear search ✕
+                </button>
+              </div>
+            )}
+
             <div className="toolbar">
               <span style={{ fontSize: '0.85rem', color: 'var(--gray-mid)' }}>
                 {loading ? 'Loading…' : `${totalProducts} products found`}
@@ -161,7 +181,21 @@ export default function Products() {
             {error && <div className="empty-state">{error}</div>}
 
             {!error && !loading && products.length === 0 ? (
-              <div className="empty-state">No products match your filters.</div>
+              <div className="empty-state search-not-found" style={{ textAlign: 'center', padding: '48px 16px' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '12px' }}>🔍</div>
+                {query ? (
+                  <>
+                    <div style={{ fontSize: '1.05rem', fontWeight: 600, marginBottom: '6px' }}>
+                      No results found for &ldquo;{query}&rdquo;
+                    </div>
+                    <div style={{ color: 'var(--gray-mid)', fontSize: '0.9rem' }}>
+                      Try checking your spelling, using fewer or more general keywords, or browsing a category instead.
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ fontSize: '1.05rem', fontWeight: 600 }}>No products match your filters.</div>
+                )}
+              </div>
             ) : (
               <div className="product-grid">
                 {products.map((p) => <ProductCard key={p.id} product={p} />)}

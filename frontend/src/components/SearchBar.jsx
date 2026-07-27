@@ -57,18 +57,39 @@ export default function SearchBar() {
     navigate(`/product/${id}`);
   };
 
+  // Sends the user to the full results page (Products.jsx), the same way
+  // Daraz/Amazon-style search bars behave on a bare Enter press: it doesn't
+  // guess a product, it shows everything matching the query — including the
+  // page's own "No products match your filters" empty state when there are
+  // zero results, instead of silently doing nothing or jumping somewhere odd.
+  const goToSearchResults = (value) => {
+    const q = value.trim();
+    if (!q) return;
+    setOpen(false);
+    navigate(`/products?q=${encodeURIComponent(q)}`);
+  };
+
   const onKeyDown = (e) => {
-    if (!open || !matches.length) return;
     if (e.key === 'ArrowDown') {
+      if (!open || !matches.length) return;
       e.preventDefault();
       setActiveIndex((i) => Math.min(i + 1, Math.min(matches.length, 8) - 1));
     } else if (e.key === 'ArrowUp') {
+      if (!open || !matches.length) return;
       e.preventDefault();
       setActiveIndex((i) => Math.max(i - 1, 0));
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      const target = matches[activeIndex >= 0 ? activeIndex : 0];
-      if (target) goToProduct(target.id);
+      // Only jump straight to a product if the user has actually arrow-key
+      // highlighted one. A plain Enter always goes to the results page —
+      // that's what lets "no matches" show a real not-found state instead
+      // of picking matches[0] or failing silently.
+      const highlighted = activeIndex >= 0 ? matches[activeIndex] : null;
+      if (highlighted) {
+        goToProduct(highlighted.id);
+      } else {
+        goToSearchResults(query);
+      }
     } else if (e.key === 'Escape') {
       setOpen(false);
     }
@@ -94,30 +115,44 @@ export default function SearchBar() {
         {matches.length === 0 ? (
           <div className="search-empty">No products match "{query}"</div>
         ) : (
-          matches.slice(0, 8).map((p, i) => (
+          <>
+            {matches.slice(0, 8).map((p, i) => (
+              <div
+                key={p.id}
+                className={`search-result-item${i === activeIndex ? ' active' : ''}`}
+                onClick={() => goToProduct(p.id)}
+                onMouseEnter={() => setActiveIndex(i)}
+              >
+                <div className="search-result-icon">
+                  {p.imageUrl ? (
+                    <img
+                      src={p.imageUrl}
+                      alt={p.name}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '9px' }}
+                    />
+                  ) : (
+                    p.emoji || p.image || '📦'
+                  )}
+                </div>
+                <div className="search-result-info">
+                  <div className="search-result-name">{p.name}</div>
+                  <div className="search-result-meta">{p.category || ''}</div>
+                </div>
+                <div className="search-result-price">{formatPrice(p.price)}</div>
+              </div>
+            ))}
+            {/* Daraz-style footer row: lets the user jump to the full results
+                page for the raw query without having to press Enter. */}
             <div
-              key={p.id}
-              className={`search-result-item${i === activeIndex ? ' active' : ''}`}
-              onClick={() => goToProduct(p.id)}
+              className="search-result-item search-view-all"
+              onClick={() => goToSearchResults(query)}
+              onMouseEnter={() => setActiveIndex(-1)}
             >
-              <div className="search-result-icon">
-                {p.imageUrl ? (
-                  <img
-                    src={p.imageUrl}
-                    alt={p.name}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '9px' }}
-                  />
-                ) : (
-                  p.emoji || p.image || '📦'
-                )}
-              </div>
               <div className="search-result-info">
-                <div className="search-result-name">{p.name}</div>
-                <div className="search-result-meta">{p.category || ''}</div>
+                <div className="search-result-name">View all results for "{query}"</div>
               </div>
-              <div className="search-result-price">{formatPrice(p.price)}</div>
             </div>
-          ))
+          </>
         )}
       </div>
     </div>

@@ -72,10 +72,10 @@ header.site-header {
   max-width: 100vw;
 }
 .nav-inner { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; gap: 32px; padding: 0 32px; height: 68px; }
-.nav-end { margin-left: auto; display: flex; align-items: center; gap: 16px; }
-.logo { display: flex; align-items: center; gap: 10px; }
-.logo-img { width: 36px; height: 36px; border-radius: 8px; }
-.logo-wordmark { height: 40px; width: auto; display: block; }
+.nav-end { margin-left: auto; display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+.logo { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.logo-img { width: 36px; height: 36px; min-width: 36px; border-radius: 8px; flex-shrink: 0; }
+.logo-wordmark { height: 40px; width: auto; display: block; flex-shrink: 0; }
 @media (max-width: 640px) { .logo-wordmark { height: 32px; } }
 .logo-text { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.15rem; color: var(--white); letter-spacing: 0.05em; white-space: nowrap; }
 .logo-text span { color: var(--cyan); }
@@ -117,17 +117,18 @@ header.site-header {
 .search-bar {
   position: relative; display: flex; align-items: center; gap: 8px;
   background: var(--bg3); border: 1px solid var(--border);
-  border-radius: 999px; padding: 8px 16px; width: 320px; transition: width 0.25s;
+  border-radius: 999px; padding: 8px 16px; width: 320px; min-width: 0;
+  flex-shrink: 1; transition: width 0.25s;
 }
 .search-bar:focus-within { width: 400px; border-color: var(--cyan); }
 .search-bar svg { width: 16px; height: 16px; color: var(--gray-mid); flex-shrink: 0; }
 .search-bar input { background: none; border: none; outline: none; color: var(--text); font-size: 0.85rem; width: 100%; }
 
 .icon-btn {
-  position: relative; width: 40px; height: 40px; border-radius: 10px;
+  position: relative; width: 40px; height: 40px; min-width: 40px; border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
   background: var(--bg3); border: 1px solid var(--border);
-  color: var(--text-sub); transition: background 0.2s, color 0.2s;
+  color: var(--text-sub); flex-shrink: 0; transition: background 0.2s, color 0.2s;
 }
 .icon-btn:hover { background: var(--cyan-glow); color: var(--cyan); }
 .icon-btn svg { width: 18px; height: 18px; }
@@ -138,18 +139,38 @@ header.site-header {
   display: none; align-items: center; justify-content: center;
 }
 
+/* ═══ MID-RANGE NAV FIX (1081px–1320px) ═══
+   Between the hamburger breakpoint (1080px) and full desktop (~1400px),
+   the full nav-links + 320px search-bar + icons don't comfortably fit,
+   which was causing icons to get clipped by overflow-x: hidden. Instead
+   of relying on flex-shrink (which shrinks unpredictably and clips
+   whatever runs out of room first), proactively tighten spacing here. */
+@media (min-width: 1081px) and (max-width: 1320px) {
+  .nav-inner { gap: 18px; }
+  .nav-links { gap: 0; }
+  .nav-links a, .nav-links .nav-link-btn { padding: 8px 8px; font-size: 0.85rem; }
+  .search-bar { width: 180px; }
+  .search-bar:focus-within { width: 240px; }
+}
+
 .mobile-toggle { display: none; }
-@media (max-width: 960px) {
+/* Breakpoint raised from 960px to 1080px so this reliably triggers even
+   when a phone forces a "Desktop site" viewport (~980-1024px), where the
+   full nav-links + search-bar + icons would otherwise overflow and get
+   clipped by html/body's overflow-x: hidden. */
+@media (max-width: 1080px) {
   .nav-links { display: none; }
   .mobile-toggle { display: flex; }
 }
 
 /* ═══ MOBILE HEADER LAYOUT FIX ═══
-   Synced with the .nav-links hamburger breakpoint (960px) so there's no
-   gap where the hamburger shows but the header hasn't wrapped yet. Also
-   caps .dropdown and .section-tinted so neither can force horizontal
-   overflow / auto-zoom on mobile, even while hidden. */
-@media (max-width: 960px) {
+   Synced with the .nav-links hamburger breakpoint (1080px, raised from
+   960px) so there's no gap where the hamburger shows but the header
+   hasn't wrapped yet, and so "Request Desktop Site" mode on mobile also
+   gets the wrapped layout instead of overflowing. Also caps .dropdown
+   and .section-tinted so neither can force horizontal overflow / auto-zoom
+   on mobile, even while hidden. */
+@media (max-width: 1080px) {
   .nav-inner {
     flex-wrap: wrap;
     height: auto;

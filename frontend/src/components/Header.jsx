@@ -110,13 +110,15 @@ export default function Header() {
       </div>
       <div className="nav-inner">
         <Link to="/" className="logo">
-          <img
-            src="/logo-dark.png"
-            alt="J. Electronics"
-            className="logo-wordmark"
-            
-          />
-        </Link>
+  <img
+    src="/logo.png"
+    alt="J. Electronics"
+    className="logo-wordmark"
+  />
+  <span className="logo-text">
+    <span>Electronics</span>
+  </span>
+</Link>
 
         <ul className="nav-links">
           <li><Link to="/">Home</Link></li>

@@ -23,10 +23,15 @@ export default function Footer() {
               style={{ marginBottom: '14px', display: 'flex' }}
             >
               <img
-                src="/logo-dark.png"
-                alt="J. Electronics"
+                src="/logo.png"
+                alt="J Electronics"
                 className="logo-wordmark"
+
               />
+              
+  <span className="logo-text">
+    <span>Electronics</span>
+  </span>
             </Link>
 
             <p

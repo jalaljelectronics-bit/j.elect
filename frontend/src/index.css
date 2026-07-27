@@ -81,8 +81,8 @@ header.site-header {
    causing it to crowd out the search bar and icons. Best long-term fix
    is to delete that inline style in the JSX; this keeps things safe
    either way. */
-.logo-wordmark { height: 40px !important; width: auto !important; display: block; flex-shrink: 0; }
-@media (max-width: 640px) { .logo-wordmark { height: 32px !important; } }
+.logo-wordmark { height: 68px !important; width: auto !important; display: block; flex-shrink: 0; }
+@media (max-width: 640px) { .logo-wordmark { height: 42px !important; } }
 .logo-text { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.15rem; color: var(--white); letter-spacing: 0.05em; white-space: nowrap; }
 .logo-text span { color: var(--cyan); }
 

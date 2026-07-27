@@ -2,6 +2,23 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getCategories } from '../api/categoryService';
 
+const socialIconStyle = {
+  background: 'none',
+  border: 'none',
+  borderRadius: 0,
+  width: 'auto',
+  height: 'auto',
+  display: 'inline-flex',
+  alignItems: 'center',
+  padding: 0,
+};
+
+const socialImgStyle = {
+  width: '25px',
+  height: '25px',
+  objectFit: 'contain',
+};
+
 export default function Footer() {
   const [categories, setCategories] = useState([]);
 
@@ -26,12 +43,11 @@ export default function Footer() {
                 src="/logo.png"
                 alt="J Electronics"
                 className="logo-wordmark"
-
               />
-              
-  <span className="logo-text">
-    <span>Electronics</span>
-  </span>
+
+              <span className="logo-text">
+                <span>Electronics</span>
+              </span>
             </Link>
 
             <p
@@ -56,66 +72,78 @@ export default function Footer() {
                 alignItems: 'center',
               }}
             >
+              {/* Facebook */}
               <a
-                href="https://www.facebook.com/profile.php?id=61552590364369&sk=directory_links&fb_profile_edit_entry_point=%7B%22feature%22%3A%22profile_directory%22%2C%22click_point%22%3A%22pencil_edit_directory_section%22%2C%22additional_metadata%22%3A%7B%22section_type%22%3A%22links%22%7D%7"
+                href="https://www.facebook.com/profile.php?id=61552590364369"
                 target="_blank"
                 rel="noreferrer"
                 title="Facebook"
+                style={socialIconStyle}
               >
-                f
+                <img
+                  src="/facebook.png"
+                  alt="Facebook"
+                  style={socialImgStyle}
+                />
               </a>
 
+              {/* Instagram */}
               <a
                 href="https://instagram.com/visiongiants"
                 target="_blank"
                 rel="noreferrer"
                 title="Instagram"
+                style={socialIconStyle}
               >
-                ◎
+                <img
+                  src="/instagram.png"
+                  alt="Instagram"
+                  style={socialImgStyle}
+                />
               </a>
 
+              {/* WhatsApp */}
               <a
                 href="https://wa.me/923176572690"
                 target="_blank"
                 rel="noreferrer"
                 title="WhatsApp"
+                style={socialIconStyle}
               >
-                ✆
+                <img
+                  src="/call.jpeg"
+                  alt="WhatsApp"
+                  style={socialImgStyle}
+                />
               </a>
 
+              {/* LinkedIn */}
               <a
                 href="https://linkedin.com/company/visiongiants"
                 target="_blank"
                 rel="noreferrer"
                 title="LinkedIn"
+                style={socialIconStyle}
               >
-                in
+                <img
+                  src="/linkedin.jpeg"
+                  alt="LinkedIn"
+                  style={socialImgStyle}
+                />
               </a>
 
+              {/* Daraz */}
               <a
                 href="https://www.daraz.pk/shop/duuuytiz"
                 target="_blank"
                 rel="noreferrer"
                 title="Shop on Daraz"
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  borderRadius: 0,
-                  width: 'auto',
-                  height: 'auto',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  padding: 0,
-                }}
+                style={socialIconStyle}
               >
                 <img
                   src="/daraz.png"
                   alt="Daraz"
-                  style={{
-                    width: '28px',
-                    height: '28px',
-                    objectFit: 'contain',
-                  }}
+                  style={socialImgStyle}
                 />
               </a>
             </div>

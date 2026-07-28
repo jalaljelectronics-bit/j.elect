@@ -1,29 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// Fill in each slide's images when you have them.
-// slideImage = full background behind everything.
-// badgeImage = separate photo shown inside the circle itself.
-// Leave either empty for a plain dark fallback (no broken image).
 const SLIDES = [
   {
     id: 'university',
-    slideImage: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSUAcHWPOSWR5AGzt81zIbpE6FpwB5yRE_DJUHrWBEfd4MoF7IzuPwDBuc&s=10',
-    badgeImage: 'https://elysiumpro.in/wp-content/uploads/2025/06/electronic-projects-for-final-year.jpg',
-    eyebrow: 'Electronics / Mechanical / IT Students',
-    title: 'Final Year Projects For University Students',
-    subtitle: 'We provide semester projects and final year projects, built to your exact requirements.',
-    buttonLabel: 'View University Projects',
+    slideImage: 'https://res.cloudinary.com/r2fk1fws/image/upload/v1785257054/WhatsApp_Image_2026-07-28_at_1.00.37_PM_1_w93z0n.jpg',
     link: '/projects?category=University',
   },
   {
     id: 'commercial',
-    slideImage: '',
-    badgeImage: '',
-    eyebrow: 'Businesses / Startups',
-    title: 'Commercial Project Solutions',
-    subtitle: 'Custom-built commercial projects and systems, engineered for real-world deployment.',
-    buttonLabel: 'View Commercial Projects',
+    slideImage: 'https://res.cloudinary.com/r2fk1fws/image/upload/v1785258413/WhatsApp_Image_2026-07-28_at_1.16.30_PM_hje6rb.jpg',
     link: '/projects?category=Commercial',
   },
 ];
@@ -41,6 +27,19 @@ export default function ProjectsBannerSlider() {
     return () => clearInterval(timer);
   }, []);
 
+  const handleSlideClick = (link) => {
+    navigate(link);
+    // Let the route/query update happen, then scroll past the slider
+    setTimeout(() => {
+      const grid = document.querySelector('.project-grid-3col, .projects-toolbar');
+      if (grid) {
+        grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        window.scrollTo({ top: window.innerHeight * 0.9, behavior: 'smooth' });
+      }
+    }, 50);
+  };
+
   return (
     <div className="projects-slider">
       {SLIDES.map((slide, i) => (
@@ -48,22 +47,9 @@ export default function ProjectsBannerSlider() {
           key={slide.id}
           className={`projects-slide${i === active ? ' active' : ''}`}
           style={slide.slideImage ? { backgroundImage: `url(${slide.slideImage})` } : undefined}
+          onClick={() => handleSlideClick(slide.link)}
         >
           <div className="projects-slide-veil" />
-          <div
-            className="projects-slide-badge"
-            style={slide.badgeImage ? { backgroundImage: `url(${slide.badgeImage})` } : undefined}
-          >
-            <div className="projects-slide-badge-veil" />
-            <div className="projects-slide-badge-content">
-              <span className="projects-slide-eyebrow">{slide.eyebrow}</span>
-              <h2 className="projects-slide-title">{slide.title}</h2>
-              <p className="projects-slide-subtitle">{slide.subtitle}</p>
-              <button className="btn-ghost projects-slide-btn" onClick={() => navigate(slide.link)}>
-                {slide.buttonLabel}
-              </button>
-            </div>
-          </div>
         </div>
       ))}
 
@@ -72,8 +58,11 @@ export default function ProjectsBannerSlider() {
           <button
             key={slide.id}
             className={`projects-slide-dot${i === active ? ' active' : ''}`}
-            onClick={() => setActive(i)}
-            aria-label={`Show ${slide.title}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              setActive(i);
+            }}
+            aria-label={`Show slide ${i + 1}`}
           />
         ))}
       </div>

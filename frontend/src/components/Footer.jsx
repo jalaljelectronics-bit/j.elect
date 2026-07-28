@@ -6,17 +6,27 @@ const socialIconStyle = {
   background: 'none',
   border: 'none',
   borderRadius: 0,
-  width: 'auto',
-  height: 'auto',
+  width: '25px',
+  height: '25px',
   display: 'inline-flex',
   alignItems: 'center',
+  justifyContent: 'center',
   padding: 0,
+  overflow: 'hidden',
 };
 
 const socialImgStyle = {
-  width: '25px',
-  height: '25px',
+  maxWidth: '100%',
+  maxHeight: '100%',
+  width: 'auto',
+  height: 'auto',
   objectFit: 'contain',
+};
+
+// For icons with extra internal padding baked into the file
+const socialImgStyleZoomed = {
+  ...socialImgStyle,
+  transform: 'scale(1.4)',
 };
 
 export default function Footer() {
@@ -30,6 +40,15 @@ export default function Footer() {
 
   return (
     <footer className="site-footer">
+      <video
+        className="footer-video-bg"
+        src="YOUR_VIDEO_URL_HERE"
+        autoPlay
+        loop
+        muted
+        playsInline
+      />
+      <div className="footer-video-overlay" />
       <div className="container">
         <div className="footer-grid">
           {/* Brand */}
@@ -74,6 +93,7 @@ export default function Footer() {
             >
               {/* Facebook */}
               <a
+              
                 href="https://www.facebook.com/profile.php?id=61552590364369"
                 target="_blank"
                 rel="noreferrer"
@@ -98,10 +118,9 @@ export default function Footer() {
                 <img
                   src="/instagram.png"
                   alt="Instagram"
-                  style={socialImgStyle}
+                  style={socialImgStyleZoomed}
                 />
               </a>
-
 
               {/* LinkedIn */}
               <a
@@ -129,7 +148,7 @@ export default function Footer() {
                 <img
                   src="/daraz.png"
                   alt="Daraz"
-                  style={socialImgStyle}
+                  style={socialImgStyleZoomed}
                 />
               </a>
             </div>

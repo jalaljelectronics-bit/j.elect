@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5050';
 
 // Standalone type matching the real backend product shape
 // (the shared Product type in ../types describes the old static-JSON shape,
@@ -20,6 +20,8 @@ interface ProductWithCategory {
   category?: { id: number; name: string };
   stockQuantity: number;
   status: 'active' | 'inactive';
+  isFeatured: boolean;
+  isNewArrival: boolean;
 }
 
 export const ProductsList: React.FC = () => {
@@ -31,6 +33,9 @@ export const ProductsList: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [categories, setCategories] = useState<any[]>([]);
+  // Tracks which product row currently has a toggle request in flight,
+  // so we can disable just that row's buttons instead of the whole table.
+  const [togglingId, setTogglingId] = useState<number | null>(null);
 
   // Fetch products from API
   const fetchProducts = async () => {
@@ -53,7 +58,9 @@ export const ProductsList: React.FC = () => {
         ...prod,
         categoryId: prod.categoryId,
         stockQuantity: prod.stock,
-        status: prod.stock > 0 ? 'active' : 'inactive'
+        status: prod.stock > 0 ? 'active' : 'inactive',
+        isFeatured: Boolean(prod.isFeatured),
+        isNewArrival: Boolean(prod.isNewArrival)
       }));
       
       setProducts(formattedProducts);
@@ -109,6 +116,51 @@ export const ProductsList: React.FC = () => {
       const errorMessage = err.response?.data?.message || 'Failed to delete product';
       alert(`Error: ${errorMessage}`);
       console.error('Delete error:', err);
+    }
+  };
+
+  // Toggle Featured — flips the flag on the server, then updates just that
+  // row in local state (no full refetch needed for a snappy admin feel).
+  const handleToggleFeatured = async (id: number) => {
+    setTogglingId(id);
+    try {
+      const response = await axios.patch(
+        `${API_URL}/api/products/${id}/toggle-featured`,
+        {},
+        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+      );
+      const updated = response.data.product;
+      setProducts(prev =>
+        prev.map(p => (p.id === id ? { ...p, isFeatured: updated.isFeatured } : p))
+      );
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to update featured status';
+      alert(`Error: ${errorMessage}`);
+      console.error('Toggle featured error:', err);
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
+  // Toggle New Arrival — same pattern as above.
+  const handleToggleNewArrival = async (id: number) => {
+    setTogglingId(id);
+    try {
+      const response = await axios.patch(
+        `${API_URL}/api/products/${id}/toggle-new-arrival`,
+        {},
+        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+      );
+      const updated = response.data.product;
+      setProducts(prev =>
+        prev.map(p => (p.id === id ? { ...p, isNewArrival: updated.isNewArrival } : p))
+      );
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to update new arrival status';
+      alert(`Error: ${errorMessage}`);
+      console.error('Toggle new arrival error:', err);
+    } finally {
+      setTogglingId(null);
     }
   };
 
@@ -231,7 +283,7 @@ export const ProductsList: React.FC = () => {
               : 'No products available. Click "Add Product" to create one.'}
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '800px' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '900px' }}>
             <thead>
               <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                 <th style={{ padding: '1rem', color: '#64748b', fontWeight: '600' }}>Product Name</th>
@@ -240,6 +292,8 @@ export const ProductsList: React.FC = () => {
                 <th style={{ padding: '1rem', color: '#64748b', fontWeight: '600' }}>Stock</th>
                 <th style={{ padding: '1rem', color: '#64748b', fontWeight: '600' }}>Rating</th>
                 <th style={{ padding: '1rem', color: '#64748b', fontWeight: '600' }}>Status</th>
+                <th style={{ padding: '1rem', color: '#64748b', fontWeight: '600', textAlign: 'center' }}>Featured</th>
+                <th style={{ padding: '1rem', color: '#64748b', fontWeight: '600', textAlign: 'center' }}>New</th>
                 <th style={{ padding: '1rem', color: '#64748b', fontWeight: '600', textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
@@ -276,6 +330,51 @@ export const ProductsList: React.FC = () => {
                       {product.status === 'active' ? '● In Stock' : '○ Out of Stock'}
                     </span>
                   </td>
+
+                  {/* Featured toggle — click the star to flip it, no edit form needed */}
+                  <td style={{ padding: '1rem', textAlign: 'center' }}>
+                    <button
+                      onClick={() => handleToggleFeatured(product.id)}
+                      disabled={togglingId === product.id}
+                      title={product.isFeatured ? 'Remove from Featured' : 'Mark as Featured'}
+                      style={{
+                        width: '2.25rem',
+                        height: '2.25rem',
+                        borderRadius: '0.375rem',
+                        border: product.isFeatured ? '1px solid #f59e0b' : '1px solid #e2e8f0',
+                        backgroundColor: product.isFeatured ? '#fef3c7' : '#f8fafc',
+                        fontSize: '1.1rem',
+                        cursor: togglingId === product.id ? 'not-allowed' : 'pointer',
+                        opacity: togglingId === product.id ? 0.5 : 1,
+                        transition: 'all 0.15s'
+                      }}
+                    >
+                      {product.isFeatured ? '⭐' : '☆'}
+                    </button>
+                  </td>
+
+                  {/* New Arrival toggle — same pattern */}
+                  <td style={{ padding: '1rem', textAlign: 'center' }}>
+                    <button
+                      onClick={() => handleToggleNewArrival(product.id)}
+                      disabled={togglingId === product.id}
+                      title={product.isNewArrival ? 'Remove from New Arrivals' : 'Mark as New Arrival'}
+                      style={{
+                        width: '2.25rem',
+                        height: '2.25rem',
+                        borderRadius: '0.375rem',
+                        border: product.isNewArrival ? '1px solid #06b6d4' : '1px solid #e2e8f0',
+                        backgroundColor: product.isNewArrival ? '#cffafe' : '#f8fafc',
+                        fontSize: '1.1rem',
+                        cursor: togglingId === product.id ? 'not-allowed' : 'pointer',
+                        opacity: togglingId === product.id ? 0.5 : 1,
+                        transition: 'all 0.15s'
+                      }}
+                    >
+                      {product.isNewArrival ? '🆕' : '➕'}
+                    </button>
+                  </td>
+
                   <td style={{ padding: '1rem', textAlign: 'right' }}>
                     <button 
                       onClick={() => navigate(`/admin/products/edit/${product.id}`)} 

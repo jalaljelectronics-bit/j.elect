@@ -24,4 +24,8 @@ export const normalizeProduct = (p) => ({
   ...p,
   category: (p.category && p.category.name) || p.category || '',
   categoryId: p.categoryId ?? p.category?.id,
+  // Explicit boolean coercion so Home.jsx's `.filter((p) => p.isFeatured)`
+  // never silently fails on undefined/null for older rows or edge cases.
+  isFeatured: Boolean(p.isFeatured),
+  isNewArrival: Boolean(p.isNewArrival),
 });

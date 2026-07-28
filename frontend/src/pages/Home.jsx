@@ -63,9 +63,6 @@ export default function Home() {
   const laserCarouselRef = useRef(null);
 
   useEffect(() => {
-    const NEW_ARRIVAL_WINDOW_DAYS = 30;
-    const windowStart = Date.now() - NEW_ARRIVAL_WINDOW_DAYS * 24 * 60 * 60 * 1000;
-
     Promise.all([
       getProducts({ limit: 1000 }),
       getCategories(),
@@ -78,7 +75,15 @@ export default function Home() {
         setProductCount(productData.totalProducts ?? products.length);
         setProjectCount(projectData.totalProjects ?? projects.length);
 
-        setFeaturedProducts(products.slice(0, 8));
+        // Featured Products — now driven by the admin-controlled isFeatured
+        // flag instead of "first 8 in the list" (which used to just be the
+        // 8 newest products, causing overlap with New Arrivals below).
+        // Falls back to the old slice only if nothing has been marked
+        // featured yet, so the section isn't empty on a fresh DB.
+        const featuredProductList = products.filter((p) => p.isFeatured);
+        setFeaturedProducts(
+          (featuredProductList.length > 0 ? featuredProductList : products).slice(0, 8)
+        );
 
         const laserCategory = findLaserCategory(cats);
 
@@ -131,20 +136,31 @@ export default function Home() {
           createdAt: item.createdAt,
         });
 
-        const productArrivals = products.map((p) => toArrival(p, 'product'));
-        const projectArrivals = projects
-          .filter((p) => p.isNewArrival)
-          .map((p) => toArrival(p, 'project'));
+        // New Arrivals — now driven by the admin-controlled isNewArrival
+        // flag on both products and projects, same manual-curation pattern
+        // as Featured, instead of a rolling 30-day date window. This is
+        // what actually stops the two sections from ever showing the exact
+        // same items just because something was added recently: a product
+        // has to be deliberately marked new-arrival, not merely recent.
+        const newArrivalProducts = products.filter((p) => p.isNewArrival);
+        const newArrivalProjects = projects.filter((p) => p.isNewArrival);
 
-        const combined = [...productArrivals, ...projectArrivals].sort(
-          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
+        const arrivalsList = [...newArrivalProducts, ...newArrivalProjects];
 
-        const recent = combined.filter(
-          (item) => new Date(item.createdAt).getTime() >= windowStart
-        );
+        // Fallback: if nothing has been flagged yet anywhere, show the
+        // most recently created items instead of an empty section.
+        const fallbackList =
+          arrivalsList.length > 0
+            ? arrivalsList
+            : [...products, ...projects].sort(
+                (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+              );
 
-        setNewArrivals((recent.length > 0 ? recent : combined).slice(0, 12));
+        const arrivals = fallbackList
+          .map((item) => toArrival(item, item.title ? 'project' : 'product'))
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+        setNewArrivals(arrivals.slice(0, 12));
       })
       .catch((err) => console.error('Failed to load home data:', err));
   }, []);

@@ -78,13 +78,11 @@ export default function Header() {
   <a href="mailto:support@visiongiants.pk" title="Email">
     <img src="/email.png" alt="Email" style={{ width: '25px', height: '25px', objectFit: 'contain' }} />
   </a>
-  <a href="tel:+923176572690" title="Call Us">
-    <img src="/call.jpeg" alt="Call Us" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
-  </a>
+ 
   <a href="https://www.facebook.com/profile.php?id=61552590364369&sk=directory_links&fb_profile_edit_entry_point=%7B%22feature%22%3A%22profile_directory%22%2C%22click_point%22%3A%22pencil_edit_directory_section%22%2C%22additional_metadata%22%3A%7B%22section_type%22%3A%22links%22%7D%7" target="_blank" rel="noreferrer" title="Facebook">
     <img src="/facebook.png" alt="Facebook" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
   </a>
-  <a href="https://linkedin.com/company/visiongiants" target="_blank" rel="noreferrer" title="LinkedIn">
+  <a href="https://linkedin.com/company/jelectronics/?viewAsMember=true" target="_blank" rel="noreferrer" title="LinkedIn">
     <img src="/linkedin.jpeg" alt="LinkedIn" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
   </a>
   <a href="https://www.daraz.pk/shop/duuuytiz" target="_blank" rel="noreferrer" title="Shop on Daraz">

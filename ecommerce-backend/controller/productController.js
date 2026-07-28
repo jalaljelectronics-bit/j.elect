@@ -11,7 +11,9 @@ exports.createProduct = async (req, res) => {
             price,
             stock,
             imageUrl,
-            categoryId
+            categoryId,
+            isFeatured,
+            isNewArrival
         } = req.body;
 
         if (
@@ -25,7 +27,7 @@ exports.createProduct = async (req, res) => {
                 message: "All required fields must be provided."
             });
         }
-if (!imageUrl || !imageUrl.startsWith("http")) {
+        if (!imageUrl || !imageUrl.startsWith("http")) {
             return res.status(400).json({
                 message: "A valid image URL is required."
             });
@@ -42,14 +44,22 @@ if (!imageUrl || !imageUrl.startsWith("http")) {
             });
         }
 
-        const product = await prisma.product.create({
+      const product = await prisma.product.create({
             data: {
                 name: name.trim(),
                 description: description.trim(),
                 price: Number(price),
                 stock: Number(stock),
                 imageUrl,
-                categoryId: Number(categoryId)
+                categoryId: Number(categoryId),
+                isFeatured: Boolean(isFeatured),
+                // Defaults to true on creation (Option B) — every new product
+                // starts flagged as a new arrival automatically, and an admin
+                // manually un-toggles it later once it's no longer "new."
+                // Only overridden to false if the request explicitly sends
+                // isNewArrival: false (e.g. a future bulk-import tool that
+                // wants to skip this behavior).
+                isNewArrival: isNewArrival === false ? false : true
             }
         });
 
@@ -79,6 +89,8 @@ exports.getProducts = async (req, res) => {
             minPrice,
             maxPrice,
             sort,
+            featured,
+            newArrival,
             page = 1,
             limit = 12
         } = req.query;
@@ -105,6 +117,14 @@ exports.getProducts = async (req, res) => {
             where.price = {};
             if (minPrice) where.price.gte = Number(minPrice);
             if (maxPrice) where.price.lte = Number(maxPrice);
+        }
+
+        if (featured === "true") {
+            where.isFeatured = true;
+        }
+
+        if (newArrival === "true") {
+            where.isNewArrival = true;
         }
 
         // Build dynamic ORDER BY clause
@@ -216,7 +236,9 @@ exports.updateProduct = async (req, res) => {
             price,
             stock,
             imageUrl,
-            categoryId
+            categoryId,
+            isFeatured,
+            isNewArrival
         } = req.body;
 
         const existingProduct = await prisma.product.findUnique({
@@ -242,7 +264,7 @@ exports.updateProduct = async (req, res) => {
                 message: "Category not found."
             });
         }
-if (!imageUrl || !imageUrl.startsWith("http")) {
+        if (!imageUrl || !imageUrl.startsWith("http")) {
             return res.status(400).json({
                 message: "A valid image URL is required."
             });
@@ -257,7 +279,12 @@ if (!imageUrl || !imageUrl.startsWith("http")) {
                 price: Number(price),
                 stock: Number(stock),
                 imageUrl,
-                categoryId: Number(categoryId)
+                categoryId: Number(categoryId),
+                // Preserve existing flag if the request doesn't send one at all
+                // (e.g. an older frontend build without the checkbox), rather
+                // than silently resetting it to false on every save.
+                isFeatured: isFeatured !== undefined ? Boolean(isFeatured) : existingProduct.isFeatured,
+                isNewArrival: isNewArrival !== undefined ? Boolean(isNewArrival) : existingProduct.isNewArrival
             }
         });
 
@@ -276,6 +303,76 @@ if (!imageUrl || !imageUrl.startsWith("http")) {
 
     }
 
+};
+
+// =============================
+// Toggle Featured (quick admin action, no full form needed)
+// =============================
+exports.toggleFeatured = async (req, res) => {
+    try {
+        const id = Number(req.params.id);
+
+        const existingProduct = await prisma.product.findUnique({
+            where: { id }
+        });
+
+        if (!existingProduct) {
+            return res.status(404).json({
+                message: "Product not found."
+            });
+        }
+
+        const updatedProduct = await prisma.product.update({
+            where: { id },
+            data: { isFeatured: !existingProduct.isFeatured }
+        });
+
+        res.json({
+            message: `Product ${updatedProduct.isFeatured ? "marked as" : "removed from"} featured.`,
+            product: updatedProduct
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: "Server Error"
+        });
+    }
+};
+
+// =============================
+// Toggle New Arrival (quick admin action, no full form needed)
+// =============================
+exports.toggleNewArrival = async (req, res) => {
+    try {
+        const id = Number(req.params.id);
+
+        const existingProduct = await prisma.product.findUnique({
+            where: { id }
+        });
+
+        if (!existingProduct) {
+            return res.status(404).json({
+                message: "Product not found."
+            });
+        }
+
+        const updatedProduct = await prisma.product.update({
+            where: { id },
+            data: { isNewArrival: !existingProduct.isNewArrival }
+        });
+
+        res.json({
+            message: `Product ${updatedProduct.isNewArrival ? "marked as" : "removed from"} new arrival.`,
+            product: updatedProduct
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: "Server Error"
+        });
+    }
 };
 
 // =============================

@@ -27,7 +27,6 @@ model Category {
   imageUrl String?
   products Product[]
 }
-
 model Product {
   id            Int         @id @default(autoincrement())
   name          String
@@ -40,6 +39,8 @@ model Product {
   averageRating Float       @default(0)
   reviewCount   Int         @default(0)
   updatedAt     DateTime    @updatedAt
+  isFeatured    Boolean     @default(false)
+  isNewArrival  Boolean     @default(false)
   cartItems     CartItem[]
   orderItems    OrderItem[]
   category      Category    @relation(fields: [categoryId], references: [id])
@@ -50,7 +51,6 @@ model Product {
   @@index([categoryId])
   @@index([createdAt])
 }
-
 model Cart {
   id        Int        @id @default(autoincrement())
   userId    Int        @unique

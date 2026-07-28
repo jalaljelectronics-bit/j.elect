@@ -102,24 +102,10 @@ export default function Footer() {
                 />
               </a>
 
-              {/* WhatsApp */}
-              <a
-                href="https://wa.me/923176572690"
-                target="_blank"
-                rel="noreferrer"
-                title="WhatsApp"
-                style={socialIconStyle}
-              >
-                <img
-                  src="/call.jpeg"
-                  alt="WhatsApp"
-                  style={socialImgStyle}
-                />
-              </a>
 
               {/* LinkedIn */}
               <a
-                href="https://linkedin.com/company/visiongiants"
+                href="https://linkedin.com/company/jelectronics/?viewAsMember=true"
                 target="_blank"
                 rel="noreferrer"
                 title="LinkedIn"

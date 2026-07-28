@@ -1,11 +1,9 @@
 import { useNavigate } from "react-router-dom";
-import { useCart } from "../context/CartContext";
 
 const WHATSAPP_NUMBER = "923000000000";
 
 export default function ProjectCard({ project }) {
   const navigate = useNavigate();
-  const { addToCart } = useCart();
 
   const whatsappLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
     `Hi! I'm interested in the project kit: ${project.title}`
@@ -127,39 +125,6 @@ export default function ProjectCard({ project }) {
           </span>
         </div>
 
-        <div style={{ display: "flex", gap: "8px" }}>
-          <button
-            className="btn-primary"
-            style={{
-              flex: 1,
-              padding: "9px",
-              fontSize: "0.8rem",
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              addToCart(project.id, "project", 1);
-              navigate("/checkout");
-            }}
-          >
-            Buy Now
-          </button>
-
-          <button
-            className="btn-ghost"
-            style={{
-              flex: 1,
-              padding: "9px",
-              fontSize: "0.8rem",
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              addToCart(project.id, "project", 1);
-            }}
-          >
-            🛒 Add to Cart
-          </button>
-        </div>
-
         <a
           href={whatsappLink}
           target="_blank"
@@ -168,7 +133,6 @@ export default function ProjectCard({ project }) {
           className="btn-ghost"
           style={{
             display: "flex",
-            marginTop: "8px",
             padding: "9px",
             fontSize: "0.8rem",
             alignItems: "center",

@@ -152,28 +152,45 @@ model BlogPost {
 
   @@index([createdAt])
 }
-
 model Project {
-  id               Int         @id @default(autoincrement())
+  id               Int            @id @default(autoincrement())
   category         String
   imageUrl         String?
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
   completionDate   DateTime?
   githubUrl        String?
   introDescription String?
   introImageUrl    String?
-  isFeatured       Boolean     @default(false)
-  isNewArrival     Boolean     @default(false)
-  linkedProducts   Json        @default("[]")
-  price            Float       @default(0)
-  sections         Json        @default("[]")
-  status           String      @default("In Progress")
+  isFeatured       Boolean        @default(false)
+  isNewArrival     Boolean        @default(false)
+  linkedProducts   Json           @default("[]")
+  price            Float          @default(0)
+  sections         Json           @default("[]")
+  status           String         @default("In Progress")
   title            String
   CartItem         CartItem[]
   OrderItem        OrderItem[]
+  queries          ProjectQuery[]   // NEW
 
   @@index([category])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// NEW model
+model ProjectQuery {
+  id          Int      @id @default(autoincrement())
+  projectId   Int
+  clientName  String
+  clientEmail String
+  clientPhone String?
+  message     String
+  status      String   @default("Unread") // Unread / Read / Resolved
+  createdAt   DateTime @default(now())
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
   @@index([status])
   @@index([createdAt])
 }

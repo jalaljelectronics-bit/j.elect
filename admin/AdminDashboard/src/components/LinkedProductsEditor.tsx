@@ -5,7 +5,7 @@
 // one way — which is what broke before (blog links were built as
 // `/products/<slug>`, a route the storefront doesn't have, so React Router
 // fell through to the `*` catch-all and rendered Home).
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { CatalogProduct, getCatalogProducts, productPath } from '../api/catalogService';
 
 export interface LinkedProduct {
@@ -53,6 +53,148 @@ const linkCardStyle: React.CSSProperties = {
   border: '1px solid #e2e8f0', borderRadius: '0.5rem', padding: '1rem', backgroundColor: '#f8fafc', display: 'flex', flexDirection: 'column', gap: '0.75rem'
 };
 
+// ============================================================
+// Searchable product combobox
+// Replaces the old plain <select> — with 100+ catalog items a
+// native dropdown is unusable, so this filters as you type.
+// ============================================================
+interface ProductSearchSelectProps {
+  catalog: CatalogProduct[];
+  loading: boolean;
+  error: string;
+  selectedProductId?: string;
+  selectedLabel: string;
+  onPick: (product: CatalogProduct) => void;
+  onClear: () => void;
+}
+
+const ProductSearchSelect: React.FC<ProductSearchSelectProps> = ({
+  catalog,
+  loading,
+  error,
+  selectedProductId,
+  selectedLabel,
+  onPick,
+  onClear
+}) => {
+  const [query, setQuery] = useState('');
+  const [open, setOpen] = useState(false);
+  const [highlight, setHighlight] = useState(0);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  // When a product is selected elsewhere (e.g. row initialized from saved
+  // data), reflect its label in the search box when the box isn't focused.
+  useEffect(() => {
+    if (!open) setQuery('');
+  }, [selectedProductId, open]);
+
+  const filtered = (() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return catalog.slice(0, 50); // cap the idle list so it isn't huge
+    return catalog
+      .filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        (p.categoryName || '').toLowerCase().includes(q)
+      )
+      .slice(0, 50);
+  })();
+
+  const displayValue = open ? query : (selectedLabel || query);
+
+  const handleSelect = (product: CatalogProduct) => {
+    onPick(product);
+    setQuery('');
+    setOpen(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!open) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlight(h => Math.min(h + 1, filtered.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlight(h => Math.max(h - 1, 0));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (filtered[highlight]) handleSelect(filtered[highlight]);
+    } else if (e.key === 'Escape') {
+      setOpen(false);
+    }
+  };
+
+  return (
+    <div ref={wrapRef} style={{ position: 'relative' }}>
+      <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <input
+          type="text"
+          value={displayValue}
+          disabled={loading}
+          placeholder={loading ? 'Loading products…' : 'Search catalog by name…'}
+          onFocus={() => { setQuery(''); setOpen(true); setHighlight(0); }}
+          onChange={(e) => { setQuery(e.target.value); setOpen(true); setHighlight(0); }}
+          onKeyDown={handleKeyDown}
+          // Delay closing so a click on a list item registers before blur closes it.
+          onBlur={() => setTimeout(() => setOpen(false), 150)}
+          style={{ ...inputStyle, backgroundColor: '#fff', cursor: loading ? 'wait' : 'text' }}
+        />
+        {selectedProductId ? (
+          <button
+            type="button"
+            onClick={() => { onClear(); setQuery(''); }}
+            title="Clear selection"
+            style={{
+              flexShrink: 0, padding: '0 0.75rem', border: '1px solid #d1d5db', borderRadius: '0.375rem',
+              backgroundColor: '#fff', color: '#64748b', cursor: 'pointer', fontSize: '0.85rem'
+            }}
+          >
+            Clear
+          </button>
+        ) : null}
+      </div>
+
+      {open && !loading && (
+        <div
+          style={{
+            position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 20,
+            backgroundColor: '#fff', border: '1px solid #d1d5db', borderRadius: '0.375rem',
+            boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', maxHeight: '260px', overflowY: 'auto'
+          }}
+        >
+          {filtered.length === 0 ? (
+            <div style={{ padding: '0.625rem', color: '#94a3b8', fontSize: '0.875rem' }}>No products match.</div>
+          ) : (
+            filtered.map((p, i) => (
+              <div
+                key={p.id}
+                // onMouseDown (not onClick) so it fires before the input's onBlur.
+                onMouseDown={(e) => { e.preventDefault(); handleSelect(p); }}
+                onMouseEnter={() => setHighlight(i)}
+                style={{
+                  padding: '0.5rem 0.625rem', cursor: 'pointer', fontSize: '0.875rem',
+                  backgroundColor: i === highlight ? '#e0f2fe' : '#fff',
+                  color: '#1e293b', borderBottom: '1px solid #f1f5f9'
+                }}
+              >
+                {p.name}
+                {p.categoryName ? (
+                  <span style={{ color: '#94a3b8' }}> — {p.categoryName}</span>
+                ) : null}
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {error && (
+        <p style={{ color: '#b45309', fontSize: '0.75rem', marginTop: '0.375rem', marginBottom: 0 }}>
+          ⚠️ {error}
+        </p>
+      )}
+    </div>
+  );
+};
+
 interface Props {
   value: LinkedProduct[];
   onChange: (links: LinkedProduct[]) => void;
@@ -81,21 +223,18 @@ const LinkedProductsEditor: React.FC<Props> = ({ value, onChange, helperText }) 
   const updateLink = (linkId: string, patch: Partial<LinkedProduct>) =>
     onChange(value.map(l => (l.id === linkId ? { ...l, ...patch } : l)));
 
-  // Picking from the dropdown stores the real DB id and generates the correct
-  // storefront path. This is the path that was wrong before.
-  const handlePickCatalogProduct = (linkId: string, productId: string) => {
-    if (!productId) {
-      updateLink(linkId, { productId: '', url: '' });
-      return;
-    }
-    const product = catalog.find(p => String(p.id) === String(productId));
-    if (product) {
-      updateLink(linkId, {
-        productId: String(product.id),
-        label: product.name,
-        url: productPath(product.id)
-      });
-    }
+  // Picking a search result stores the real DB id and generates the correct
+  // storefront path.
+  const handlePickCatalogProduct = (linkId: string, product: CatalogProduct) => {
+    updateLink(linkId, {
+      productId: String(product.id),
+      label: product.name,
+      url: productPath(product.id)
+    });
+  };
+
+  const handleClearCatalogProduct = (linkId: string) => {
+    updateLink(linkId, { productId: '', url: '' });
   };
 
   return (
@@ -119,12 +258,6 @@ const LinkedProductsEditor: React.FC<Props> = ({ value, onChange, helperText }) 
         </button>
       </div>
 
-      {catalogError && (
-        <p style={{ color: '#b45309', backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '0.375rem', padding: '0.5rem 0.75rem', fontSize: '0.8rem', margin: '0 0 0.75rem' }}>
-          ⚠️ {catalogError}
-        </p>
-      )}
-
       {value.length === 0 ? (
         <p style={{ color: '#94a3b8', fontStyle: 'italic', margin: 0, fontSize: '0.875rem' }}>
           No product links added yet. Click "Add Product Link" to let visitors click through to a product page.
@@ -144,23 +277,17 @@ const LinkedProductsEditor: React.FC<Props> = ({ value, onChange, helperText }) 
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '0.375rem' }}>
-                  Pick from Catalog
+                  Search Catalog
                 </label>
-                <select
-                  value={link.productId || ''}
-                  onChange={(e) => handlePickCatalogProduct(link.id, e.target.value)}
-                  disabled={loadingCatalog}
-                  style={{ ...inputStyle, backgroundColor: '#fff', cursor: loadingCatalog ? 'wait' : 'pointer' }}
-                >
-                  <option value="">
-                    {loadingCatalog ? 'Loading products…' : '-- Custom link (no catalog product) --'}
-                  </option>
-                  {catalog.map((p) => (
-                    <option key={p.id} value={String(p.id)}>
-                      {p.name}{p.categoryName ? ` — ${p.categoryName}` : ''}
-                    </option>
-                  ))}
-                </select>
+                <ProductSearchSelect
+                  catalog={catalog}
+                  loading={loadingCatalog}
+                  error={catalogError}
+                  selectedProductId={link.productId}
+                  selectedLabel={link.label}
+                  onPick={(product) => handlePickCatalogProduct(link.id, product)}
+                  onClear={() => handleClearCatalogProduct(link.id)}
+                />
               </div>
 
               <div className="form-row" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>

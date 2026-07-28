@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
+import type { LinkedProduct } from '../components/LinkedProductsEditor';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -14,8 +15,7 @@ api.interceptors.request.use((config: any) => {
   return config;
 });
 
-export type { LinkedProduct } from '../components/LinkedProductsEditor';
-import type { LinkedProduct } from '../components/LinkedProductsEditor';
+export type { LinkedProduct };
 
 export interface ContentSection {
   id: string;
@@ -26,9 +26,9 @@ export interface ContentSection {
 
 export interface ProjectPayload {
   title: string;
-  category: 'Commercial' | 'University';
+  category: 'Commercial' | 'University' | 'Both';
   status?: 'In Progress' | 'Completed' | 'On Hold';
-  price: number;
+  price?: number;   // ← was: price: number
   imageUrl: string;
   isFeatured: boolean;
   isNewArrival: boolean;
@@ -37,6 +37,17 @@ export interface ProjectPayload {
   introImageUrl: string;
   sections: ContentSection[];
   linkedProducts: LinkedProduct[];
+}
+
+export interface ProjectQuery {
+  id: number;
+  projectId: number;
+  clientName: string;
+  clientEmail: string;
+  clientPhone?: string | null;
+  message: string;
+  status: 'Unread' | 'Read' | 'Resolved';
+  createdAt: string;
 }
 
 export const getProjects = async (filters: Record<string, any> = {}) => {
@@ -61,5 +72,17 @@ export const updateProject = async (id: number, data: Partial<ProjectPayload>) =
 
 export const deleteProject = async (id: number) => {
   const res = await api.delete(`/${id}`);
+  return res.data;
+};
+
+// ---- Project Queries (customer inquiries) ----
+
+export const getProjectQueries = async (id: number): Promise<{ queries: ProjectQuery[] }> => {
+  const res = await api.get(`/${id}/queries`);
+  return res.data;
+};
+
+export const updateQueryStatus = async (queryId: number, status: ProjectQuery['status']) => {
+  const res = await api.patch(`/queries/${queryId}/status`, { status });
   return res.data;
 };

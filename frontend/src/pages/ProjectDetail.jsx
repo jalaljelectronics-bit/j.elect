@@ -1,23 +1,26 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { getProjectById, getProjects } from '../api/projectService';
-import { useCart } from '../context/CartContext';
+import { Link, useParams } from 'react-router-dom';
+import { getProjectById, getProjects, createProjectQuery } from '../api/projectService';
 import ProjectCard from '../components/ProjectCard';
+import MarkdownContent from '../components/MarkdownContent';
 import { resolveProductLink, isExternalLink, usableLinks } from '../utils/productLink';
+import { CONTACT_PHONE_DISPLAY, CONTACT_WHATSAPP } from '../config/contact';
 
 export default function ProjectDetail() {
   const { id } = useParams();
   const [project, setProject] = useState(null);
   const [related, setRelated] = useState([]);
-  const [qty, setQty] = useState(1);
   const [notFound, setNotFound] = useState(false);
-  const { addToCart } = useCart();
-  const navigate = useNavigate();
+
+  const [queryForm, setQueryForm] = useState({ clientName: '', clientEmail: '', clientPhone: '', message: '' });
+  const [querySubmitting, setQuerySubmitting] = useState(false);
+  const [querySent, setQuerySent] = useState(false);
 
   useEffect(() => {
-    setQty(1);
     setNotFound(false);
     setProject(null);
+    setQuerySent(false);
+    setQueryForm({ clientName: '', clientEmail: '', clientPhone: '', message: '' });
 
     getProjectById(id)
       .then((res) => {
@@ -40,6 +43,27 @@ export default function ProjectDetail() {
         setNotFound(true);
       });
   }, [id]);
+
+  const handleQuerySubmit = async (e) => {
+    e.preventDefault();
+
+    if (!queryForm.clientName.trim() || !queryForm.clientEmail.trim() || !queryForm.message.trim()) {
+      alert('Please fill in your name, email, and message.');
+      return;
+    }
+
+    setQuerySubmitting(true);
+    try {
+      await createProjectQuery(project.id, queryForm);
+      setQuerySent(true);
+      setQueryForm({ clientName: '', clientEmail: '', clientPhone: '', message: '' });
+    } catch (err) {
+      console.error(err);
+      alert('Could not send your message. Please try again or contact us directly.');
+    } finally {
+      setQuerySubmitting(false);
+    }
+  };
 
   if (notFound) {
     return (
@@ -88,7 +112,7 @@ export default function ProjectDetail() {
           <div className="detail-name">{project.title}</div>
 
           <div className="detail-price" style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
-            <span>{project.price ? `Rs ${project.price}` : 'Project'}</span>
+            <span>{project.price ? `Rs ${project.price}` : 'Contact for pricing'}</span>
             <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: '0.95rem', color: 'var(--gray-mid)' }}>
               · {project.status}
             </span>
@@ -101,27 +125,14 @@ export default function ProjectDetail() {
           {project.githubUrl && (
             <div style={{ margin: '8px 0' }}>
               <a href={project.githubUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--cyan)', fontSize: '0.9rem' }}>
-                View on GitHub →
+                View Code on GitHub →
               </a>
             </div>
           )}
 
-          <div className="qty-select-detail">
-            <button
-              className="btn-primary"
-              onClick={() => {
-                addToCart(project.id, 'project', 1);
-                navigate('/checkout');
-              }}
-            >
-              Buy Now
-            </button>
-            <button className="btn-ghost" onClick={() => addToCart(project.id, 'project', 1)}>🛒 Add to Cart</button>
-          </div>
-
-          <Link to="/contact" className="btn-ghost" style={{ display: 'inline-flex', marginTop: '14px' }}>
-            Request Source Code →
-          </Link>
+          <a href="#project-query-form" className="btn-primary" style={{ display: 'inline-flex', marginTop: '10px' }}>
+            Contact Us About This Project
+          </a>
         </div>
       </div>
 
@@ -135,7 +146,7 @@ export default function ProjectDetail() {
                 {section.imageUrl && (
                   <img src={section.imageUrl} alt={section.title} style={{ width: '100%', maxHeight: '260px', objectFit: 'cover', borderRadius: '8px', marginBottom: '10px' }} />
                 )}
-                <p style={{ color: 'var(--text-sub)', lineHeight: 1.6 }}>{section.description}</p>
+                <MarkdownContent content={section.description} linkedProducts={project.linkedProducts} />
               </div>
             ))}
           </div>
@@ -165,6 +176,59 @@ export default function ProjectDetail() {
           </div>
         </section>
       )}
+
+      <section className="section" id="project-query-form">
+        <div className="section-head"><h2>Questions, Custom Pricing, or Requests</h2></div>
+        <p style={{ color: 'var(--text-sub)', marginBottom: '16px', maxWidth: '520px' }}>
+          Want this project customized, a quote for your budget, help understanding a feature,
+          or anything else related to it? Send us a message.
+        </p>
+
+        {querySent ? (
+          <div className="empty-state">Thanks! We've received your message and will get back to you soon.</div>
+        ) : (
+          <form onSubmit={handleQuerySubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '480px' }}>
+            <input
+              type="text"
+              placeholder="Your Name"
+              value={queryForm.clientName}
+              onChange={(e) => setQueryForm({ ...queryForm, clientName: e.target.value })}
+              style={{ padding: '10px', border: '1px solid var(--border)', borderRadius: '8px' }}
+            />
+            <input
+              type="email"
+              placeholder="Your Email"
+              value={queryForm.clientEmail}
+              onChange={(e) => setQueryForm({ ...queryForm, clientEmail: e.target.value })}
+              style={{ padding: '10px', border: '1px solid var(--border)', borderRadius: '8px' }}
+            />
+            <input
+              type="text"
+              placeholder="Phone (optional)"
+              value={queryForm.clientPhone}
+              onChange={(e) => setQueryForm({ ...queryForm, clientPhone: e.target.value })}
+              style={{ padding: '10px', border: '1px solid var(--border)', borderRadius: '8px' }}
+            />
+            <textarea
+              rows={4}
+              placeholder="What would you like to ask or request about this project?"
+              value={queryForm.message}
+              onChange={(e) => setQueryForm({ ...queryForm, message: e.target.value })}
+              style={{ padding: '10px', border: '1px solid var(--border)', borderRadius: '8px', fontFamily: 'inherit', resize: 'vertical' }}
+            />
+            <button type="submit" className="btn-primary" disabled={querySubmitting} style={{ alignSelf: 'flex-start' }}>
+              {querySubmitting ? 'Sending...' : 'Send Message'}
+            </button>
+          </form>
+        )}
+
+        <p style={{ marginTop: '14px', color: 'var(--text-sub)', fontSize: '0.9rem' }}>
+          Prefer to talk? Call or WhatsApp us at{' '}
+          <a href={CONTACT_WHATSAPP} target="_blank" rel="noreferrer" style={{ color: 'var(--cyan)', fontWeight: 600 }}>
+            {CONTACT_PHONE_DISPLAY}
+          </a>
+        </p>
+      </section>
 
       {related.length > 0 && (
         <section className="section">

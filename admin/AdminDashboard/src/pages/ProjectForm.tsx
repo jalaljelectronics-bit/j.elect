@@ -35,9 +35,8 @@ export const ProjectForm: React.FC = () => {
 
   const [title, setTitle] = useState('');
   const [imageUrl, setImageUrl] = useState('');
-  const [category, setCategory] = useState<'Commercial' | 'University'>('Commercial');
+  const [category, setCategory] = useState<'Commercial' | 'University' | 'Both'>('Commercial');
   const [status, setStatus] = useState<'In Progress' | 'Completed' | 'On Hold'>('In Progress');
-  const [price, setPrice] = useState('');
   const [isFeatured, setIsFeatured] = useState(false);
   const [isNewArrival, setIsNewArrival] = useState(false);
   const [githubUrl, setGithubUrl] = useState('');
@@ -56,7 +55,6 @@ export const ProjectForm: React.FC = () => {
           setImageUrl(p.imageUrl || '');
           setCategory(p.category || 'Commercial');
           setStatus(p.status || 'In Progress');
-          setPrice(p.price != null ? String(p.price) : '');
           setIsFeatured(Boolean(p.isFeatured));
           setIsNewArrival(Boolean(p.isNewArrival));
           setGithubUrl(p.githubUrl || '');
@@ -86,11 +84,6 @@ export const ProjectForm: React.FC = () => {
       return;
     }
 
-    if (price !== '' && (isNaN(Number(price)) || Number(price) < 0)) {
-      alert('Price must be a valid positive number in Rupees.');
-      return;
-    }
-
     const linkError = validateLinks(linkedProducts);
     if (linkError) {
       alert(linkError);
@@ -101,7 +94,6 @@ export const ProjectForm: React.FC = () => {
       title: title.trim(),
       category,
       status,
-      price: Number(price) || 0,
       imageUrl: imageUrl.trim() || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=500',
       isFeatured,
       isNewArrival,
@@ -147,21 +139,6 @@ export const ProjectForm: React.FC = () => {
           <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Flight Booking Portal" style={inputStyle} />
         </div>
 
-        {/* Price (Rupees) */}
-        <div>
-          <label style={{ display: 'block', fontWeight: '600', marginBottom: '0.375rem', color: '#4b5563' }}>Price (Rs)</label>
-          <div style={{ position: 'relative' }}>
-            <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#64748b', fontWeight: '600', pointerEvents: 'none' }}>Rs</span>
-            <input
-              type="text"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              placeholder="149999"
-              style={{ ...inputStyle, paddingLeft: '1.75rem' }}
-            />
-          </div>
-        </div>
-
         {/* Cover image + Category */}
         <div className="form-row" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: '220px' }}>
@@ -170,9 +147,10 @@ export const ProjectForm: React.FC = () => {
           </div>
           <div style={{ width: '220px' }}>
             <label style={{ display: 'block', fontWeight: '600', marginBottom: '0.375rem', color: '#4b5563' }}>Classification Group</label>
-            <select value={category} onChange={(e) => setCategory(e.target.value as 'Commercial' | 'University')} style={{ ...inputStyle, backgroundColor: '#fff', cursor: 'pointer' }}>
+            <select value={category} onChange={(e) => setCategory(e.target.value as 'Commercial' | 'University' | 'Both')} style={{ ...inputStyle, backgroundColor: '#fff', cursor: 'pointer' }}>
               <option value="Commercial">Commercial Project</option>
               <option value="University">University Project</option>
+              <option value="Both">Both (Commercial &amp; University)</option>
             </select>
           </div>
         </div>
@@ -181,6 +159,9 @@ export const ProjectForm: React.FC = () => {
         <div>
           <label style={{ display: 'block', fontWeight: '600', marginBottom: '0.375rem', color: '#4b5563' }}>GitHub Repository URL</label>
           <input type="text" value={githubUrl} onChange={(e) => setGithubUrl(e.target.value)} placeholder="https://github.com/username/repo" style={inputStyle} />
+          <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.375rem', marginBottom: 0 }}>
+            Shown on the project page as a direct link to the code.
+          </p>
         </div>
 
         {/* Intro block */}
@@ -201,7 +182,7 @@ export const ProjectForm: React.FC = () => {
         {/* Dynamic sections */}
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-            <label style={{ fontSize: '0.95rem', fontWeight: '700', color: '#1e293b' }}>Additional Sections <span style={{ fontWeight: 400, color: '#94a3b8', fontSize: '0.8rem' }}>(working process, features, etc.)</span></label>
+            <label style={{ fontSize: '0.95rem', fontWeight: '700', color: '#1e293b' }}>Additional Sections <span style={{ fontWeight: 400, color: '#94a3b8', fontSize: '0.8rem' }}>(working process, features, components, wiring, code, etc.)</span></label>
             <button type="button" onClick={addSection} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', padding: '0.4rem 0.75rem', backgroundColor: '#e0f2fe', color: '#0369a1', border: 'none', borderRadius: '0.375rem', fontWeight: '600', fontSize: '0.8rem', cursor: 'pointer' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 5v14M5 12h14" />
@@ -227,7 +208,7 @@ export const ProjectForm: React.FC = () => {
 
                   <div>
                     <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#475569', marginBottom: '0.375rem' }}>Section Title</label>
-                    <input type="text" value={section.title} onChange={(e) => updateSection(section.id, { title: e.target.value })} placeholder="e.g. Wireframing & Planning" style={inputStyle} />
+                    <input type="text" value={section.title} onChange={(e) => updateSection(section.id, { title: e.target.value })} placeholder="e.g. Circuit Design & Pin Connections" style={inputStyle} />
                   </div>
 
                   <div>
@@ -236,8 +217,10 @@ export const ProjectForm: React.FC = () => {
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#475569', marginBottom: '0.375rem' }}>Section Description</label>
-                    <textarea rows={2} value={section.description} onChange={(e) => updateSection(section.id, { description: e.target.value })} placeholder="Describe this part of the process..." style={{ ...inputStyle, fontFamily: 'inherit', resize: 'vertical' }} />
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#475569', marginBottom: '0.375rem' }}>
+                      Section Description <span style={{ fontWeight: 400, color: '#94a3b8' }}>(Markdown supported — tables, lists, `code`, ```code blocks```)</span>
+                    </label>
+                    <textarea rows={2} value={section.description} onChange={(e) => updateSection(section.id, { description: e.target.value })} placeholder="Describe this part — components table, wiring, steps, or paste code here..." style={{ ...inputStyle, fontFamily: 'inherit', resize: 'vertical' }} />
                   </div>
                 </div>
               ))}

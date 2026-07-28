@@ -1,5 +1,7 @@
 const prisma = require("../prisma/client");
 
+const VALID_QUERY_STATUSES = ["Unread", "Read", "Resolved"];
+
 // Normalize whatever the client sends for linkedProducts into a predictable
 // array of { id, productId, label, url } objects. `productId` is the real
 // numeric Product id from the database — it is what the storefront uses to
@@ -25,7 +27,14 @@ exports.getProjects = async (req, res) => {
         const { category, status, page = 1, limit = 20 } = req.query;
 
         const where = {};
-        if (category) where.category = category;
+
+        // "Both" projects should surface under either the Commercial or University tab
+        if (category === 'Commercial' || category === 'University') {
+            where.category = { in: [category, 'Both'] };
+        } else if (category) {
+            where.category = category;
+        }
+
         if (status) where.status = status;
 
         const skip = (page - 1) * limit;
@@ -57,9 +66,14 @@ exports.getProjects = async (req, res) => {
 exports.getProjectById = async (req, res) => {
     try {
         const { id } = req.params;
+        const projectId = Number(id);
+
+        if (!Number.isInteger(projectId)) {
+            return res.status(400).json({ message: "Invalid project id" });
+        }
 
         const project = await prisma.project.findUnique({
-            where: { id: Number(id) }
+            where: { id: projectId }
         });
 
         if (!project) {
@@ -123,6 +137,12 @@ exports.createProject = async (req, res) => {
 exports.updateProject = async (req, res) => {
     try {
         const { id } = req.params;
+        const projectId = Number(id);
+
+        if (!Number.isInteger(projectId)) {
+            return res.status(400).json({ message: "Invalid project id" });
+        }
+
         const {
             title, category, status, price, imageUrl,
             isFeatured, isNewArrival, githubUrl,
@@ -131,7 +151,7 @@ exports.updateProject = async (req, res) => {
         } = req.body;
 
         const project = await prisma.project.update({
-            where: { id: Number(id) },
+            where: { id: projectId },
             data: {
                 title,
                 category,
@@ -154,6 +174,9 @@ exports.updateProject = async (req, res) => {
             project
         });
     } catch (error) {
+        if (error.code === 'P2025') {
+            return res.status(404).json({ message: "Project not found" });
+        }
         console.error(error);
         res.status(500).json({ message: "Server Error" });
     }
@@ -165,13 +188,116 @@ exports.updateProject = async (req, res) => {
 exports.deleteProject = async (req, res) => {
     try {
         const { id } = req.params;
+        const projectId = Number(id);
+
+        if (!Number.isInteger(projectId)) {
+            return res.status(400).json({ message: "Invalid project id" });
+        }
 
         await prisma.project.delete({
-            where: { id: Number(id) }
+            where: { id: projectId }
         });
 
         res.json({ message: "Project deleted successfully" });
     } catch (error) {
+        if (error.code === 'P2025') {
+            return res.status(404).json({ message: "Project not found" });
+        }
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+};
+
+// =============================
+// GET QUERIES FOR A PROJECT (Admin)
+// =============================
+exports.getProjectQueries = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const projectId = Number(id);
+
+        if (!Number.isInteger(projectId)) {
+            return res.status(400).json({ message: "Invalid project id" });
+        }
+
+        const queries = await prisma.projectQuery.findMany({
+            where: { projectId },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        res.json({ queries });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+};
+
+// =============================
+// SUBMIT A QUERY ON A PROJECT (Public)
+// =============================
+exports.createProjectQuery = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const projectId = Number(id);
+        const { clientName, clientEmail, clientPhone, message } = req.body;
+
+        if (!Number.isInteger(projectId)) {
+            return res.status(400).json({ message: "Invalid project id" });
+        }
+
+        if (!clientName?.trim() || !clientEmail?.trim() || !message?.trim()) {
+            return res.status(400).json({ message: "Name, email, and message are required" });
+        }
+
+        const project = await prisma.project.findUnique({ where: { id: projectId } });
+        if (!project) {
+            return res.status(404).json({ message: "Project not found" });
+        }
+
+        const query = await prisma.projectQuery.create({
+            data: {
+                projectId,
+                clientName: clientName.trim(),
+                clientEmail: clientEmail.trim(),
+                clientPhone: clientPhone?.trim() || null,
+                message: message.trim()
+            }
+        });
+
+        res.status(201).json({ message: "Query submitted successfully", query });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+};
+
+// =============================
+// UPDATE QUERY STATUS (Admin)
+// =============================
+exports.updateQueryStatus = async (req, res) => {
+    try {
+        const { queryId } = req.params;
+        const { status } = req.body;
+        const id = Number(queryId);
+
+        if (!Number.isInteger(id)) {
+            return res.status(400).json({ message: "Invalid query id" });
+        }
+
+        if (!VALID_QUERY_STATUSES.includes(status)) {
+            return res.status(400).json({ message: `Status must be one of: ${VALID_QUERY_STATUSES.join(', ')}` });
+        }
+
+        const query = await prisma.projectQuery.update({
+            where: { id },
+            data: { status }
+        });
+
+        res.json({ query });
+    } catch (error) {
+        if (error.code === 'P2025') {
+            return res.status(404).json({ message: "Query not found" });
+        }
         console.error(error);
         res.status(500).json({ message: "Server Error" });
     }

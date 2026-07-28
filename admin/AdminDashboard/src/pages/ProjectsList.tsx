@@ -1,7 +1,14 @@
 // src/pages/ProjectsList.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getProjects, deleteProject as deleteProjectApi } from '../api/projectService';
+import {
+  getProjects,
+  deleteProject as deleteProjectApi,
+  getProjectQueries,
+  updateQueryStatus,
+  ProjectQuery
+} from '../api/projectService';
+import MarkdownContent from  '../components/MarkdownContent';
 
 interface ContentSection {
   id: string;
@@ -34,6 +41,10 @@ export const ProjectsList: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<'All' | 'Commercial' | 'University'>('All');
   const [viewingProject, setViewingProject] = useState<Project | null>(null);
 
+  const [queryingProject, setQueryingProject] = useState<Project | null>(null);
+  const [queries, setQueries] = useState<ProjectQuery[]>([]);
+  const [queriesLoading, setQueriesLoading] = useState(false);
+
   useEffect(() => {
     fetchProjects();
   }, [activeFilter]);
@@ -58,11 +69,42 @@ export const ProjectsList: React.FC = () => {
       try {
         await deleteProjectApi(id);
         alert('Project deleted!');
-        fetchProjects(); // refresh list from backend
+        fetchProjects();
       } catch (error) {
         alert('Error deleting project');
         console.error(error);
       }
+    }
+  };
+
+  const openQueries = async (project: Project) => {
+    setQueryingProject(project);
+    setQueriesLoading(true);
+    try {
+      const res = await getProjectQueries(project.id);
+      setQueries(res.queries || []);
+    } catch (error) {
+      console.error('Error fetching queries:', error);
+      setQueries([]);
+    } finally {
+      setQueriesLoading(false);
+    }
+  };
+
+  const closeQueries = () => {
+    setQueryingProject(null);
+    setQueries([]);
+  };
+
+  const handleStatusChange = async (queryId: number, status: ProjectQuery['status']) => {
+    const previous = queries;
+    setQueries(prev => prev.map(q => (q.id === queryId ? { ...q, status } : q)));
+    try {
+      await updateQueryStatus(queryId, status);
+    } catch (error) {
+      alert('Error updating status');
+      console.error(error);
+      setQueries(previous);
     }
   };
 
@@ -120,7 +162,7 @@ export const ProjectsList: React.FC = () => {
               <th style={{ padding: '1rem', color: '#64748b', fontWeight: '600', width: '150px' }}>Category</th>
               <th style={{ padding: '1rem', color: '#64748b', fontWeight: '600', width: '150px' }}>Status</th>
               <th style={{ padding: '1rem', color: '#64748b', fontWeight: '600', width: '150px' }}>Price</th>
-              <th style={{ padding: '1rem', color: '#64748b', fontWeight: '600', textAlign: 'right', width: '190px' }}>Actions</th>
+              <th style={{ padding: '1rem', color: '#64748b', fontWeight: '600', textAlign: 'right', width: '250px' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -152,9 +194,11 @@ export const ProjectsList: React.FC = () => {
                   {p.price ? `Rs ${p.price}` : '—'}
                 </td>
 
-                {/* Actions: View, Edit, Delete */}
                 <td style={{ padding: '1rem', textAlign: 'right' }}>
                   <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', alignItems: 'center' }}>
+                    <button onClick={() => openQueries(p)} style={{ padding: '0.375rem 0.75rem', backgroundColor: '#fef9c3', color: '#a16207', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '500' }}>
+                      Queries
+                    </button>
                     <button onClick={() => setViewingProject(p)} style={{ padding: '0.375rem 0.75rem', backgroundColor: '#f1f5f9', color: '#1e293b', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '500' }}>
                       View
                     </button>
@@ -225,7 +269,7 @@ export const ProjectsList: React.FC = () => {
                         {section.imageUrl && (
                           <img src={section.imageUrl} alt={section.title} style={{ width: '100%', maxHeight: '160px', objectFit: 'cover', borderRadius: '0.375rem', marginBottom: '0.5rem' }} />
                         )}
-                        <p style={{ color: '#475569', lineHeight: 1.6, margin: 0, fontSize: '0.9rem' }}>{section.description}</p>
+                        <MarkdownContent content={section.description} />
                       </div>
                     ))}
                   </div>
@@ -239,6 +283,60 @@ export const ProjectsList: React.FC = () => {
                   Close
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============ QUERIES MODAL ============ */}
+      {queryingProject && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '1rem' }}>
+          <div style={{ backgroundColor: '#fff', borderRadius: '0.5rem', width: '100%', maxWidth: '640px', maxHeight: '85vh', overflowY: 'auto', boxSizing: 'border-box', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', padding: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2 style={{ margin: 0, fontSize: '1.25rem', color: '#0f172a' }}>Queries — {queryingProject.title}</h2>
+              <button onClick={closeQueries} style={{ border: 'none', background: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#64748b', lineHeight: 1 }}>&times;</button>
+            </div>
+
+            {queriesLoading ? (
+              <p style={{ color: '#64748b' }}>Loading queries...</p>
+            ) : queries.length === 0 ? (
+              <p style={{ color: '#94a3b8', fontStyle: 'italic' }}>No queries submitted for this project yet.</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {queries.map(q => (
+                  <div key={q.id} style={{ border: '1px solid #e2e8f0', borderRadius: '0.5rem', padding: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                      <div>
+                        <div style={{ fontWeight: 600, color: '#0f172a' }}>{q.clientName}</div>
+                        <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                          {q.clientEmail}{q.clientPhone ? ` · ${q.clientPhone}` : ''}
+                        </div>
+                      </div>
+                      <select
+                        value={q.status}
+                        onChange={(e) => handleStatusChange(q.id, e.target.value as ProjectQuery['status'])}
+                        style={{
+                          padding: '0.3rem 0.5rem', borderRadius: '0.375rem', border: '1px solid #d1d5db', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
+                          backgroundColor: q.status === 'Unread' ? '#fee2e2' : q.status === 'Read' ? '#fef9c3' : '#dcfce7',
+                          color: q.status === 'Unread' ? '#991b1b' : q.status === 'Read' ? '#a16207' : '#166534'
+                        }}
+                      >
+                        <option value="Unread">Unread</option>
+                        <option value="Read">Read</option>
+                        <option value="Resolved">Resolved</option>
+                      </select>
+                    </div>
+                    <p style={{ margin: '0.5rem 0 0.25rem', color: '#334155', lineHeight: 1.5, whiteSpace: 'pre-line' }}>{q.message}</p>
+                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.5rem' }}>{new Date(q.createdAt).toLocaleString()}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '1.25rem', marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+              <button onClick={closeQueries} style={{ padding: '0.625rem 1.25rem', backgroundColor: '#f1f5f9', border: 'none', borderRadius: '0.375rem', color: '#1e293b', fontWeight: '600', cursor: 'pointer' }}>
+                Close
+              </button>
             </div>
           </div>
         </div>

@@ -65,4 +65,34 @@ export const deleteProject = async (id) => {
   }
 };
 
+// Submit a customer inquiry/query on a project (Public)
+export const createProjectQuery = async (id, queryData) => {
+  try {
+    const res = await api.post(`/${id}/queries`, queryData);
+    return res.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+};
+
+// Get all queries for a project (Admin)
+export const getProjectQueries = async (id) => {
+  try {
+    const res = await api.get(`/${id}/queries`);
+    return res.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+};
+
+// Update a query's status (Admin)
+export const updateQueryStatus = async (queryId, status) => {
+  try {
+    const res = await api.patch(`/queries/${queryId}/status`, { status });
+    return res.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+};
+
 export default api;

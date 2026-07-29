@@ -42,7 +42,7 @@ export default function Footer() {
     <footer className="site-footer">
       <video
         className="footer-video-bg"
-        src="YOUR_VIDEO_URL_HERE"
+        src="/footer-bg.mp4"
         autoPlay
         loop
         muted

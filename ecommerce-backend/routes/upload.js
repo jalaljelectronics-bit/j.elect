@@ -1,21 +1,23 @@
 const express = require('express');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('cloudinary').v2;
 const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
 
 const router = express.Router();
 
-const uploadDir = path.join(process.cwd(), 'uploads');
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
-    cb(null, safeName);
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'jelectronics-projects',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
   },
 });
 
@@ -36,8 +38,7 @@ router.post('/', auth, admin, upload.single('image'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: 'No file uploaded' });
   }
-  const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
-  res.json({ url: fileUrl });
+  res.json({ url: req.file.path }); // req.file.path = Cloudinary's permanent secure URL
 });
 
 router.use((err, req, res, next) => {

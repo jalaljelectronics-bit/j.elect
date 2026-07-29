@@ -3,6 +3,7 @@ import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { injectProductLinks } from '../utils/injectProductLinks';
+import { autoFormatMarkdown } from '../utils/autoFormatMarkdown';
 
 // Recursively pulls plain text out of React children (strings, arrays, nested elements)
 function extractText(node) {
@@ -128,7 +129,8 @@ const components = {
 
 export default function MarkdownContent({ content, linkedProducts = [] }) {
   if (!content) return null;
-  const processed = injectProductLinks(content, linkedProducts);
+  const formatted = autoFormatMarkdown(content);
+  const processed = injectProductLinks(formatted, linkedProducts);
   return (
     <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
       {processed}

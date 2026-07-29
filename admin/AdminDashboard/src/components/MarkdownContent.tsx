@@ -2,6 +2,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { injectProductLinks } from '../utils/injectProductLinks';
 import { LinkedProduct } from './LinkedProductsEditor';
+import { autoFormatMarkdown } from '../utils/autoFormatMarkdown';
 
 const components = {
   table: (props: any) => (
@@ -46,7 +47,8 @@ interface Props {
 
 export default function MarkdownContent({ content, linkedProducts = [] }: Props) {
   if (!content) return null;
-  const processed = injectProductLinks(content, linkedProducts);
+  const formatted = autoFormatMarkdown(content);
+  const processed = injectProductLinks(formatted, linkedProducts);
   return (
     <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
       {processed}

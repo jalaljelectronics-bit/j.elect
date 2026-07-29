@@ -416,10 +416,10 @@ header.site-header {
 .cat-carousel .cat-emoji { font-size: 2.6rem; }
 .cat-carousel .cat-name { font-size: 1.05rem; padding: 16px 20px 4px; }
 .cat-carousel .cat-count { font-size: 0.85rem; padding: 0 20px; }
-.cat-carousel-lg .cat-card { flex: 0 0 320px; width: 320px; min-height: auto; padding: 0 0 20px; }
+.cat-carousel-lg .cat-card { flex: 0 0 240px; width: 240px; min-height: auto; padding: 0 0 20px; }
 .cat-carousel-lg .cat-image-wrap { width: 100%; aspect-ratio: 1; height: auto; border-radius: 18px 18px 0 0; }
-.cat-carousel-lg .cat-name { font-size: 1rem; padding: 16px 20px 4px; }
-.cat-carousel-lg .cat-count { font-size: 0.85rem; padding: 0 20px; }
+.cat-carousel-lg .cat-name { font-size: 0.95rem; padding: 14px 18px 4px; }
+.cat-carousel-lg .cat-count { font-size: 0.8rem; padding: 0 18px; }
 @media (max-width: 640px) { .cat-carousel-lg .cat-card { flex: 0 0 260px; width: 260px; } }
 
 .modal-overlay {

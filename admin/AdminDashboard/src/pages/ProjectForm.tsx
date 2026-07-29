@@ -7,6 +7,7 @@ import LinkedProductsEditor, {
   cleanLinks,
   validateLinks
 } from '../components/LinkedProductsEditor';
+import ImageField from '../components/ImageField';
 
 const makeSectionId = () => `sec-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
@@ -45,7 +46,6 @@ export const ProjectForm: React.FC = () => {
   const [sections, setSections] = useState<ContentSection[]>([]);
   const [linkedProducts, setLinkedProducts] = useState<LinkedProduct[]>([]);
 
-  // Pre-populate data if in Edit Mode — real backend fetch
   useEffect(() => {
     if (isEditMode && id) {
       getProjectById(Number(id))
@@ -142,8 +142,13 @@ export const ProjectForm: React.FC = () => {
         {/* Cover image + Category */}
         <div className="form-row" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: '220px' }}>
-            <label style={{ display: 'block', fontWeight: '600', marginBottom: '0.375rem', color: '#4b5563' }}>Cover Image URL</label>
-            <input type="text" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="Paste image address (https://...)" style={inputStyle} />
+            <ImageField
+              label="Cover Image URL"
+              value={imageUrl}
+              onChange={setImageUrl}
+              inputStyle={inputStyle}
+              placeholder="Paste image address (https://...)"
+            />
           </div>
           <div style={{ width: '220px' }}>
             <label style={{ display: 'block', fontWeight: '600', marginBottom: '0.375rem', color: '#4b5563' }}>Classification Group</label>
@@ -168,10 +173,12 @@ export const ProjectForm: React.FC = () => {
         <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '1.25rem' }}>
           <label style={{ fontSize: '0.95rem', fontWeight: '700', color: '#1e293b', display: 'block', marginBottom: '0.75rem' }}>Intro Detail</label>
           <div style={sectionCardStyle}>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#475569', marginBottom: '0.375rem' }}>Intro Image URL</label>
-              <input type="text" value={introImageUrl} onChange={(e) => setIntroImageUrl(e.target.value)} placeholder="https://..." style={inputStyle} />
-            </div>
+            <ImageField
+              label="Intro Image URL"
+              value={introImageUrl}
+              onChange={setIntroImageUrl}
+              inputStyle={inputStyle}
+            />
             <div>
               <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#475569', marginBottom: '0.375rem' }}>Intro Description</label>
               <textarea rows={3} value={introDescription} onChange={(e) => setIntroDescription(e.target.value)} placeholder="Describe the project overall, what it is, what was built..." style={{ ...inputStyle, fontFamily: 'inherit', resize: 'vertical' }} />
@@ -211,10 +218,12 @@ export const ProjectForm: React.FC = () => {
                     <input type="text" value={section.title} onChange={(e) => updateSection(section.id, { title: e.target.value })} placeholder="e.g. Circuit Design & Pin Connections" style={inputStyle} />
                   </div>
 
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#475569', marginBottom: '0.375rem' }}>Section Image URL</label>
-                    <input type="text" value={section.imageUrl} onChange={(e) => updateSection(section.id, { imageUrl: e.target.value })} placeholder="https://..." style={inputStyle} />
-                  </div>
+                  <ImageField
+                    label="Section Image URL"
+                    value={section.imageUrl}
+                    onChange={(url) => updateSection(section.id, { imageUrl: url })}
+                    inputStyle={inputStyle}
+                  />
 
                   <div>
                     <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#475569', marginBottom: '0.375rem' }}>

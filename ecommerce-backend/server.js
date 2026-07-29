@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path'); // ADDED
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
@@ -14,30 +15,21 @@ const blogRoutes = require('./routes/blog');
 const projectRoutes = require('./routes/projects');
 const queryRoutes = require('./routes/queries');
 const statsRoutes = require('./routes/stats');
+const uploadRoutes = require('./routes/upload');// ADDED
 
 const app = express();
 
 app.use(express.json());
 
-// ---------------------------------------------------------------------
-// CORS
-// Add your deployed frontend URLs here. Vercel gives you a *.vercel.app
-// domain for each project; add both, plus any custom domains you point
-// at them later.
-// ---------------------------------------------------------------------
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:5175',
   'http://localhost:5176',
-
-  // TODO: replace these with your real Vercel URLs after deploying
   'j-elect.vercel.app',
   'https://jelectronics-admin.vercel.app',
   'https://jelectronics-store.vercel.app',
-
-  // Custom domains (keep if you point them at Vercel)
   'https://jelectronics.store',
   'https://www.jelectronics.store',
   'https://admin.jelectronics.store',
@@ -45,7 +37,6 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    // allow requests with no origin (curl, mobile apps, server-to-server)
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -54,6 +45,10 @@ app.use(cors({
   },
   credentials: true,
 }));
+
+// Serve uploaded files as static assets — ADDED
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
 
 app.use('/api/auth', authRoutes);
 app.use('/api/test', testRoutes);
@@ -67,16 +62,12 @@ app.use('/api/blog', blogRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/queries', queryRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/upload', uploadRoutes); // ADDED
 
-// Health check — Render pings this, and it's handy for confirming the
-// service is alive without hitting the database.
 app.get('/', (req, res) => {
   res.json({ status: 'ok', message: 'API running' });
 });
 
-// ---------------------------------------------------------------------
-// Render provides PORT via the environment. Do not hardcode it.
-// ---------------------------------------------------------------------
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

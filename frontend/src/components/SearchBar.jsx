@@ -20,6 +20,37 @@ export default function SearchBar() {
   // instead of waiting on another round trip.
   const cacheRef = useRef(new Map());
 
+  // Width of the category <select>, in px. Recomputed whenever the selected
+  // category changes so the pill hugs "All" tightly but widens enough to
+  // show a longer category name like "3D Printer Filaments" without
+  // truncating it into ellipsis.
+  const [catSelectWidth, setCatSelectWidth] = useState(58);
+  const measureCanvasRef = useRef(null);
+
+  const CAT_SELECT_MIN = 58;   // just enough for "All" + chevron
+  const CAT_SELECT_MAX = 190;  // don't let a very long name eat the whole bar
+  const CAT_SELECT_H_PADDING = 30; // left + right padding + chevron space (10px left, 18px right, ~2px slack)
+
+  const measureCatSelectWidth = (label) => {
+    if (!measureCanvasRef.current) {
+      measureCanvasRef.current = document.createElement('canvas');
+    }
+    const ctx = measureCanvasRef.current.getContext('2d');
+    // Must match .search-cat-select's font-size/font-weight/font-family so
+    // the measurement lines up with what's actually rendered.
+    ctx.font = "600 0.76rem 'Inter', sans-serif";
+    const textWidth = ctx.measureText(label).width;
+    const raw = textWidth + CAT_SELECT_H_PADDING;
+    return Math.min(CAT_SELECT_MAX, Math.max(CAT_SELECT_MIN, Math.ceil(raw)));
+  };
+
+  useEffect(() => {
+    const selectedLabel = categoryId
+      ? (categories.find((c) => String(c.id) === String(categoryId))?.name || 'All')
+      : 'All';
+    setCatSelectWidth(measureCatSelectWidth(selectedLabel));
+  }, [categoryId, categories]);
+
   useEffect(() => {
     getCategories()
       .then((cats) => setCategories(cats || []))
@@ -180,6 +211,7 @@ export default function SearchBar() {
           onChange={onCategoryChange}
           onClick={(e) => e.stopPropagation()}
           aria-label="Search category"
+          style={{ width: catSelectWidth, maxWidth: catSelectWidth }}
         >
           <option value="">All</option>
           {categories.map((cat) => (

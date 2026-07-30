@@ -137,16 +137,18 @@ header.site-header {
   border-radius: 999px; overflow: hidden;
 }
 .search-bar:focus-within .search-bar-controls { border-color: var(--cyan); }
-
 .search-cat-select {
   appearance: none; -webkit-appearance: none; -moz-appearance: none;
   background: var(--bg2); color: var(--text-sub);
   border: none; border-right: 1px solid var(--border);
-  padding: 0 22px 0 14px; font-size: 0.76rem; font-weight: 600;
-  cursor: pointer; outline: none; flex-shrink: 0; max-width: 110px;
-  text-overflow: ellipsis;
+  padding: 0 18px 0 10px; font-size: 0.76rem; font-weight: 600;
+  cursor: pointer; outline: none;
+  flex-shrink: 0; flex-grow: 0;
+  width: 58px; max-width: 58px; box-sizing: border-box;
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+  transition: width 0.15s ease, max-width 0.15s ease;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 6px center; background-size: 12px;
+  background-repeat: no-repeat; background-position: right 5px center; background-size: 11px;
 }
 .search-cat-select:hover, .search-cat-select:focus { color: var(--cyan); }
 
@@ -195,7 +197,7 @@ header.site-header {
   .nav-inner { gap: 18px; }
   .nav-links { gap: 0; }
   .nav-links a, .nav-links .nav-link-btn { padding: 8px 8px; font-size: 0.85rem; }
-  .search-cat-select { max-width: 78px; font-size: 0.7rem; padding: 0 18px 0 10px; }
+  .search-cat-select { width: 74px; max-width: 74px; font-size: 0.7rem; padding: 0 16px 0 10px; }
   .search-bar { width: 180px; }
   .search-bar:focus-within { width: 240px; }
 }

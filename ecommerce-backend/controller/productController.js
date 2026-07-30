@@ -95,18 +95,34 @@ exports.getProducts = async (req, res) => {
             limit = 12
         } = req.query;
 
-        const pageNum = Math.max(parseInt(page), 1);
-        const limitNum = Math.max(parseInt(limit), 1);
-        const skip = (pageNum - 1) * limitNum;
+        // Passing limit=all from the frontend (e.g. a "view all results"
+        // page) skips pagination entirely instead of guessing a large
+        // number — returns every matching row in one response.
+        const noLimit = limit === "all";
+
+        const pageNum = Math.max(parseInt(page) || 1, 1);
+        const limitNum = noLimit ? undefined : Math.max(parseInt(limit) || 12, 1);
+        const skip = noLimit ? undefined : (pageNum - 1) * limitNum;
 
         // Build dynamic WHERE clause
         const where = {};
 
         if (search) {
-            where.name = {
-                contains: search,
-                mode: "insensitive"
-            };
+            // Split into individual words and require each one to appear
+            // somewhere in name OR description. This fixes two accuracy gaps
+            // the old single "contains" check had: word order no longer
+            // matters ("wifi esp32" now matches "ESP32 WiFi Board"), and a
+            // query can span both fields instead of only the name.
+            const words = search.trim().split(/\s+/).filter(Boolean);
+
+            if (words.length > 0) {
+                where.AND = words.map((word) => ({
+                    OR: [
+                        { name: { contains: word, mode: "insensitive" } },
+                        { description: { contains: word, mode: "insensitive" } },
+                    ],
+                }));
+            }
         }
 
         if (category) {
@@ -156,19 +172,19 @@ exports.getProducts = async (req, res) => {
             prisma.product.findMany({
                 where,
                 orderBy,
-                skip,
-                take: limitNum,
+                ...(skip !== undefined && { skip }),
+                ...(limitNum !== undefined && { take: limitNum }),
                 include: {
                     category: true
                 }
             })
         ]);
 
-        const totalPages = Math.ceil(totalProducts / limitNum);
+        const totalPages = noLimit ? 1 : Math.ceil(totalProducts / limitNum);
 
         res.json({
             products,
-            currentPage: pageNum,
+            currentPage: noLimit ? 1 : pageNum,
             totalPages,
             totalProducts
         });

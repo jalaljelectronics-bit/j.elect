@@ -277,8 +277,16 @@ header.site-header {
     padding-top: 106px;
   }
 }
+@media (max-width: 1080px) {
+  .icon-btn { color: #FFFFFF; }
+  .mobile-toggle { color: #FFFFFF; }
+}
 
 @media (max-width: 480px) {
+   .search-bar-controls {
+    height: 34px;
+    align-items: center;
+  }
   .nav-inner { gap: 6px; padding: 8px 12px; }
   .logo { max-width: none; overflow: visible; flex-shrink: 0; }
   .logo-wordmark { height: 32px !important; max-width: none; }
@@ -289,8 +297,22 @@ header.site-header {
   .search-bar { padding: 6px 9px; min-width: 52px; }
   .search-bar svg { width: 14px; height: 14px; }
   .search-bar input { font-size: 0.76rem; }
-  .search-cat-select { display: none; } /* not enough room — search still works, defaults to "All" */
-  .search-input-group { padding: 6px 9px; }
+   .search-cat-select {
+    width: 44px; max-width: 44px;
+    height: 34px;
+    font-size: 0.72rem;
+    padding: 0 14px 0 8px;
+    box-sizing: border-box;
+    background-position: right 3px center;
+    background-size: 9px;
+    display: flex;
+    align-items: center;
+  }
+  .search-input-group {
+    height: 34px;
+    box-sizing: border-box;
+    padding: 0 9px;
+  }
 }
 
 @media (max-width: 360px) {

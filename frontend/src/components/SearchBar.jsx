@@ -15,6 +15,10 @@ export default function SearchBar() {
   const navigate = useNavigate();
   const debounceRef = useRef(null);
   const requestIdRef = useRef(0);
+  // Session-only cache: query+category -> normalized results. Lets retyping
+  // a query you've already searched (e.g. after backspacing) render instantly
+  // instead of waiting on another round trip.
+  const cacheRef = useRef(new Map());
 
   useEffect(() => {
     getCategories()
@@ -30,13 +34,33 @@ export default function SearchBar() {
     return () => document.removeEventListener('click', onDocClick);
   }, []);
 
+  // Ranks results so the most relevant matches show first, instead of
+  // whatever order the backend happens to return them in. Typing "s" should
+  // surface products whose name actually starts with "s" (or has a word
+  // starting with "s") before ones where "s" just happens to appear deep
+  // inside the name.
+  const rankByRelevance = (products, q) => {
+    const needle = q.toLowerCase();
+    const score = (name = '') => {
+      const n = name.toLowerCase();
+      if (n === needle) return 0; // exact match
+      if (n.startsWith(needle)) return 1; // name starts with query
+      // any individual word in the name starts with the query
+      if (n.split(/[^a-z0-9]+/i).some((word) => word.startsWith(needle))) return 2;
+      if (n.includes(needle)) return 3; // appears somewhere inside
+      return 4; // matched on description/other field only
+    };
+    return [...products].sort((a, b) => score(a.name) - score(b.name));
+  };
+
   // Queries the live /api/products endpoint (server-side per-word match
   // across name + description) so newly added admin products show up
   // immediately, instead of filtering against a static snapshot. Debounced
   // slightly since this now hits the database on every keystroke rather
   // than an in-memory array. categoryId is included whenever a specific
   // category (not "All") is selected, so the dropdown results respect the
-  // scope the user picked instead of always searching everything.
+  // scope the user picked instead of always searching everything. Results
+  // are then re-ranked by relevance via rankByRelevance above.
   const runFilter = (value, catId = categoryId) => {
     const q = value.trim();
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -47,21 +71,45 @@ export default function SearchBar() {
       return;
     }
 
+    const cacheKey = `${catId}::${q.toLowerCase()}`;
+    const cached = cacheRef.current.get(cacheKey);
+    if (cached) {
+      // Already have this exact query+category from earlier in the session —
+      // show it immediately, no network wait at all.
+      requestIdRef.current += 1;
+      setMatches(cached);
+      setActiveIndex(-1);
+      setOpen(true);
+      return;
+    }
+
     const thisRequest = ++requestIdRef.current;
-    debounceRef.current = setTimeout(async () => {
+    const fetchAndSet = async () => {
       try {
         const params = { search: q, limit: 12 };
         if (catId) params.category = catId;
         const data = await getProducts(params);
         if (thisRequest !== requestIdRef.current) return; // stale response, newer keystroke won
-        setMatches((data.products || []).map(normalizeProduct));
+        const results = rankByRelevance((data.products || []).map(normalizeProduct), q);
+        cacheRef.current.set(cacheKey, results);
+        setMatches(results);
       } catch (err) {
         console.error('Search failed:', err);
         if (thisRequest === requestIdRef.current) setMatches([]);
       }
       setActiveIndex(-1);
       setOpen(true);
-    }, 180);
+    };
+
+    // First keystroke after an empty box fires immediately — that's the
+    // moment latency is most noticeable. Every keystroke after that is
+    // debounced normally so a fast typer doesn't spam requests.
+    const isFirstKeystroke = !query.trim();
+    if (isFirstKeystroke) {
+      fetchAndSet();
+    } else {
+      debounceRef.current = setTimeout(fetchAndSet, 100);
+    }
   };
 
   const goToProduct = (id) => {

@@ -8,6 +8,7 @@ import ProjectCard from '../components/ProjectCard';
 import { useCart } from '../context/CartContext';
 import { formatPrice } from '../data/catalog';
 
+
 const WHATSAPP_NUMBER = '923176572690';
 
 const DUMMY_PROJECTS = [
@@ -39,7 +40,7 @@ const MARQUEE = [
   'New Arrivals Every Week',
   'Authentic Products Only',
   '24/7 Expert Support',
-  
+
 ];
 
 export default function Home() {
@@ -401,68 +402,93 @@ export default function Home() {
             <button className="carousel-arrow prev" onClick={() => scrollNewArrivals(-1)} aria-label="Previous">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg>
             </button>
-            <div className="product-carousel" ref={newArrivalsRef}>
+            <div className="product-carousel new-arrivals-carousel" ref={newArrivalsRef}>
               {newArrivals.map((item) => {
                 const whatsappLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
                   `Hi! I want to buy: ${item.name} (${formatPrice(item.price)})`
                 )}`;
                 return (
-                <div key={item.id} className="product-card">
-                  <div style={{ position: 'absolute', top: '10px', left: '10px', background: 'var(--cyan)', color: '#000', fontSize: '0.7rem', fontWeight: 700, padding: '3px 8px', borderRadius: '6px', zIndex: 1 }}>
-                    NEW
-                  </div>
-                  <div
-                    onClick={() => navigate(item.type === 'project' ? `/project/${item.id}` : `/product/${item.id}`)}
-                    style={{ width: '100%', aspectRatio: '1', background: 'var(--bg3)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', cursor: 'pointer' }}
-                  >
-                    {item.image ? (
-                      <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-sub)' }}>{item.type === 'project' ? 'Project' : 'Product'}</span>
-                    )}
-                  </div>
-                  <div style={{ padding: '12px 4px 4px' }}>
+                  <div key={item.id} className="product-card">
+                    <div style={{ position: 'absolute', top: '10px', left: '10px', background: 'var(--cyan)', color: '#000', fontSize: '0.7rem', fontWeight: 700, padding: '3px 8px', borderRadius: '6px', zIndex: 1 }}>
+                      NEW
+                    </div>
+
                     <div
                       onClick={() => navigate(item.type === 'project' ? `/project/${item.id}` : `/product/${item.id}`)}
-                      style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '4px', cursor: 'pointer' }}
+                      style={{ cursor: 'pointer', width: '100%', background: 'var(--bg3)', borderRadius: '12px 12px 0 0', overflow: 'hidden' }}
                     >
-                      {item.name}
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          style={{ width: '100%', height: 'auto', display: 'block' }}
+                        />
+                      ) : (
+                        <div style={{ padding: '40px', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-sub)' }}>
+                          {item.type === 'project' ? 'Project' : 'Product'}
+                        </div>
+                      )}
                     </div>
-                    <div style={{ marginBottom: '10px' }}>
-                      <span style={{ fontSize: '0.95rem', color: 'var(--cyan)', fontWeight: 700 }}>{formatPrice(item.price)}</span>
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); addToCart(item.id, item.type, 1); navigate('/checkout'); }}
-                        className="btn-primary"
-                        style={{ flex: 1, padding: '9px', fontSize: '0.8rem' }}
+
+                    <div className="product-info">
+                      <div
+                        onClick={() => navigate(item.type === 'project' ? `/project/${item.id}` : `/product/${item.id}`)}
+                        className="product-name"
+                        style={{ cursor: 'pointer' }}
                       >
-                        Buy Now
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); addToCart(item.id, item.type, 1); }}
-                        className="btn-ghost"
-                        style={{ flex: 1, padding: '9px', fontSize: '0.8rem' }}
-                      >
-                        🛒 Add to Cart
-                      </button>
+                        {item.name}
+                      </div>
+
+                      <div className="product-price">{formatPrice(item.price)}</div>
+
+                      <div style={{ marginTop: 'auto' }}>
+                        <div className="product-actions">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              addToCart(item.id, item.type, 1);
+                              navigate('/checkout');
+                            }}
+                            className="btn-buy-now"
+                          >
+                            Buy Now
+                          </button>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              addToCart(item.id, item.type, 1);
+                            }}
+                            className="btn-quick-view"
+                          >
+                            🛒 Add
+                          </button>
+                        </div>
+
+                        <a
+                          href={whatsappLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="btn-quick-view"
+                          style={{
+                            display: 'flex',
+                            marginTop: '8px',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px',
+                            textDecoration: 'none',
+                          }}
+                        >
+                          <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor">
+                            <path d="M16.04 2.67C8.63 2.67 2.63 8.67 2.63 16.08c0 2.5.68 4.83 1.85 6.85L2 30l7.24-2.42a13.36 13.36 0 0 0 6.8 1.85h.01c7.4 0 13.4-6 13.4-13.41 0-3.58-1.4-6.94-3.93-9.47a13.31 13.31 0 0 0-9.48-3.93zm0 24.55h-.01a11.13 11.13 0 0 1-5.68-1.56l-.41-.24-4.24 1.42 1.42-4.13-.27-.42a11.1 11.1 0 0 1-1.7-5.9c0-6.14 5-11.13 11.15-11.13 2.98 0 5.78 1.16 7.88 3.27a11.05 11.05 0 0 1 3.26 7.87c0 6.14-5 11.13-11.14 11.13z" />
+                            <path d="M22.4 19.14c-.34-.17-2.02-1-2.33-1.1-.31-.12-.54-.17-.77.17-.23.34-.88 1.1-1.08 1.32-.2.23-.4.26-.74.09-.34-.17-1.44-.53-2.74-1.69-1.01-.9-1.7-2.02-1.9-2.36-.2-.34-.02-.53.15-.7.15-.15.34-.4.51-.6.17-.2.23-.34.34-.57.11-.23.06-.43-.03-.6-.09-.17-.77-1.86-1.06-2.55-.28-.66-.56-.57-.77-.58l-.66-.01c-.23 0-.6.09-.91.43-.31.34-1.19 1.16-1.19 2.84 0 1.68 1.22 3.3 1.39 3.53.17.23 2.39 3.65 5.8 5.12.81.35 1.44.56 1.94.72.81.26 1.55.22 2.13.13.65-.1 2.02-.83 2.3-1.63.29-.8.29-1.48.2-1.63-.09-.15-.31-.23-.65-.4z" />
+                          </svg>
+                          WhatsApp
+                        </a>
+                      </div>
                     </div>
-                    <a
-                     href={whatsappLink}
-  target="_blank"
-  rel="noreferrer"
-  onClick={(e) => e.stopPropagation()}
-  className="btn-ghost"
-  style={{ display: 'flex', marginTop: '8px', padding: '9px', fontSize: '0.8rem', alignItems: 'center', justifyContent: 'center', gap: '6px', textDecoration: 'none' }}
->
-  <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor">
-    <path d="M16.04 2.67C8.63 2.67 2.63 8.67 2.63 16.08c0 2.5.68 4.83 1.85 6.85L2 30l7.24-2.42a13.36 13.36 0 0 0 6.8 1.85h.01c7.4 0 13.4-6 13.4-13.41 0-3.58-1.4-6.94-3.93-9.47a13.31 13.31 0 0 0-9.48-3.93zm0 24.55h-.01a11.13 11.13 0 0 1-5.68-1.56l-.41-.24-4.24 1.42 1.42-4.13-.27-.42a11.1 11.1 0 0 1-1.7-5.9c0-6.14 5-11.13 11.15-11.13 2.98 0 5.78 1.16 7.88 3.27a11.05 11.05 0 0 1 3.26 7.87c0 6.14-5 11.13-11.14 11.13z"/>
-    <path d="M22.4 19.14c-.34-.17-2.02-1-2.33-1.1-.31-.12-.54-.17-.77.17-.23.34-.88 1.1-1.08 1.32-.2.23-.4.26-.74.09-.34-.17-1.44-.53-2.74-1.69-1.01-.9-1.7-2.02-1.9-2.36-.2-.34-.02-.53.15-.7.15-.15.34-.4.51-.6.17-.2.23-.34.34-.57.11-.23.06-.43-.03-.6-.09-.17-.77-1.86-1.06-2.55-.28-.66-.56-.57-.77-.58l-.66-.01c-.23 0-.6.09-.91.43-.31.34-1.19 1.16-1.19 2.84 0 1.68 1.22 3.3 1.39 3.53.17.23 2.39 3.65 5.8 5.12.81.35 1.44.56 1.94.72.81.26 1.55.22 2.13.13.65-.1 2.02-.83 2.3-1.63.29-.8.29-1.48.2-1.63-.09-.15-.31-.23-.65-.4z"/>
-  </svg>
-  WhatsApp
-</a>
                   </div>
-                </div>
                 );
               })}
             </div>
@@ -524,7 +550,7 @@ export default function Home() {
                 <h2>Laser Modules</h2>
                 <p>High-precision laser heads and engraving modules for CNC, wood, acrylic, and metal work.</p>
               </div>
-              <a
+              < a
                 className="section-link"
                 href={laserCategoryId ? `/products?category=${laserCategoryId}` : '/products'}
                 onClick={(e) => {

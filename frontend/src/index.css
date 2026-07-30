@@ -994,3 +994,9 @@ footer.site-footer .container {
     min-height: 220px;
   }
 }
+.new-arrivals-carousel .product-card {
+  flex: 0 0 240px;
+}
+@media (max-width: 640px) {
+  .new-arrivals-carousel .product-card { flex: 0 0 200px; }
+}

@@ -413,22 +413,32 @@ export default function Home() {
                       NEW
                     </div>
 
-                    <div
-                      onClick={() => navigate(item.type === 'project' ? `/project/${item.id}` : `/product/${item.id}`)}
-                      style={{ cursor: 'pointer', width: '100%', background: 'var(--bg3)', borderRadius: '12px 12px 0 0', overflow: 'hidden' }}
-                    >
-                      {item.image ? (
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          style={{ width: '100%', height: 'auto', display: 'block' }}
-                        />
-                      ) : (
-                        <div style={{ padding: '40px', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-sub)' }}>
-                          {item.type === 'project' ? 'Project' : 'Product'}
-                        </div>
-                      )}
-                    </div>
+  <div
+  onClick={() => navigate(item.type === 'project' ? `/project/${item.id}` : `/product/${item.id}`)}
+  style={{
+    cursor: 'pointer',
+    width: '100%',
+    aspectRatio: '4 / 3',
+    background: '#FFFFFF',
+    borderRadius: '12px 12px 0 0',
+    overflow: 'hidden',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  }}
+>
+  {item.image ? (
+    <img
+      src={item.image}
+      alt={item.name}
+      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+    />
+  ) : (
+    <div style={{ padding: '40px', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-sub)' }}>
+      {item.type === 'project' ? 'Project' : 'Product'}
+    </div>
+  )}
+</div>
 
                     <div className="product-info">
                       <div

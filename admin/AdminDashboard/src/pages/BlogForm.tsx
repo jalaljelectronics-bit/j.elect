@@ -18,6 +18,10 @@ const inputStyle: React.CSSProperties = {
   width: '100%', padding: '0.625rem', border: '1px solid #d1d5db', borderRadius: '0.375rem', boxSizing: 'border-box', fontSize: '0.95rem'
 };
 
+const labelStyle: React.CSSProperties = {
+  display: 'block', fontWeight: '600', marginBottom: '0.375rem', color: '#4b5563'
+};
+
 export const BlogForm: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -30,6 +34,10 @@ export const BlogForm: React.FC = () => {
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [linkedProducts, setLinkedProducts] = useState<LinkedProduct[]>([]);
+
+  // SEO meta tag fields
+  const [metaTitle, setMetaTitle] = useState('');
+  const [metaDescription, setMetaDescription] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -51,6 +59,8 @@ export const BlogForm: React.FC = () => {
         setDescription(post.description);
         setImageUrl(post.imageUrl);
         setLinkedProducts(post.linkedProducts.map(link => ({ ...link })));
+        setMetaTitle(post.metaTitle ?? '');
+        setMetaDescription(post.metaDescription ?? '');
       })
       .catch((err) => {
         console.error(err);
@@ -82,6 +92,15 @@ export const BlogForm: React.FC = () => {
       return;
     }
 
+    if (metaTitle.trim().length > 60) {
+      alert('Meta title should be 60 characters or fewer for best SEO results.');
+      return;
+    }
+    if (metaDescription.trim().length > 160) {
+      alert('Meta description should be 160 characters or fewer for best SEO results.');
+      return;
+    }
+
     const linkError = validateLinks(linkedProducts);
     if (linkError) {
       alert(linkError);
@@ -97,7 +116,10 @@ export const BlogForm: React.FC = () => {
       description: description.trim(),
       imageUrl: trimmedImage,
       author: 'Admin',
-      linkedProducts: cleanedLinks
+      linkedProducts: cleanedLinks,
+      // fall back to the article title/description if left blank
+      metaTitle: metaTitle.trim() || title.trim(),
+      metaDescription: metaDescription.trim() || description.trim().slice(0, 160)
     };
 
     try {
@@ -138,18 +160,18 @@ export const BlogForm: React.FC = () => {
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         {/* Title */}
         <div>
-          <label style={{ display: 'block', fontWeight: '600', marginBottom: '0.375rem', color: '#4b5563' }}>Article Title *</label>
+          <label style={labelStyle}>Article Title *</label>
           <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Introducing the ProVision Max" style={inputStyle} />
         </div>
 
         {/* URL + Status */}
         <div className="form-row" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <div style={{ flex: 2, minWidth: '260px' }}>
-            <label style={{ display: 'block', fontWeight: '600', marginBottom: '0.375rem', color: '#4b5563' }}>Article URL</label>
+            <label style={labelStyle}>Article URL</label>
             <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="/blog/introducing-the-provision-max" style={inputStyle} />
           </div>
           <div style={{ width: '180px' }}>
-            <label style={{ display: 'block', fontWeight: '600', marginBottom: '0.375rem', color: '#4b5563' }}>Status</label>
+            <label style={labelStyle}>Status</label>
             <select value={status} onChange={(e) => setStatus(e.target.value as BlogStatus)} style={{ ...inputStyle, backgroundColor: '#fff', cursor: 'pointer' }}>
               <option value="Draft">📝 Draft</option>
               <option value="Published">🚀 Published</option>
@@ -159,7 +181,7 @@ export const BlogForm: React.FC = () => {
 
         {/* Cover image */}
         <div>
-          <label style={{ display: 'block', fontWeight: '600', marginBottom: '0.375rem', color: '#4b5563' }}>Cover Image URL</label>
+          <label style={labelStyle}>Cover Image URL</label>
           <input
             type="text"
             value={imageUrl}
@@ -168,7 +190,7 @@ export const BlogForm: React.FC = () => {
             style={inputStyle}
           />
 
-          {/* Live preview — this is what was missing before, so a pasted URL now shows immediately */}
+          {/* Live preview */}
           {trimmedImage !== '' && (
             <div style={{ marginTop: '0.75rem' }}>
               <div style={{
@@ -201,8 +223,54 @@ export const BlogForm: React.FC = () => {
 
         {/* Description */}
         <div>
-          <label style={{ display: 'block', fontWeight: '600', marginBottom: '0.375rem', color: '#4b5563' }}>Description *</label>
+          <label style={labelStyle}>Description *</label>
           <textarea rows={5} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Write the article summary or full content..." style={{ ...inputStyle, fontFamily: 'inherit', resize: 'vertical' }} />
+        </div>
+
+        {/* SEO / Meta Tags */}
+        <div style={{ border: '1px solid #e2e8f0', borderRadius: '0.5rem', padding: '1.25rem', backgroundColor: '#f8fafc' }}>
+          <h3 style={{ margin: '0 0 0.25rem 0', fontSize: '0.95rem', color: '#1e293b' }}>🔍 SEO / Meta Tags</h3>
+          <p style={{ margin: '0 0 1rem 0', fontSize: '0.8rem', color: '#64748b' }}>
+            Controls how this article appears in Google search results and link previews. Leave blank to fall back to the title/description above.
+          </p>
+
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={labelStyle}>Meta Title</label>
+            <input
+              type="text"
+              value={metaTitle}
+              onChange={(e) => setMetaTitle(e.target.value)}
+              placeholder={title || 'e.g. Introducing the ProVision Max | YourStore'}
+              style={inputStyle}
+              maxLength={100}
+            />
+            <div style={{
+              fontSize: '0.75rem',
+              marginTop: '0.25rem',
+              color: metaTitle.trim().length > 60 ? '#ef4444' : '#94a3b8'
+            }}>
+              {metaTitle.trim().length}/60 characters
+            </div>
+          </div>
+
+          <div>
+            <label style={labelStyle}>Meta Description</label>
+            <textarea
+              rows={3}
+              value={metaDescription}
+              onChange={(e) => setMetaDescription(e.target.value)}
+              placeholder={description ? description.slice(0, 160) : 'A short summary shown under the title in search results...'}
+              style={{ ...inputStyle, fontFamily: 'inherit', resize: 'vertical' }}
+              maxLength={200}
+            />
+            <div style={{
+              fontSize: '0.75rem',
+              marginTop: '0.25rem',
+              color: metaDescription.trim().length > 160 ? '#ef4444' : '#94a3b8'
+            }}>
+              {metaDescription.trim().length}/160 characters
+            </div>
+          </div>
         </div>
 
         {/* Linked products */}

@@ -34,6 +34,8 @@ export interface BlogPost {
   status: BlogStatus;
   description: string;  // maps to `content` in the DB
   imageUrl: string;
+  metaTitle: string;
+  metaDescription: string;
   linkedProducts: LinkedProduct[];
 }
 
@@ -45,6 +47,8 @@ export interface BlogInput {
   status?: BlogStatus;
   author?: string;
   imageUrl?: string;
+  metaTitle?: string;
+  metaDescription?: string;
   linkedProducts?: LinkedProduct[];
 }
 
@@ -62,6 +66,8 @@ const fromApi = (p: any): BlogPost => ({
   status: (p.status as BlogStatus) ?? 'Draft',
   description: p.content ?? '',
   imageUrl: p.imageUrl ?? '',
+  metaTitle: p.metaTitle ?? '',
+  metaDescription: p.metaDescription ?? '',
   linkedProducts: Array.isArray(p.linkedProducts) ? p.linkedProducts : []
 });
 
@@ -72,6 +78,8 @@ const toApi = (d: BlogInput) => ({
   status: d.status || 'Draft',
   author: d.author || 'Admin',
   imageUrl: d.imageUrl || null,
+  metaTitle: d.metaTitle || null,
+  metaDescription: d.metaDescription || null,
   linkedProducts: d.linkedProducts || []
 });
 

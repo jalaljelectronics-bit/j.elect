@@ -148,6 +148,8 @@ model BlogPost {
   status         String   @default("Draft")
   author         String   @default("Admin")
   slug           String?
+  metaTitle      String?
+  metaDescription String?
   linkedProducts Json     @default("[]")
 
   @@index([createdAt])

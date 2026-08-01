@@ -5,7 +5,7 @@ import api from "./axiosConfig";
 
 // GET /api/blog
 export const getBlogs = async () => {
-  const res = await api.get("/api/blog");
+  const res = await api.get("/api/blog", { params: { limit: 100 } });
   return res.data;
 };
 

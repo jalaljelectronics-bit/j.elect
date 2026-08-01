@@ -1,13 +1,13 @@
 // autoFormatMarkdown.js
-// Detects tab-separated tabular text pasted into a content field and
-// converts it into a proper markdown table at render time.
+// Detects tab-separated or multi-space-separated tabular text pasted into a
+// content field and converts it into a proper markdown table at render time.
+// Intentionally conservative — only touches lines that actually contain a
+// tab or a double-space gap, so it never guesses at headings or bullets.
 
 function splitRow(line) {
-  // Tab-separated data (e.g. pasted from Sheets/Excel) — keep empty cells as real columns
   if (line.includes('\t')) {
     return line.split('\t').map((c) => c.trim());
   }
-  // Fallback: multi-space separated plain text — safe to drop stray empties here
   return line.split(/ {2,}/).map((c) => c.trim()).filter(Boolean);
 }
 

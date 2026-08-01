@@ -2,16 +2,13 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getBlog } from '../api/blogService';
 import { resolveProductLink, isExternalLink, usableLinks } from '../utils/productLink';
+import MarkdownContent from '../components/MarkdownContent';
 
 const formatDate = (iso) => {
   if (!iso) return '';
   const d = new Date(iso);
   return isNaN(d) ? '' : d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 };
-
-// Split the stored content string into paragraphs for readable rendering.
-const toParagraphs = (content = '') =>
-  content.split(/\n\s*\n|\n/).map((p) => p.trim()).filter(Boolean);
 
 export default function BlogPost() {
   const { id } = useParams();
@@ -51,7 +48,6 @@ export default function BlogPost() {
     );
   }
 
-  const paragraphs = toParagraphs(post.content);
   const links = usableLinks(post.linkedProducts);
 
   return (
@@ -76,10 +72,8 @@ export default function BlogPost() {
         <div style={{ color: 'var(--text-sub)', fontSize: '0.9rem' }}>📅 {formatDate(post.createdAt)} · 👤 {post.author}</div>
       </div>
 
-      <div className="form-card" style={{ lineHeight: 1.75, fontSize: '1rem', color: 'var(--text-sub)' }}>
-        {paragraphs.map((para, i) => (
-          <p key={i} style={{ marginBottom: i === paragraphs.length - 1 ? 0 : '18px' }}>{para}</p>
-        ))}
+      <div className="form-card" style={{ fontSize: '1rem' }}>
+        <MarkdownContent content={post.content} linkedProducts={post.linkedProducts} />
       </div>
 
       {links.length > 0 && (
@@ -89,9 +83,6 @@ export default function BlogPost() {
             {links.map((link) => {
               const href = resolveProductLink(link);
               const rowStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', border: '1px solid var(--border)', borderRadius: '10px', textDecoration: 'none', color: 'inherit' };
-
-              // External links need a plain <a>; internal ones use <Link> so
-              // the SPA router handles them.
               return isExternalLink(href) ? (
                 <a key={link.id} href={href} target="_blank" rel="noreferrer" style={rowStyle}>
                   <span style={{ fontWeight: 600 }}>🔗 {link.label}</span>

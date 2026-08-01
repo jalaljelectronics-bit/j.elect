@@ -87,7 +87,7 @@ const toApi = (d: BlogInput) => ({
 // API calls
 // ---------------------------------------------------------------------------
 export const getBlogs = async (): Promise<BlogPost[]> => {
-  const res = await api.get('/');
+  const res = await api.get('/', { params: { limit: 100 } });
   return (res.data.posts || []).map(fromApi);
 };
 
@@ -95,6 +95,7 @@ export const getBlog = async (id: number): Promise<BlogPost> => {
   const res = await api.get(`/${id}`);
   return fromApi(res.data);
 };
+
 
 export const createBlog = async (data: BlogInput) => {
   const res = await api.post('/', toApi(data));

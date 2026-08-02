@@ -16,6 +16,7 @@ const projectRoutes = require('./routes/projects');
 const queryRoutes = require('./routes/queries');
 const statsRoutes = require('./routes/stats');
 const uploadRoutes = require('./routes/upload');// ADDED
+import sitemapRoutes from './routes/sitemap.js';
 
 
 const app = express();
@@ -64,7 +65,7 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/queries', queryRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/upload', uploadRoutes); // ADDED
-
+app.use('/', sitemapRoutes);
 
 app.get('/', (req, res) => {
   res.json({ status: 'ok', message: 'API running' });

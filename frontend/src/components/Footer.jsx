@@ -80,6 +80,22 @@ export default function Footer() {
               Next-generation electronics, gadgets, and maker project kits —
               curated for builders in Pakistan and beyond.
             </p>
+            
+            <p
+  style={{
+    color: '#9CA3AF',
+    fontSize: '0.85rem',
+    marginTop: '10px',
+  }}
+>
+  Contact us at{' '}
+  <a
+    href="tel:+92XXXXXXXXXX"
+    style={{ color: 'var(--cyan)', fontWeight: 600 }}
+  >
+    +92 3176572690
+  </a>
+</p>
 
             {/* Social Links */}
             <div
@@ -215,6 +231,8 @@ export default function Footer() {
             </ul>
           </div>
         </div>
+        
+
 
         {/* Footer Bottom */}
         <div className="footer-bottom">

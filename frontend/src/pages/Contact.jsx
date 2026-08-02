@@ -59,7 +59,7 @@ export default function Contact() {
           <div>
             <div className="form-card" style={{ marginBottom: '16px' }}>
               <h3 style={{ marginBottom: '4px' }}>📞 Phone Support</h3>
-              <p style={{ color: 'var(--text-sub)', fontSize: '0.9rem' }}>+92 300 0000000 · Mon–Sat, 10am–7pm</p>
+              <p style={{ color: 'var(--text-sub)', fontSize: '0.9rem' }}>+92 3176572690· Mon–Sat, 10am–7pm</p>
             </div>
             <div className="form-card" style={{ marginBottom: '16px' }}>
               <h3 style={{ marginBottom: '4px' }}>✉️ Email Us</h3>

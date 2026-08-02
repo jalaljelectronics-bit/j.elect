@@ -49,21 +49,20 @@ export const ProjectsList: React.FC = () => {
     fetchProjects();
   }, [activeFilter]);
 
-  const fetchProjects = async () => {
-    setLoading(true);
-    try {
-      const filters: any = {};
-      if (activeFilter !== 'All') filters.category = activeFilter;
+const fetchProjects = async () => {
+  setLoading(true);
+  try {
+    const filters: any = { limit: 100 };
+    if (activeFilter !== 'All') filters.category = activeFilter;
 
-      const res = await getProjects(filters);
-      setProjects(res.projects || []);
-    } catch (error) {
-      console.error('Error fetching projects:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+    const res = await getProjects(filters);
+    setProjects(res.projects || []);
+  } catch (error) {
+    console.error('Error fetching projects:', error);
+  } finally {
+    setLoading(false);
+  }
+};
   const handleDeleteProject = async (id: number) => {
     if (window.confirm(`Permanently remove this project?`)) {
       try {

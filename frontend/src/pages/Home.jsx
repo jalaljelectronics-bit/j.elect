@@ -521,7 +521,7 @@ export default function Home() {
             <button className="carousel-arrow prev" onClick={() => scrollCarousel(-1)} aria-label="Previous">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg>
             </button>
-            <div className="product-carousel" ref={carouselRef}>
+            <div className="product-carousel featured-carousel" ref={carouselRef}>
               {featuredProducts.map((p) => <ProductCard key={p.id} product={p} />)}
             </div>
             <button className="carousel-arrow next" onClick={() => scrollCarousel(1)} aria-label="Next">

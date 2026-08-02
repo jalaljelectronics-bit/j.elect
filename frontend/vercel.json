@@ -1,5 +1,7 @@
 {
   "rewrites": [
+    { "source": "/sitemap.xml", "destination": "https://jelect-production.up.railway.app/sitemap.xml" },
+    { "source": "/robots.txt", "destination": "https://jelect-production.up.railway.app/robots.txt" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

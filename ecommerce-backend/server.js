@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path'); // ADDED
+const path = require('path');
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
@@ -15,9 +15,8 @@ const blogRoutes = require('./routes/blog');
 const projectRoutes = require('./routes/projects');
 const queryRoutes = require('./routes/queries');
 const statsRoutes = require('./routes/stats');
-const uploadRoutes = require('./routes/upload');// ADDED
-import sitemapRoutes from './routes/sitemap.js';
-
+const uploadRoutes = require('./routes/upload');
+const sitemapRoutes = require('./routes/sitemap.js'); // FIXED: was `import`
 
 const app = express();
 
@@ -48,9 +47,7 @@ app.use(cors({
   credentials: true,
 }));
 
-// Serve uploaded files as static assets — ADDED
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
-
 
 app.use('/api/auth', authRoutes);
 app.use('/api/test', testRoutes);
@@ -64,7 +61,7 @@ app.use('/api/blog', blogRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/queries', queryRoutes);
 app.use('/api/stats', statsRoutes);
-app.use('/api/upload', uploadRoutes); // ADDED
+app.use('/api/upload', uploadRoutes);
 app.use('/', sitemapRoutes);
 
 app.get('/', (req, res) => {

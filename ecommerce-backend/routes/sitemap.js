@@ -1,57 +1,74 @@
-import express from 'express';
-import { PrismaClient } from '@prisma/client';
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+require('dotenv').config();
 
-const router = express.Router();
-const prisma = new PrismaClient();
+const authRoutes = require('./routes/auth');
+const testRoutes = require('./routes/test');
+const categoryRoutes = require('./routes/categories');
+const productRoutes = require('./routes/products');
+const cartRoutes = require('./routes/cart');
+const addressRoutes = require('./routes/addresses');
+const orderRoutes = require('./routes/orders');
+const reviewRoutes = require('./routes/reviews');
+const blogRoutes = require('./routes/blog');
+const projectRoutes = require('./routes/projects');
+const queryRoutes = require('./routes/queries');
+const statsRoutes = require('./routes/stats');
+const uploadRoutes = require('./routes/upload');
+const sitemapRoutes = require('./routes/sitemap.js'); // FIXED: was `import`
 
-const SITE_URL = 'https://www.jelectronics.store';
+const app = express();
 
-router.get('/sitemap.xml', async (req, res) => {
-  try {
-    const [products, projects, blogPosts, categories] = await Promise.all([
-      prisma.product.findMany({ select: { id: true, updatedAt: true } }),
-      prisma.project.findMany({ select: { id: true, updatedAt: true } }),
-      prisma.blogPost.findMany({
-        where: { status: 'Published' },
-        select: { id: true, updatedAt: true },
-      }),
-      prisma.category.findMany({ select: { id: true } }),
-    ]);
+app.use(express.json());
 
-    const staticPages = [
-      { url: '/', priority: '1.0', changefreq: 'daily' },
-      { url: '/products', priority: '0.9', changefreq: 'daily' },
-      { url: '/projects', priority: '0.9', changefreq: 'daily' },
-      { url: '/about', priority: '0.6', changefreq: 'monthly' },
-      { url: '/blog', priority: '0.7', changefreq: 'weekly' },
-      { url: '/contact', priority: '0.5', changefreq: 'monthly' },
-      { url: '/policies', priority: '0.3', changefreq: 'yearly' },
-    ];
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
+  'http://localhost:5176',
+  'j-elect.vercel.app',
+  'https://jelectronics-admin.vercel.app',
+  'https://jelectronics-store.vercel.app',
+  'https://jelectronics.store',
+  'https://www.jelectronics.store',
+  'https://admin.jelectronics.store',
+];
 
-    const buildUrl = (loc, updatedAt, priority, changefreq) => `
-  <url>
-    <loc>${SITE_URL}${loc}</loc>${updatedAt ? `
-    <lastmod>${new Date(updatedAt).toISOString().split('T')[0]}</lastmod>` : ''}
-    <changefreq>${changefreq}</changefreq>
-    <priority>${priority}</priority>
-  </url>`;
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+}));
 
-    const urls = [
-      ...staticPages.map((p) => buildUrl(p.url, null, p.priority, p.changefreq)),
-      ...products.map((p) => buildUrl(`/product/${p.id}`, p.updatedAt, '0.8', 'weekly')),
-      ...projects.map((p) => buildUrl(`/project/${p.id}`, p.updatedAt, '0.8', 'weekly')),
-      ...blogPosts.map((b) => buildUrl(`/blog/${b.id}`, b.updatedAt, '0.7', 'monthly')),
-      ...categories.map((c) => buildUrl(`/products?category=${c.id}`, null, '0.6', 'weekly')),
-    ].join('');
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
-    res.header('Content-Type', 'application/xml');
-    res.send(`<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}
-</urlset>`);
-  } catch (err) {
-    console.error('Sitemap generation failed:', err);
-    res.status(500).send('Failed to generate sitemap');
-  }
+app.use('/api/auth', authRoutes);
+app.use('/api/test', testRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/cart', cartRoutes);
+app.use('/api/addresses', addressRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api', reviewRoutes);
+app.use('/api/blog', blogRoutes);
+app.use('/api/projects', projectRoutes);
+app.use('/api/queries', queryRoutes);
+app.use('/api/stats', statsRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/', sitemapRoutes);
+
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', message: 'API running' });
 });
 
-export default router;
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

@@ -88,6 +88,9 @@ export default function Header() {
   <a href="https://www.daraz.pk/shop/duuuytiz" target="_blank" rel="noreferrer" title="Shop on Daraz">
     <img src="/daraz.png" alt="Daraz" style={{ width: '25px', height: '25px', objectFit: 'contain' }} />
   </a>
+   <a href="https://www.youtube.com/@JElectronicss" target="_blank" rel="noreferrer" title="YouTube">
+    <img src="/youtube.png" alt="YouTube" style={{ width: '36px', height: '36px', objectFit: 'contain' }} />
+  </a>
 </div>      
         </div>
       </div>

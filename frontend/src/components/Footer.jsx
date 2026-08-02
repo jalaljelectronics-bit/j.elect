@@ -137,7 +137,7 @@ export default function Footer() {
                 />
               </a>
 
-              {/* Daraz */}
+                        {/* Daraz */}
               <a
                 href="https://www.daraz.pk/shop/duuuytiz"
                 target="_blank"
@@ -150,6 +150,21 @@ export default function Footer() {
                   alt="Daraz"
                   style={socialImgStyleZoomed}
                 />
+              </a>
+
+              {/* YouTube */}
+              <a
+                href="https://www.youtube.com/@JElectronicss"
+                target="_blank"
+                rel="noreferrer"
+                title="YouTube"
+                style={socialIconStyle}
+              >
+                <img
+    src="/youtube.png"
+    alt="YouTube"
+    style={socialImgStyleZoomed}
+  />
               </a>
             </div>
           </div>

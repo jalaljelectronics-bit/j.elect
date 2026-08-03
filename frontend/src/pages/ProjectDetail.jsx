@@ -5,6 +5,7 @@ import ProjectCard from '../components/ProjectCard';
 import MarkdownContent from '../components/MarkdownContent';
 import { resolveProductLink, isExternalLink, usableLinks } from '../utils/productLink';
 import { CONTACT_PHONE_DISPLAY, CONTACT_WHATSAPP } from '../config/contact';
+import { optimizeCloudinaryUrl } from '../utils/cloudinary';
 
 export default function ProjectDetail() {
   const { id } = useParams();
@@ -78,7 +79,9 @@ export default function ProjectDetail() {
 
   if (!project) return <div className="container" style={{ padding: '80px 0' }} />;
 
-  const imgSrc = typeof project.imageUrl === 'string' && project.imageUrl.startsWith('http') ? project.imageUrl : null;
+  const imgSrc = typeof project.imageUrl === 'string' && project.imageUrl.startsWith('http')
+    ? optimizeCloudinaryUrl(project.imageUrl, { width: 800, height: 800 })
+    : null;
   const productLinks = usableLinks(project.linkedProducts);
   const badgeLabel = project.isNewArrival ? '🆕 New' : project.isFeatured ? '⭐ Featured' : null;
 
@@ -144,7 +147,11 @@ export default function ProjectDetail() {
               <div key={section.id || i} style={{ border: '1px solid var(--border)', borderRadius: '10px', padding: '16px' }}>
                 <h3 style={{ margin: '0 0 8px' }}>{section.title || `Section ${i + 1}`}</h3>
                 {section.imageUrl && (
-                  <img src={section.imageUrl} alt={section.title} style={{ width: '100%', maxHeight: '260px', objectFit: 'cover', borderRadius: '8px', marginBottom: '10px' }} />
+                  <img
+                    src={optimizeCloudinaryUrl(section.imageUrl, { width: 700, height: 260 })}
+                    alt={section.title}
+                    style={{ width: '100%', maxHeight: '260px', objectFit: 'cover', borderRadius: '8px', marginBottom: '10px' }}
+                  />
                 )}
                 <MarkdownContent content={section.description} linkedProducts={project.linkedProducts} />
               </div>

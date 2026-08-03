@@ -4,6 +4,7 @@ import { getProduct, getProducts } from '../api/productService';
 import { formatPrice } from '../data/catalog';
 import { useCart } from '../context/CartContext';
 import ProductCard from '../components/ProductCard';
+import { optimizeCloudinaryUrl } from '../utils/cloudinary';
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -51,6 +52,7 @@ export default function ProductDetail() {
   const hasHalfStar = rating % 1 !== 0;
   const stars = '★'.repeat(entireStars) + (hasHalfStar ? '☆' : '');
   const outOfStock = (product.stock ?? 0) <= 0;
+  const imgSrc = optimizeCloudinaryUrl(product.imageUrl, { width: 800, height: 800 });
 
   return (
     <div className="container" style={{ paddingBottom: '80px' }}>
@@ -60,7 +62,7 @@ export default function ProductDetail() {
 
       <div className="detail-layout" style={{ marginTop: '20px' }}>
         <div className="detail-img">
-          <img src={product.imageUrl} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img src={imgSrc} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           {outOfStock && (
             <span className="badge-new" style={{ position: 'absolute', top: 16, left: 16, background: '#c0392b' }}>Out of Stock</span>
           )}

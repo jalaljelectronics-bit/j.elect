@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { formatPrice } from '../data/catalog';
 import { useCart } from '../context/CartContext';
+import { optimizeCloudinaryUrl } from '../utils/cloudinary';
 
 const WHATSAPP_NUMBER = '923000000000';
 
@@ -15,7 +16,9 @@ export default function ProductCard({ product }) {
   const goToProduct = () => navigate(`/product/${product.id}`);
 
   const imgSrc =
-    product.imageUrl ||
+    (product.imageUrl
+      ? optimizeCloudinaryUrl(product.imageUrl, { width: 400 })
+      : null) ||
     (typeof product.image === 'string' &&
     product.image.startsWith('http')
       ? product.image

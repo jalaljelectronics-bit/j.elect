@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { optimizeCloudinaryUrl } from "../utils/cloudinary";
 
 const WHATSAPP_NUMBER = "923000000000";
 
@@ -16,7 +17,7 @@ export default function ProjectCard({ project }) {
   const imgSrc =
     typeof project.imageUrl === "string" &&
     project.imageUrl.startsWith("http")
-      ? project.imageUrl
+      ? optimizeCloudinaryUrl(project.imageUrl, { width: 400 })
       : null;
 
   const badgeLabel = project.isNewArrival
@@ -124,7 +125,7 @@ export default function ProjectCard({ project }) {
             {project.category || ""}
           </span>
         </div>
-
+        
         <a
           href={whatsappLink}
           target="_blank"

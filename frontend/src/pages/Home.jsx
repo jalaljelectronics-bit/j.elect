@@ -7,6 +7,7 @@ import ProductCard from '../components/ProductCard';
 import ProjectCard from '../components/ProjectCard';
 import { useCart } from '../context/CartContext';
 import { formatPrice } from '../data/catalog';
+import { optimizeCloudinaryUrl } from '../utils/cloudinary';
 
 
 const WHATSAPP_NUMBER = '923176572690';
@@ -134,7 +135,9 @@ export default function Home() {
           type,
           name: type === 'project' ? item.title : item.name,
           price: Number(item.price) || 0,
-          image: item.imageUrl && String(item.imageUrl).startsWith('http') ? item.imageUrl : '',
+          image: item.imageUrl && String(item.imageUrl).startsWith('http')
+            ? optimizeCloudinaryUrl(item.imageUrl, { width: 400 })
+            : '',
           createdAt: item.createdAt,
         });
 
@@ -391,7 +394,7 @@ useEffect(() => {
                 <div key={cat.id} className="cat-card" onClick={() => navigate(`/products?category=${cat.id}`)}>
                   <div className="cat-image-wrap">
                     {cat.imageUrl ? (
-                      <img src={cat.imageUrl} alt={cat.name} className="cat-image" />
+                      <img src={optimizeCloudinaryUrl(cat.imageUrl, { width: 300 })} alt={cat.name} className="cat-image" />
                     ) : (
                       <div className="cat-emoji">📦</div>
                     )}
@@ -493,7 +496,7 @@ useEffect(() => {
                           </button>
                         </div>
 
-                        <a
+                       <a 
                           href={whatsappLink}
                           target="_blank"
                           rel="noreferrer"

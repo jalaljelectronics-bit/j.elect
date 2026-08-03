@@ -2,25 +2,19 @@ import { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { getCategories } from '../api/categoryService';
+import { useCategories } from '../context/CategoryContext';
 import SearchBar from './SearchBar';
 
 export default function Header() {
   const { cartCount } = useCart();
   const { isAuthenticated, user, logout } = useAuth();
-  const [categories, setCategories] = useState([]);
+  const { categories } = useCategories();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const navigate = useNavigate();
   const profileRef = useRef(null);
   const mobileMenuRef = useRef(null);
   const mobileToggleRef = useRef(null);
-
-  useEffect(() => {
-    getCategories()
-      .then((cats) => setCategories(cats))
-      .catch((err) => console.error('Failed to load categories:', err));
-  }, []);
 
   // Close the profile dropdown when clicking anywhere outside it
   useEffect(() => {

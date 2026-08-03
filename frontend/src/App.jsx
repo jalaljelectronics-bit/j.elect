@@ -15,6 +15,7 @@ import Policies from './pages/Policies';
 import { CartProvider } from './context/CartContext';
 import { QuickViewProvider } from './context/QuickViewContext';
 import { AuthProvider } from './context/AuthContext';
+import { CategoryProvider } from './context/CategoryContext';
 import LoginRegister from './pages/LoginRegister';
 import AccountLayout from './pages/AccountLayout';
 import Dashboard from './pages/Dashboard';
@@ -26,40 +27,42 @@ import OrderDetail from './pages/OrderDetail';
 export default function App() {
   return (
     <AuthProvider>
-      <CartProvider>
-        <QuickViewProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route element={<Layout />}>
-                <Route path="/" element={<Home />} />
-                <Route path="/about" element={<AboutUs />} />
-                <Route path="/products" element={<Products />} />
-                <Route path="/product/:id" element={<ProductDetail />} />
-                <Route path="/projects" element={<Projects />} />
-                <Route path="/project/:id" element={<ProjectDetail />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/blog" element={<Blog />} />
-                <Route path="/blog/:id" element={<BlogPost />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/policies" element={<Policies />} />
-                <Route path="/login" element={<LoginRegister />} />
-                <Route path="/signup" element={<Navigate to="/login" replace />} />
+      <CategoryProvider>
+        <CartProvider>
+          <QuickViewProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route element={<Layout />}>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/about" element={<AboutUs />} />
+                  <Route path="/products" element={<Products />} />
+                  <Route path="/product/:id" element={<ProductDetail />} />
+                  <Route path="/projects" element={<Projects />} />
+                  <Route path="/project/:id" element={<ProjectDetail />} />
+                  <Route path="/cart" element={<Cart />} />
+                  <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/blog" element={<Blog />} />
+                  <Route path="/blog/:id" element={<BlogPost />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/policies" element={<Policies />} />
+                  <Route path="/login" element={<LoginRegister />} />
+                  <Route path="/signup" element={<Navigate to="/login" replace />} />
 
-                <Route path="/account" element={<AccountLayout />}>
-                  <Route index element={<Dashboard />} />
-                  <Route path="orders" element={<Orders />} />
-                  <Route path="addresses" element={<Addresses />} />
-                  <Route path="details" element={<AccountDetails />} />
+                  <Route path="/account" element={<AccountLayout />}>
+                    <Route index element={<Dashboard />} />
+                    <Route path="orders" element={<Orders />} />
+                    <Route path="addresses" element={<Addresses />} />
+                    <Route path="details" element={<AccountDetails />} />
+                  </Route>
+
+                  <Route path="/orders/:id" element={<OrderDetail />} />
+                  <Route path="*" element={<Home />} />
                 </Route>
-
-                <Route path="/orders/:id" element={<OrderDetail />} />
-                <Route path="*" element={<Home />} />
-              </Route>
-            </Routes>
-          </BrowserRouter>
-        </QuickViewProvider>
-      </CartProvider>
+              </Routes>
+            </BrowserRouter>
+          </QuickViewProvider>
+        </CartProvider>
+      </CategoryProvider>
     </AuthProvider>
   );
 }

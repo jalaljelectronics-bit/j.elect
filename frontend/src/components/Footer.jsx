@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getCategories } from '../api/categoryService';
+import { useCategories } from '../context/CategoryContext';
+import { useEffect, useRef } from 'react';
 
 const socialIconStyle = {
   background: 'none',
@@ -30,14 +30,9 @@ const socialImgStyleZoomed = {
 };
 
 export default function Footer() {
-  const [categories, setCategories] = useState([]);
+  const { categories: allCategories } = useCategories();
+  const categories = allCategories.slice(0, 6);
   const footerVideoRef = useRef(null);
-
-  useEffect(() => {
-    getCategories()
-      .then((cats) => setCategories(cats.slice(0, 6)))
-      .catch((err) => console.error('Failed to load categories:', err));
-  }, []);
 
   // The footer is below the fold on every page load, so there's no reason to
   // download footer-bg.mp4 until the user actually scrolls near it — unlike
@@ -107,22 +102,21 @@ export default function Footer() {
               curated for builders in Pakistan and beyond.
             </p>
 
-            <p
-              style={{
-                color: '#9CA3AF',
-                fontSize: '0.85rem',
-                marginTop: '10px',
-              }}
-            >
-              Contact us at{' '}
-              <a
-                href="tel:+92XXXXXXXXXX"
-                style={{ color: 'var(--cyan)', fontWeight: 600 }}
-              >
-                +92 3176572690
-              </a>
-            </p>
-
+           <p
+  style={{
+    color: '#9CA3AF',
+    fontSize: '0.85rem',
+    marginTop: '10px',
+  }}
+>
+  Contact us at{' '}
+  <a
+    href="tel:+923176572690"
+    style={{ color: 'var(--cyan)', fontWeight: 600 }}
+  >
+    +92 317 6572690
+  </a>
+</p>
             {/* Social Links */}
             <div
               className="footer-social"
@@ -135,6 +129,7 @@ export default function Footer() {
             >
               {/* Facebook */}
               <a
+              
                 href="https://www.facebook.com/profile.php?id=61552590364369"
                 target="_blank"
                 rel="noreferrer"
@@ -186,6 +181,7 @@ export default function Footer() {
 
               {/* Daraz */}
               <a
+              
                 href="https://www.daraz.pk/shop/duuuytiz"
                 target="_blank"
                 rel="noreferrer"
@@ -202,6 +198,7 @@ export default function Footer() {
               </a>
 
               {/* YouTube */}
+               
               <a
                 href="https://www.youtube.com/@JElectronicss"
                 target="_blank"

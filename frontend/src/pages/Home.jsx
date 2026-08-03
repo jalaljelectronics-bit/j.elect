@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getProducts, normalizeProduct } from '../api/productService';
-import { getCategories } from '../api/categoryService';
 import { getProjects } from '../api/projectService';
 import ProductCard from '../components/ProductCard';
 import ProjectCard from '../components/ProjectCard';
 import { useCart } from '../context/CartContext';
+import { useCategories } from '../context/CategoryContext';
 import { formatPrice } from '../data/catalog';
 import { optimizeCloudinaryUrl } from '../utils/cloudinary';
 
@@ -46,6 +46,7 @@ const MARQUEE = [
 
 export default function Home() {
   const { addToCart } = useCart();
+  const { categories: rawCategories, loading: categoriesLoading } = useCategories();
   const [categories, setCategories] = useState([]);
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [featuredProjects, setFeaturedProjects] = useState([]);
@@ -66,12 +67,13 @@ export default function Home() {
   const heroVideoRef = useRef(null);
 
   useEffect(() => {
+    if (categoriesLoading) return; // wait until shared categories have arrived
+
     Promise.all([
       getProducts({ limit: 1000 }),
-      getCategories(),
       getProjects({ limit: 100 }),
     ])
-      .then(([productData, cats, projectData]) => {
+      .then(([productData, projectData]) => {
         const products = (productData.products || []).map(normalizeProduct);
         const projects = projectData.projects || [];
 
@@ -88,9 +90,9 @@ export default function Home() {
           (featuredProductList.length > 0 ? featuredProductList : products).slice(0, 8)
         );
 
-        const laserCategory = findLaserCategory(cats);
+        const laserCategory = findLaserCategory(rawCategories);
 
-        console.debug('[Laser] categories from API:', cats.map((c) => `${c.id}:${c.name}`));
+        console.debug('[Laser] categories from context:', rawCategories.map((c) => `${c.id}:${c.name}`));
         console.debug('[Laser] matched category:', laserCategory);
 
         if (laserCategory) {
@@ -119,7 +121,7 @@ export default function Home() {
         }
 
         setCategories(
-          cats.map((c) => ({
+          rawCategories.map((c) => ({
             ...c,
             emoji: c.emoji || '📦',
             count: products.filter((p) => p.categoryId === c.id).length,
@@ -168,7 +170,7 @@ export default function Home() {
         setNewArrivals(arrivals.slice(0, 12));
       })
       .catch((err) => console.error('Failed to load home data:', err));
-  }, []);
+  }, [categoriesLoading, rawCategories]);
 
   useEffect(() => {
     if (featuredProducts.length === 0) return;
@@ -496,7 +498,7 @@ useEffect(() => {
                           </button>
                         </div>
 
-                       <a 
+                        <a
                           href={whatsappLink}
                           target="_blank"
                           rel="noreferrer"

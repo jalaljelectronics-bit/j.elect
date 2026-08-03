@@ -62,6 +62,7 @@ export default function Home() {
   const newArrivalsRef = useRef(null);
   const projectCarouselRef = useRef(null);
   const laserCarouselRef = useRef(null);
+  const heroVideoRef = useRef(null);
 
   useEffect(() => {
     Promise.all([
@@ -251,7 +252,24 @@ export default function Home() {
     }, 5000);
     return () => clearInterval(timer);
   }, [laserProducts]);
-
+  // Defers loading + starting the hero video until after the page's initial
+// paint, instead of the browser preloading the full file (7.5MB+) before
+// anything else can render. The poster image (a lightweight static frame)
+// shows immediately in its place until this kicks in.
+useEffect(() => {
+  const video = heroVideoRef.current;
+  if (!video) return;
+  const start = () => {
+    video.src = '/hero.mp4';
+    video.play().catch(() => {}); // autoplay can be blocked pre-interaction; ignore
+  };
+  if (document.readyState === 'complete') {
+    start();
+  } else {
+    window.addEventListener('load', start, { once: true });
+    return () => window.removeEventListener('load', start);
+  }
+}, []);
   const scrollCarousel = (dir) => {
     const el = carouselRef.current;
     if (!el) return;
@@ -311,14 +329,14 @@ export default function Home() {
   return (
     <>
       <section className="hero" style={{ paddingTop: '64px' }}>
-        <video
-          className="hero-video-bg"
-          src="/hero.mp4"
-          autoPlay
-          muted
-          loop
-          playsInline
-        />
+       <video
+  ref={heroVideoRef}
+  className="hero-video-bg"
+  poster="/hero-poster.jpg"
+  muted
+  loop
+  playsInline
+/>
         <div className="hero-video-overlay" />
 
         <div className="hero-content">

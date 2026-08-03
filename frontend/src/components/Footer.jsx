@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getCategories } from '../api/categoryService';
 
@@ -31,6 +31,7 @@ const socialImgStyleZoomed = {
 
 export default function Footer() {
   const [categories, setCategories] = useState([]);
+  const footerVideoRef = useRef(null);
 
   useEffect(() => {
     getCategories()
@@ -38,12 +39,37 @@ export default function Footer() {
       .catch((err) => console.error('Failed to load categories:', err));
   }, []);
 
+  // The footer is below the fold on every page load, so there's no reason to
+  // download footer-bg.mp4 until the user actually scrolls near it — unlike
+  // the hero video (deferred to "after first paint" since it's visible
+  // immediately), this one can be deferred until it's about to be seen at
+  // all. IntersectionObserver with a rootMargin starts the fetch slightly
+  // before the footer enters the viewport, so there's no visible pop-in as
+  // it scrolls into view.
+  useEffect(() => {
+    const video = footerVideoRef.current;
+    if (!video) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          video.src = '/footer-bg.mp4';
+          video.play().catch(() => {});
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '300px' } // start loading 300px before it's actually visible
+    );
+
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <footer className="site-footer">
       <video
+        ref={footerVideoRef}
         className="footer-video-bg"
-        src="/footer-bg.mp4"
-        autoPlay
         loop
         muted
         playsInline
@@ -80,22 +106,22 @@ export default function Footer() {
               Next-generation electronics, gadgets, and maker project kits —
               curated for builders in Pakistan and beyond.
             </p>
-            
+
             <p
-  style={{
-    color: '#9CA3AF',
-    fontSize: '0.85rem',
-    marginTop: '10px',
-  }}
->
-  Contact us at{' '}
-  <a
-    href="tel:+92XXXXXXXXXX"
-    style={{ color: 'var(--cyan)', fontWeight: 600 }}
-  >
-    +92 3176572690
-  </a>
-</p>
+              style={{
+                color: '#9CA3AF',
+                fontSize: '0.85rem',
+                marginTop: '10px',
+              }}
+            >
+              Contact us at{' '}
+              <a
+                href="tel:+92XXXXXXXXXX"
+                style={{ color: 'var(--cyan)', fontWeight: 600 }}
+              >
+                +92 3176572690
+              </a>
+            </p>
 
             {/* Social Links */}
             <div
@@ -109,7 +135,6 @@ export default function Footer() {
             >
               {/* Facebook */}
               <a
-              
                 href="https://www.facebook.com/profile.php?id=61552590364369"
                 target="_blank"
                 rel="noreferrer"
@@ -120,6 +145,8 @@ export default function Footer() {
                   src="/facebook.png"
                   alt="Facebook"
                   style={socialImgStyle}
+                  width={25}
+                  height={25}
                 />
               </a>
 
@@ -135,6 +162,8 @@ export default function Footer() {
                   src="/instagram.png"
                   alt="Instagram"
                   style={socialImgStyleZoomed}
+                  width={25}
+                  height={25}
                 />
               </a>
 
@@ -150,10 +179,12 @@ export default function Footer() {
                   src="/linkedin.jpeg"
                   alt="LinkedIn"
                   style={socialImgStyle}
+                  width={25}
+                  height={25}
                 />
               </a>
 
-                        {/* Daraz */}
+              {/* Daraz */}
               <a
                 href="https://www.daraz.pk/shop/duuuytiz"
                 target="_blank"
@@ -165,6 +196,8 @@ export default function Footer() {
                   src="/daraz.png"
                   alt="Daraz"
                   style={socialImgStyleZoomed}
+                  width={25}
+                  height={25}
                 />
               </a>
 
@@ -177,10 +210,12 @@ export default function Footer() {
                 style={socialIconStyle}
               >
                 <img
-    src="/youtube.png"
-    alt="YouTube"
-    style={socialImgStyleZoomed}
-  />
+                  src="/youtube.png"
+                  alt="YouTube"
+                  style={socialImgStyleZoomed}
+                  width={25}
+                  height={25}
+                />
               </a>
             </div>
           </div>
@@ -231,8 +266,6 @@ export default function Footer() {
             </ul>
           </div>
         </div>
-        
-
 
         {/* Footer Bottom */}
         <div className="footer-bottom">

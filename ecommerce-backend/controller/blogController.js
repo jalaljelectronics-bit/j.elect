@@ -18,6 +18,25 @@ const cleanLinks = (linkedProducts) => {
         }));
 };
 
+// Fires Vercel's deploy hook so a newly published (or edited) post gets
+// picked up by generate-routes.js and prerendered on the next build,
+// without anyone needing to manually git push. Fire-and-forget on purpose:
+// we don't want the admin panel's Save button to hang waiting on Vercel's
+// response, and a failed trigger here shouldn't fail the actual DB save
+// the admin was trying to do.
+const triggerFrontendRedeploy = () => {
+    const hookUrl = process.env.VERCEL_DEPLOY_HOOK_URL;
+
+    if (!hookUrl) {
+        console.warn("VERCEL_DEPLOY_HOOK_URL not set — skipping redeploy trigger.");
+        return;
+    }
+
+    fetch(hookUrl, { method: "POST" })
+        .then(() => console.log("[deploy-hook] Frontend redeploy triggered."))
+        .catch((err) => console.error("[deploy-hook] Failed to trigger redeploy:", err.message));
+};
+
 // =============================
 // Get All Blog Posts (Public)
 // =============================
@@ -121,6 +140,12 @@ exports.createBlogPost = async (req, res) => {
             }
         });
 
+        // Only worth rebuilding the frontend if this post is actually
+        // going live — no point burning a Vercel build on a Draft save.
+        if (post.status === "Published") {
+            triggerFrontendRedeploy();
+        }
+
         res.status(201).json({
             message: "Blog post created successfully.",
             post
@@ -149,12 +174,6 @@ exports.updateBlogPost = async (req, res) => {
             return res.status(404).json({ message: "Blog post not found." });
         }
 
-        if (imageUrl && !imageUrl.startsWith("http")) {
-            return res.status(400).json({
-                message: "A valid image URL is required."
-            });
-        }
-
         const updatedPost = await prisma.blogPost.update({
             where: { id },
             data: {
@@ -169,6 +188,13 @@ exports.updateBlogPost = async (req, res) => {
                 linkedProducts:  linkedProducts !== undefined ? cleanLinks(linkedProducts) : post.linkedProducts
             }
         });
+
+        // Redeploy if the post is (or becomes) Published — covers both
+        // "edited an already-live post's content/meta" and "just flipped
+        // Draft -> Published". Skips the rebuild if it's still a Draft.
+        if (updatedPost.status === "Published") {
+            triggerFrontendRedeploy();
+        }
 
         res.json({
             message: "Blog post updated successfully.",
@@ -195,6 +221,11 @@ exports.deleteBlogPost = async (req, res) => {
         }
 
         await prisma.blogPost.delete({ where: { id } });
+
+        // A deleted post's URL should stop existing on the live site too —
+        // otherwise Google (and visitors) keep seeing a stale prerendered
+        // page for a route that no longer resolves.
+        triggerFrontendRedeploy();
 
         res.json({ message: "Blog post deleted successfully." });
 

@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/generate-routes.js",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -12,11 +13,13 @@
     "axios": "^1.18.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-helmet-async": "^2.0.5",
     "react-markdown": "^10.1.0",
     "react-router-dom": "^6.26.0",
     "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
+    "@prerenderer/renderer-puppeteer": "^1.1.2",
     "@vitejs/plugin-react": "^4.3.1",
     "vite": "^5.4.0"
   }

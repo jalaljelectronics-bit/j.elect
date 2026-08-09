@@ -28,6 +28,10 @@ const allowedOrigins = [
   'http://localhost:5174',
   'http://localhost:5175',
   'http://localhost:5176',
+  'http://localhost:4173', // vite preview — used to test production builds locally
+  'http://127.0.0.1:8000', // @prerenderer/prerenderer's local static server during `npm run build`
+  
+
   'j-elect.vercel.app',
   'https://jelectronics-admin.vercel.app',
   'https://jelectronics-store.vercel.app',

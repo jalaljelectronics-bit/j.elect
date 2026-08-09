@@ -1,11 +1,21 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { getProjectById, getProjects, createProjectQuery } from '../api/projectService';
 import ProjectCard from '../components/ProjectCard';
 import MarkdownContent from '../components/MarkdownContent';
 import { resolveProductLink, isExternalLink, usableLinks } from '../utils/productLink';
 import { CONTACT_PHONE_DISPLAY, CONTACT_WHATSAPP } from '../config/contact';
 import { optimizeCloudinaryUrl } from '../utils/cloudinary';
+
+// Tell the prerenderer the page is done — fired once per mount, whether
+// the fetch succeeds or the project isn't found, so a bad ID never hangs
+// the prerender build.
+const signalPrerenderReady = () => {
+  if (typeof document !== 'undefined') {
+    document.dispatchEvent(new Event('prerender-ready'));
+  }
+};
 
 export default function ProjectDetail() {
   const { id } = useParams();
@@ -28,9 +38,11 @@ export default function ProjectDetail() {
         const found = res.project;
         if (!found) {
           setNotFound(true);
+          signalPrerenderReady();
           return;
         }
         setProject(found);
+        signalPrerenderReady();
 
         return getProjects({ category: found.category }).then((relRes) => {
           const sameCategory = (relRes.projects || []).filter(
@@ -42,6 +54,7 @@ export default function ProjectDetail() {
       .catch((err) => {
         console.error('Failed to load project:', err);
         setNotFound(true);
+        signalPrerenderReady();
       });
   }, [id]);
 
@@ -69,6 +82,10 @@ export default function ProjectDetail() {
   if (notFound) {
     return (
       <div className="container">
+        <Helmet>
+          <title>Project Not Found – J Electronics</title>
+          <meta name="robots" content="noindex" />
+        </Helmet>
         <div className="empty-state">
           <p>Project not found.</p>
           <Link className="btn-primary" to="/projects" style={{ marginTop: '16px', display: 'inline-flex' }}>Back to Projects</Link>
@@ -84,9 +101,23 @@ export default function ProjectDetail() {
     : null;
   const productLinks = usableLinks(project.linkedProducts);
   const badgeLabel = project.isNewArrival ? '🆕 New' : project.isFeatured ? '⭐ Featured' : null;
+  const canonicalUrl = `https://www.jelectronics.store/project/${project.id}`;
+  const description = project.introDescription || `${project.title} — a project from J Electronics.`;
 
   return (
     <div className="container" style={{ paddingBottom: '80px' }}>
+      <Helmet>
+        <title>{project.title} – J Electronics</title>
+        <meta name="description" content={description} />
+        <link rel="canonical" href={canonicalUrl} />
+
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content={project.title} />
+        <meta property="og:description" content={description} />
+        <meta property="og:url" content={canonicalUrl} />
+        {imgSrc && <meta property="og:image" content={imgSrc} />}
+      </Helmet>
+
       <div className="breadcrumb">
         <Link to="/">Home</Link> / <Link to="/projects">Projects</Link>
         {project.category && (

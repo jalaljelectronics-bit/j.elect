@@ -3,5 +3,9 @@
     "multer": "^2.2.0",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@prerenderer/renderer-puppeteer": "^1.2.4",
+    "vite-plugin-prerender": "^1.0.8"
   }
 }

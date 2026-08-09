@@ -19,6 +19,30 @@ const cleanLinks = (linkedProducts) => {
         }));
 };
 
+// Fires Vercel's deploy hook so a newly created, edited, or deleted project
+// gets picked up by generate-routes.js and prerendered on the next build,
+// without anyone needing to manually git push. Fire-and-forget on purpose:
+// we don't want the admin panel's Save button to hang waiting on Vercel's
+// response, and a failed trigger here shouldn't fail the actual DB write
+// the admin was trying to do.
+//
+// Unlike blog posts, projects have no Draft/Published concept — the
+// `status` field here means project stage (In Progress, Completed), not
+// visibility — so every create/update/delete fires the redeploy, not just
+// ones matching a particular status.
+const triggerFrontendRedeploy = () => {
+    const hookUrl = process.env.VERCEL_DEPLOY_HOOK_URL;
+
+    if (!hookUrl) {
+        console.warn("VERCEL_DEPLOY_HOOK_URL not set — skipping redeploy trigger.");
+        return;
+    }
+
+    fetch(hookUrl, { method: "POST" })
+        .then(() => console.log("[deploy-hook] Frontend redeploy triggered."))
+        .catch((err) => console.error("[deploy-hook] Failed to trigger redeploy:", err.message));
+};
+
 // =============================
 // GET ALL PROJECTS
 // =============================
@@ -121,6 +145,10 @@ exports.createProject = async (req, res) => {
             }
         });
 
+        // New project is live immediately client-side; trigger a redeploy so
+        // it also gets prerendered with correct SEO tags on the next build.
+        triggerFrontendRedeploy();
+
         res.status(201).json({
             message: "Project created successfully",
             project
@@ -169,6 +197,10 @@ exports.updateProject = async (req, res) => {
             }
         });
 
+        // Content/meta may have changed — redeploy so the prerendered page
+        // for this project picks up the new title/description/images.
+        triggerFrontendRedeploy();
+
         res.json({
             message: "Project updated successfully",
             project
@@ -197,6 +229,11 @@ exports.deleteProject = async (req, res) => {
         await prisma.project.delete({
             where: { id: projectId }
         });
+
+        // A deleted project's URL should stop existing on the live site too —
+        // otherwise Google (and visitors) keep seeing a stale prerendered
+        // page for a route that no longer resolves.
+        triggerFrontendRedeploy();
 
         res.json({ message: "Project deleted successfully" });
     } catch (error) {

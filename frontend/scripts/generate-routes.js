@@ -81,5 +81,9 @@ async function main() {
 
 main().catch((err) => {
   console.error('[generate-routes] Failed:', err.message);
-  process.exit(1);
+  // Avoid process.exit(1) here — on Windows, forcing an exit while a
+  // fetch() is still tearing down its network handles can trigger a
+  // libuv assertion crash unrelated to the actual error. Setting
+  // exitCode and letting Node exit naturally avoids that.
+  process.exitCode = 1;
 });

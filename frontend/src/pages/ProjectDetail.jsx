@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import { getProjectById, getProjects, createProjectQuery } from '../api/projectService';
 import ProjectCard from '../components/ProjectCard';
 import MarkdownContent from '../components/MarkdownContent';
@@ -8,11 +7,67 @@ import { resolveProductLink, isExternalLink, usableLinks } from '../utils/produc
 import { CONTACT_PHONE_DISPLAY, CONTACT_WHATSAPP } from '../config/contact';
 import { optimizeCloudinaryUrl } from '../utils/cloudinary';
 
+// Directly write SEO tags to document.head — bypasses react-helmet-async
+// entirely. Helmet batches its actual DOM writes internally (it appeared
+// to rely on requestAnimationFrame-based scheduling), which wasn't
+// reliably flushing inside Puppeteer during prerendering: page body
+// content rendered correctly, but <title>/<meta>/<link> updates never
+// landed in the captured HTML. Plain DOM writes in a useEffect have no
+// such batching — they run as soon as the effect fires, guaranteed.
+function setSeoTags({ title, description, canonical, ogImage, noindex }) {
+  if (typeof document === 'undefined') return;
+
+  document.title = title;
+
+  const setMeta = (name, content) => {
+    let el = document.querySelector(`meta[name="${name}"]`);
+    if (!el) {
+      el = document.createElement('meta');
+      el.setAttribute('name', name);
+      document.head.appendChild(el);
+    }
+    el.setAttribute('content', content);
+  };
+
+  const setPropertyMeta = (property, content) => {
+    let el = document.querySelector(`meta[property="${property}"]`);
+    if (!el) {
+      el = document.createElement('meta');
+      el.setAttribute('property', property);
+      document.head.appendChild(el);
+    }
+    el.setAttribute('content', content);
+  };
+
+  if (description) setMeta('description', description);
+  if (noindex) setMeta('robots', 'noindex');
+
+  if (canonical) {
+    let link = document.querySelector('link[rel="canonical"]');
+    if (!link) {
+      link = document.createElement('link');
+      link.setAttribute('rel', 'canonical');
+      document.head.appendChild(link);
+    }
+    link.setAttribute('href', canonical);
+  }
+
+  if (description || canonical) {
+    setPropertyMeta('og:type', 'article');
+    setPropertyMeta('og:title', title);
+    if (description) setPropertyMeta('og:description', description);
+    if (canonical) setPropertyMeta('og:url', canonical);
+    if (ogImage) setPropertyMeta('og:image', ogImage);
+  }
+}
+
 // Tell the prerenderer the page is done — fired once per mount, whether
 // the fetch succeeds or the project isn't found, so a bad ID never hangs
-// the prerender build.
+// the prerender build. Shares a flag with the fallback timer in
+// main.jsx so the event only ever fires once.
 const signalPrerenderReady = () => {
-  if (typeof document !== 'undefined') {
+  if (typeof document !== 'undefined' && !window.__prerenderReadyFired) {
+    window.__prerenderReadyFired = true;
     document.dispatchEvent(new Event('prerender-ready'));
   }
 };
@@ -38,10 +93,21 @@ export default function ProjectDetail() {
         const found = res.project;
         if (!found) {
           setNotFound(true);
+          setSeoTags({ title: 'Project Not Found – J Electronics', noindex: true });
           signalPrerenderReady();
           return;
         }
         setProject(found);
+
+        const imgSrc = typeof found.imageUrl === 'string' && found.imageUrl.startsWith('http')
+          ? optimizeCloudinaryUrl(found.imageUrl, { width: 800, height: 800 })
+          : null;
+        setSeoTags({
+          title: `${found.title} – J Electronics`,
+          description: found.introDescription || `${found.title} — a project from J Electronics.`,
+          canonical: `https://www.jelectronics.store/project/${found.id}`,
+          ogImage: imgSrc,
+        });
         signalPrerenderReady();
 
         return getProjects({ category: found.category }).then((relRes) => {
@@ -54,6 +120,7 @@ export default function ProjectDetail() {
       .catch((err) => {
         console.error('Failed to load project:', err);
         setNotFound(true);
+        setSeoTags({ title: 'Project Not Found – J Electronics', noindex: true });
         signalPrerenderReady();
       });
   }, [id]);
@@ -82,10 +149,6 @@ export default function ProjectDetail() {
   if (notFound) {
     return (
       <div className="container">
-        <Helmet>
-          <title>Project Not Found – J Electronics</title>
-          <meta name="robots" content="noindex" />
-        </Helmet>
         <div className="empty-state">
           <p>Project not found.</p>
           <Link className="btn-primary" to="/projects" style={{ marginTop: '16px', display: 'inline-flex' }}>Back to Projects</Link>
@@ -101,23 +164,9 @@ export default function ProjectDetail() {
     : null;
   const productLinks = usableLinks(project.linkedProducts);
   const badgeLabel = project.isNewArrival ? '🆕 New' : project.isFeatured ? '⭐ Featured' : null;
-  const canonicalUrl = `https://www.jelectronics.store/project/${project.id}`;
-  const description = project.introDescription || `${project.title} — a project from J Electronics.`;
 
   return (
     <div className="container" style={{ paddingBottom: '80px' }}>
-      <Helmet>
-        <title>{project.title} – J Electronics</title>
-        <meta name="description" content={description} />
-        <link rel="canonical" href={canonicalUrl} />
-
-        <meta property="og:type" content="article" />
-        <meta property="og:title" content={project.title} />
-        <meta property="og:description" content={description} />
-        <meta property="og:url" content={canonicalUrl} />
-        {imgSrc && <meta property="og:image" content={imgSrc} />}
-      </Helmet>
-
       <div className="breadcrumb">
         <Link to="/">Home</Link> / <Link to="/projects">Projects</Link>
         {project.category && (

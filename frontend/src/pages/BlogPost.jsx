@@ -1,9 +1,62 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import { getBlog } from '../api/blogService';
 import { resolveProductLink, isExternalLink, usableLinks } from '../utils/productLink';
 import MarkdownContent from '../components/MarkdownContent';
+
+// Directly write SEO tags to document.head — bypasses react-helmet-async
+// entirely. Helmet batches its actual DOM writes internally (it appeared
+// to rely on requestAnimationFrame-based scheduling), which wasn't
+// reliably flushing inside Puppeteer during prerendering: page body
+// content rendered correctly, but <title>/<meta>/<link> updates never
+// landed in the captured HTML. Plain DOM writes in a useEffect have no
+// such batching — they run as soon as the effect fires, guaranteed.
+function setSeoTags({ title, description, canonical, ogImage, noindex }) {
+  if (typeof document === 'undefined') return;
+
+  document.title = title;
+
+  const setMeta = (name, content) => {
+    let el = document.querySelector(`meta[name="${name}"]`);
+    if (!el) {
+      el = document.createElement('meta');
+      el.setAttribute('name', name);
+      document.head.appendChild(el);
+    }
+    el.setAttribute('content', content);
+  };
+
+  const setPropertyMeta = (property, content) => {
+    let el = document.querySelector(`meta[property="${property}"]`);
+    if (!el) {
+      el = document.createElement('meta');
+      el.setAttribute('property', property);
+      document.head.appendChild(el);
+    }
+    el.setAttribute('content', content);
+  };
+
+  if (description) setMeta('description', description);
+  if (noindex) setMeta('robots', 'noindex');
+
+  if (canonical) {
+    let link = document.querySelector('link[rel="canonical"]');
+    if (!link) {
+      link = document.createElement('link');
+      link.setAttribute('rel', 'canonical');
+      document.head.appendChild(link);
+    }
+    link.setAttribute('href', canonical);
+  }
+
+  if (description || canonical) {
+    setPropertyMeta('og:type', 'article');
+    setPropertyMeta('og:title', title);
+    if (description) setPropertyMeta('og:description', description);
+    if (canonical) setPropertyMeta('og:url', canonical);
+    if (ogImage) setPropertyMeta('og:image', ogImage);
+  }
+}
 
 const formatDate = (iso) => {
   if (!iso) return '';
@@ -19,9 +72,11 @@ const makeExcerpt = (content = '', max = 160) => {
 
 // Tell the prerenderer the page is done — fired once per mount, whether
 // the fetch succeeds or the post isn't found, so a bad ID never hangs
-// the prerender build.
+// the prerender build. Shares a flag with the fallback timer in
+// main.jsx so the event only ever fires once.
 const signalPrerenderReady = () => {
-  if (typeof document !== 'undefined') {
+  if (typeof document !== 'undefined' && !window.__prerenderReadyFired) {
+    window.__prerenderReadyFired = true;
     document.dispatchEvent(new Event('prerender-ready'));
   }
 };
@@ -36,10 +91,22 @@ export default function BlogPost() {
     let active = true;
     setLoading(true);
     getBlog(id)
-      .then((data) => { if (active) setPost(data); })
+      .then((data) => {
+        if (!active) return;
+        setPost(data);
+        setSeoTags({
+          title: `${data.title} – J Electronics`,
+          description: makeExcerpt(data.content),
+          canonical: `https://www.jelectronics.store/blog/${data.id}`,
+          ogImage: data.imageUrl,
+        });
+      })
       .catch((err) => {
         console.error(err);
-        if (active) setNotFound(true);
+        if (active) {
+          setNotFound(true);
+          setSeoTags({ title: 'Post Not Found – J Electronics', noindex: true });
+        }
       })
       .finally(() => {
         if (active) {
@@ -61,10 +128,6 @@ export default function BlogPost() {
   if (notFound || !post) {
     return (
       <div className="container">
-        <Helmet>
-          <title>Post Not Found – J Electronics</title>
-          <meta name="robots" content="noindex" />
-        </Helmet>
         <div className="empty-state">
           <p>Post not found.</p>
           <Link className="btn-primary" to="/blog" style={{ marginTop: '16px', display: 'inline-flex' }}>Back to Blog</Link>
@@ -74,24 +137,9 @@ export default function BlogPost() {
   }
 
   const links = usableLinks(post.linkedProducts);
-  const canonicalUrl = `https://www.jelectronics.store/blog/${post.id}`;
-  const description = makeExcerpt(post.content);
 
   return (
     <div className="container" style={{ paddingBottom: '80px', maxWidth: '820px' }}>
-      <Helmet>
-        <title>{post.title} – J Electronics</title>
-        <meta name="description" content={description} />
-        <link rel="canonical" href={canonicalUrl} />
-
-        {/* Open Graph / social preview — free to add once Helmet is wired up */}
-        <meta property="og:type" content="article" />
-        <meta property="og:title" content={post.title} />
-        <meta property="og:description" content={description} />
-        <meta property="og:url" content={canonicalUrl} />
-        {post.imageUrl && <meta property="og:image" content={post.imageUrl} />}
-      </Helmet>
-
       <div className="breadcrumb" style={{ marginTop: '20px' }}>
         <Link to="/">Home</Link> / <Link to="/blog">Blog</Link> / {post.title}
       </div>

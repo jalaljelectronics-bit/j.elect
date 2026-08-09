@@ -48,15 +48,19 @@ function prerenderPlugin() {
           port: 8000,
         },
         renderer: new PuppeteerRenderer({
-          // A fixed wait, applied to every route, instead of a custom
-          // DOM event — the event approach only works on pages we've
-          // wired it into (BlogPost, ProjectDetail). Pages like Home,
-          // Products, Blog list, About, etc. never fire it, which was
-          // causing Puppeteer to wait the full timeout and fail on the
-          // very first route. A flat delay is less precise but works
-          // uniformly across every page without touching files we
-          // haven't seen.
-          renderAfterTime: 5000,
+          // Event-based capture, not a flat time delay. This is the
+          // strategy that correctly captured <head> mutations in our
+          // very first successful test (title/meta updates worked).
+          // Switching to a flat renderAfterTime later broke title/meta
+          // capture even though body content still rendered correctly —
+          // whatever @prerenderer/renderer-puppeteer does differently
+          // between these two modes, the event-based one is the one
+          // that's actually been proven to work here.
+          //
+          // The event is fired explicitly by BlogPost.jsx/ProjectDetail.jsx
+          // once their data loads, and as a fallback after 3s by
+          // main.jsx for every other page — see src/main.jsx.
+          renderAfterDocumentEvent: 'prerender-ready',
           maxConcurrentRoutes: 4,
           timeout: 20000,
         }),

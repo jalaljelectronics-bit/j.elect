@@ -36,6 +36,29 @@ function prerenderPlugin() {
 
       const distDir = path.join(__dirname, 'dist')
 
+      // On Vercel, puppeteer's own bundled Chromium can't run — the
+      // build container is missing system libs it needs (libnspr4.so,
+      // and others further down the chain like libnss3.so). Vercel
+      // has no apt-get step available to add them.
+      //
+      // @sparticuz/chromium ships a Chromium build compiled specifically
+      // to run with no external library dependencies in restricted
+      // serverless/build containers like Vercel's. We only reach for it
+      // when running on Vercel (detected via the VERCEL env var, which
+      // Vercel sets automatically) — locally on Windows, launchOptions
+      // stays empty and puppeteer uses its normal bundled browser,
+      // completely untouched.
+      let launchOptions = {}
+      if (process.env.VERCEL) {
+        const chromium = (await import('@sparticuz/chromium')).default
+        launchOptions = {
+          args: chromium.args,
+          defaultViewport: chromium.defaultViewport,
+          executablePath: await chromium.executablePath(),
+          headless: chromium.headless,
+        }
+      }
+
       const prerenderer = new Prerenderer({
         staticDir: distDir,
         routes,
@@ -63,6 +86,7 @@ function prerenderPlugin() {
           renderAfterDocumentEvent: 'prerender-ready',
           maxConcurrentRoutes: 4,
           timeout: 20000,
+          launchOptions,
         }),
       })
 

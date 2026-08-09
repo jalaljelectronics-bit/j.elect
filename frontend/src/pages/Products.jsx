@@ -41,6 +41,24 @@ export default function Products() {
       .catch((err) => console.error('Failed to load categories:', err));
   }, []);
 
+  // Filtered/sorted views of this page (?category=, ?sort=, ?page=, ?q=) are
+  // all variations of the same content — Google should treat /products as the
+  // single canonical URL, not index each filter combination separately.
+  // This is what fixes the "Duplicate without user-selected canonical" flag
+  // Search Console reported on /products?category=44, ?category=27, etc.
+  // Empty dependency array is intentional: the canonical stays /products no
+  // matter how activeCategory/query/sort/page change, so it never needs to re-run.
+  useEffect(() => {
+    const canonicalUrl = 'https://www.jelectronics.store/products';
+    let link = document.querySelector("link[rel='canonical']");
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'canonical';
+      document.head.appendChild(link);
+    }
+    link.href = canonicalUrl;
+  }, []);
+
   useEffect(() => {
     setLoading(true);
     setError(null);

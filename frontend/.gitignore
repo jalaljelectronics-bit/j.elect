@@ -1,2 +1,19 @@
 .env
 node_modules
+
+# Generated at build time by scripts/generate-routes.js — regenerated every build
+frontend/scripts/routes.json
+
+# Dependencies
+node_modules/
+
+# Environment files — may contain secrets (API keys, DB URLs, etc.)
+.env
+.env.local
+.env.production
+migration/.env
+VITE_API_URL=https://jelect-production.up.railway.app
+
+# Migration run logs — these look like they may contain real production data
+migration/migration-dry-run.json
+migration/migration-live-run-*.json

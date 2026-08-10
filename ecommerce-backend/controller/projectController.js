@@ -1,4 +1,5 @@
 const prisma = require("../prisma/client");
+const { triggerFrontendRedeploy } = require("../utils/deployHook");
 
 const VALID_QUERY_STATUSES = ["Unread", "Read", "Resolved"];
 
@@ -19,29 +20,6 @@ const cleanLinks = (linkedProducts) => {
         }));
 };
 
-// Fires Vercel's deploy hook so a newly created, edited, or deleted project
-// gets picked up by generate-routes.js and prerendered on the next build,
-// without anyone needing to manually git push. Fire-and-forget on purpose:
-// we don't want the admin panel's Save button to hang waiting on Vercel's
-// response, and a failed trigger here shouldn't fail the actual DB write
-// the admin was trying to do.
-//
-// Unlike blog posts, projects have no Draft/Published concept — the
-// `status` field here means project stage (In Progress, Completed), not
-// visibility — so every create/update/delete fires the redeploy, not just
-// ones matching a particular status.
-const triggerFrontendRedeploy = () => {
-    const hookUrl = process.env.VERCEL_DEPLOY_HOOK_URL;
-
-    if (!hookUrl) {
-        console.warn("VERCEL_DEPLOY_HOOK_URL not set — skipping redeploy trigger.");
-        return;
-    }
-
-    fetch(hookUrl, { method: "POST" })
-        .then(() => console.log("[deploy-hook] Frontend redeploy triggered."))
-        .catch((err) => console.error("[deploy-hook] Failed to trigger redeploy:", err.message));
-};
 
 // =============================
 // GET ALL PROJECTS

@@ -84,8 +84,16 @@ function prerenderPlugin() {
           // once their data loads, and as a fallback after 3s by
           // main.jsx for every other page — see src/main.jsx.
           renderAfterDocumentEvent: 'prerender-ready',
-          maxConcurrentRoutes: 4,
-          timeout: 20000,
+          // Bumped from 4 -> 8 now that product pages (~700 routes) are
+          // included alongside blog/project pages. Higher concurrency
+          // trades peak memory for total build time; if Vercel's build
+          // container starts OOM-ing or randomly failing routes, dial
+          // this back down rather than raising it further.
+          maxConcurrentRoutes: 8,
+          // Slightly higher than the original 20s — with more routes
+          // rendering concurrently, individual pages can take a bit
+          // longer to hit their 'prerender-ready' event under load.
+          timeout: 30000,
           launchOptions,
         }),
       })

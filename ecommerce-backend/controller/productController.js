@@ -1,4 +1,6 @@
 const prisma = require("../prisma/client");
+const { triggerFrontendRedeploy } = require("../utils/deployHook");
+
 
 // =============================
 // Create Product
@@ -62,6 +64,13 @@ exports.createProduct = async (req, res) => {
                 isNewArrival: isNewArrival === false ? false : true
             }
         });
+
+        // New product's page is live client-side immediately; trigger a
+        // redeploy so it also gets prerendered with real content + SEO
+        // tags (title/description/canonical) on the next build, instead
+        // of leaving it as an empty React shell until some unrelated
+        // deploy happens to catch it.
+        triggerFrontendRedeploy();
 
         res.status(201).json({
             message: "Product created successfully.",
@@ -304,6 +313,11 @@ exports.updateProduct = async (req, res) => {
             }
         });
 
+        // Content (name/description/price/image) may have changed —
+        // redeploy so the prerendered page for this product picks up the
+        // new details rather than serving stale prerendered SEO tags.
+        triggerFrontendRedeploy();
+
         res.json({
             message: "Product updated successfully.",
             updatedProduct
@@ -343,6 +357,11 @@ exports.toggleFeatured = async (req, res) => {
             data: { isFeatured: !existingProduct.isFeatured }
         });
 
+        // Doesn't change this product's own detail-page content, but it
+        // does change which products appear in the homepage's Featured
+        // carousel — that's driven by data fetched at runtime, not
+        // prerendered, so no redeploy needed here. Left out on purpose.
+
         res.json({
             message: `Product ${updatedProduct.isFeatured ? "marked as" : "removed from"} featured.`,
             product: updatedProduct
@@ -377,6 +396,10 @@ exports.toggleNewArrival = async (req, res) => {
             where: { id },
             data: { isNewArrival: !existingProduct.isNewArrival }
         });
+
+        // Same reasoning as toggleFeatured above — this only affects the
+        // runtime-fetched New Arrivals carousel, not this product's own
+        // prerendered detail page, so no redeploy trigger here.
 
         res.json({
             message: `Product ${updatedProduct.isNewArrival ? "marked as" : "removed from"} new arrival.`,
@@ -417,6 +440,11 @@ exports.deleteProduct = async (req, res) => {
                 id
             }
         });
+
+        // A deleted product's URL should stop existing on the live site
+        // too — otherwise Google (and visitors) keep seeing a stale
+        // prerendered page for a route that no longer resolves.
+        triggerFrontendRedeploy();
 
         res.json({
             message: "Product deleted successfully."

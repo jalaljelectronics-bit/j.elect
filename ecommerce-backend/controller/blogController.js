@@ -1,5 +1,6 @@
 // controller/blogController.js
 const prisma = require("../prisma/client");
+const { triggerFrontendRedeploy } = require("../utils/deployHook");
 
 // Normalize whatever the client sends for linkedProducts into a predictable
 // array of { id, productId, label, url } objects. `productId` is the real
@@ -18,24 +19,6 @@ const cleanLinks = (linkedProducts) => {
         }));
 };
 
-// Fires Vercel's deploy hook so a newly published (or edited) post gets
-// picked up by generate-routes.js and prerendered on the next build,
-// without anyone needing to manually git push. Fire-and-forget on purpose:
-// we don't want the admin panel's Save button to hang waiting on Vercel's
-// response, and a failed trigger here shouldn't fail the actual DB save
-// the admin was trying to do.
-const triggerFrontendRedeploy = () => {
-    const hookUrl = process.env.VERCEL_DEPLOY_HOOK_URL;
-
-    if (!hookUrl) {
-        console.warn("VERCEL_DEPLOY_HOOK_URL not set — skipping redeploy trigger.");
-        return;
-    }
-
-    fetch(hookUrl, { method: "POST" })
-        .then(() => console.log("[deploy-hook] Frontend redeploy triggered."))
-        .catch((err) => console.error("[deploy-hook] Failed to trigger redeploy:", err.message));
-};
 
 // =============================
 // Get All Blog Posts (Public)

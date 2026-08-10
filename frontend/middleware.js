@@ -31,6 +31,16 @@ const BOT_UA_REGEX =
   /googlebot|bingbot|yandex(bot)?|baiduspider|duckduckbot|slurp|facebookexternalhit|twitterbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest\/?bot|slackbot|vkshare|w3c_validator|whatsapp|redditbot|applebot|telegrambot|discordbot/i;
 
 export default function middleware(request) {
+  // TEMP DEBUG: short-circuit every matched request with a visible,
+  // unmistakable response, bypassing bot-detection entirely. This proves
+  // (or disproves) that Vercel is executing this file as Edge Middleware
+  // at all. Remove this block once confirmed working, then restore the
+  // normal bot-detection flow below.
+  return new Response('MIDDLEWARE IS RUNNING', {
+    status: 200,
+    headers: { 'x-middleware-debug': 'yes' },
+  });
+
   const userAgent = request.headers.get('user-agent') || '';
 
   if (!BOT_UA_REGEX.test(userAgent)) {

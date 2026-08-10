@@ -11,10 +11,32 @@ export default function Header() {
   const { categories } = useCategories();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [productsOpen, setProductsOpen] = useState(false);
   const navigate = useNavigate();
   const profileRef = useRef(null);
   const mobileMenuRef = useRef(null);
   const mobileToggleRef = useRef(null);
+  const productsCloseTimerRef = useRef(null);
+
+  // Drives the Products dropdown with JS state instead of pure CSS :hover.
+  // Pure :hover was closing the dropdown mid-move whenever the cursor
+  // crossed a small visual gap between the trigger and the panel — fast
+  // moves skipped over the gap, slow ones didn't. A short close-delay
+  // makes brief gap-crossings harmless: onMouseEnter (on either the
+  // trigger or the dropdown itself, since both live inside the same <li>)
+  // cancels the pending close before it fires.
+  const openProductsDropdown = () => {
+    clearTimeout(productsCloseTimerRef.current);
+    setProductsOpen(true);
+  };
+
+  const closeProductsDropdownDelayed = () => {
+    productsCloseTimerRef.current = setTimeout(() => setProductsOpen(false), 200);
+  };
+
+  useEffect(() => {
+    return () => clearTimeout(productsCloseTimerRef.current);
+  }, []);
 
   // Close the profile dropdown when clicking anywhere outside it
   useEffect(() => {
@@ -104,27 +126,32 @@ export default function Header() {
           <li><Link to="/">Home</Link></li>
           <li><Link to="/about">About Us</Link></li>
 
-          <li>
+          <li
+            onMouseEnter={openProductsDropdown}
+            onMouseLeave={closeProductsDropdownDelayed}
+          >
             <span className="nav-link-btn" style={{ cursor: 'pointer' }}>
              <Link to="/products">Products</Link>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9" /></svg>
             </span>
-            <div className="dropdown">
-              {categories.map((cat) => (
-                <div key={cat.id} className="drop-item" onClick={() => navigate(`/products?category=${cat.id}`)}>
-                  <div className="drop-icon">
-                    {cat.imageUrl ? (
-                      <img src={cat.imageUrl} alt={cat.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
-                    ) : (
-                      '📦'
-                    )}
+            {productsOpen && (
+              <div className="dropdown">
+                {categories.map((cat) => (
+                  <div key={cat.id} className="drop-item" onClick={() => navigate(`/products?category=${cat.id}`)}>
+                    <div className="drop-icon">
+                      {cat.imageUrl ? (
+                        <img src={cat.imageUrl} alt={cat.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
+                      ) : (
+                        '📦'
+                      )}
+                    </div>
+                    <div>
+                      <div className="drop-label">{cat.name}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="drop-label">{cat.name}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </li>
           <li><Link to="/projects">Projects</Link></li>
           <li><Link to="/blog">Blog</Link></li>

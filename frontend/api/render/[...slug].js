@@ -2,7 +2,7 @@
 // Vercel serverless function (Node runtime, NOT Edge — Puppeteer needs
 // real Node APIs and a native Chromium binary, which Edge can't run).
 //
-// middleware.js rewrites crawler requests here, e.g.:
+// vercel.json rewrites crawler-detected requests here via middleware.js, e.g.:
 //   /product/1842  ->  /api/render/product/1842
 //   /blog/my-post  ->  /api/render/blog/my-post
 //   /project/42    ->  /api/render/project/42
@@ -13,23 +13,15 @@
 //   3. Check Redis (getCachedRender) — serve cached HTML if still fresh.
 //   4. On miss: launch Puppeteer, load the real page from the live site,
 //      wait for React to render, grab the final HTML, cache it, return it.
-//
-// Install with: npm install puppeteer-core @sparticuz/chromium
-// (Both already proven working in this project's build-time prerender step.)
 
 import chromium from '@sparticuz/chromium';
 import puppeteer from 'puppeteer-core';
 import { getCachedRender, setCachedRender } from '../../lib/redis.js';
 
-// Vercel function config — Puppeteer needs more time/memory than the
-// default. 60s covers Pro's standard limit; bump toward 300+ with Fluid
-// Compute enabled if cold starts prove tight in practice.
 export const config = {
   maxDuration: 60,
 };
 
-// Maps URL segments to backend API routes + Redis cache "type" labels.
-// Adjust the path prefixes here if your backend API routes differ.
 const TYPE_CONFIG = {
   product: { apiPath: '/api/products', cacheType: 'product' },
   blog: { apiPath: '/api/blog', cacheType: 'blog' },
@@ -40,10 +32,6 @@ const BACKEND_API_BASE = process.env.BACKEND_API_URL; // e.g. https://your-backe
 const SITE_ORIGIN = process.env.SITE_ORIGIN || 'https://jelectronics.store';
 
 export default async function handler(request, response) {
-  // TEMP DEBUG: prove this function is actually being invoked, before
-  // touching backend fetch / Redis / Puppeteer. Remove once confirmed.
-  return response.status(200).send('RENDER FUNCTION IS RUNNING, slug=' + JSON.stringify(request.query.slug));
-
   const slug = request.query.slug; // array, e.g. ['product', '1842']
 
   if (!Array.isArray(slug) || slug.length < 2) {
@@ -62,7 +50,6 @@ export default async function handler(request, response) {
     const itemRes = await fetch(`${BACKEND_API_BASE}${typeConfig.apiPath}/${id}`);
 
     if (!itemRes.ok) {
-      // Item doesn't exist (deleted, bad id, etc.) — don't render, just 404.
       return response.status(404).send('Not found');
     }
 
@@ -94,18 +81,10 @@ export default async function handler(request, response) {
 }
 
 async function renderPage(url) {
-  // process.env.VERCEL is set automatically in Vercel's deployed
-  // environments (build + serverless functions), but NOT when running
-  // locally via `vercel dev`. @sparticuz/chromium's binary only runs on
-  // Vercel/Lambda's Amazon Linux — it can't execute on a local dev
-  // machine, so fall back to a locally-installed Chrome there instead.
   const isLocal = !process.env.VERCEL;
 
   const launchOptions = isLocal
     ? {
-        // Requires a local Chrome/Chromium install. Set this env var to
-        // its path, e.g. on Mac:
-        // LOCAL_CHROME_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
         executablePath:
           process.env.LOCAL_CHROME_PATH ||
           '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
@@ -121,12 +100,7 @@ async function renderPage(url) {
 
   try {
     const page = await browser.newPage();
-
-    // 'networkidle0' waits until the page's network activity settles,
-    // giving the React app time to fetch its data and render real content
-    // instead of grabbing the empty <div id="root"> shell.
     await page.goto(url, { waitUntil: 'networkidle0', timeout: 30000 });
-
     const html = await page.content();
     return html;
   } finally {

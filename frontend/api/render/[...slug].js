@@ -40,6 +40,10 @@ const BACKEND_API_BASE = process.env.BACKEND_API_URL; // e.g. https://your-backe
 const SITE_ORIGIN = process.env.SITE_ORIGIN || 'https://jelectronics.store';
 
 export default async function handler(request, response) {
+  // TEMP DEBUG: prove this function is actually being invoked, before
+  // touching backend fetch / Redis / Puppeteer. Remove once confirmed.
+  return response.status(200).send('RENDER FUNCTION IS RUNNING, slug=' + JSON.stringify(request.query.slug));
+
   const slug = request.query.slug; // array, e.g. ['product', '1842']
 
   if (!Array.isArray(slug) || slug.length < 2) {
@@ -90,11 +94,30 @@ export default async function handler(request, response) {
 }
 
 async function renderPage(url) {
-  const browser = await puppeteer.launch({
-    args: chromium.args,
-    executablePath: await chromium.executablePath(),
-    headless: chromium.headless,
-  });
+  // process.env.VERCEL is set automatically in Vercel's deployed
+  // environments (build + serverless functions), but NOT when running
+  // locally via `vercel dev`. @sparticuz/chromium's binary only runs on
+  // Vercel/Lambda's Amazon Linux — it can't execute on a local dev
+  // machine, so fall back to a locally-installed Chrome there instead.
+  const isLocal = !process.env.VERCEL;
+
+  const launchOptions = isLocal
+    ? {
+        // Requires a local Chrome/Chromium install. Set this env var to
+        // its path, e.g. on Mac:
+        // LOCAL_CHROME_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+        executablePath:
+          process.env.LOCAL_CHROME_PATH ||
+          '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+        headless: true,
+      }
+    : {
+        args: chromium.args,
+        executablePath: await chromium.executablePath(),
+        headless: chromium.headless,
+      };
+
+  const browser = await puppeteer.launch(launchOptions);
 
   try {
     const page = await browser.newPage();

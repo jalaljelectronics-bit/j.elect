@@ -1,21 +1,20 @@
-// middleware.js
-// Vercel Edge Middleware — runs before every matched request, at the edge,
-// before any serverless function or the static SPA shell is hit.
+
+// frontend/middleware.js
 //
-// Job: detect search-engine / social-preview crawlers by User-Agent.
-//   - Crawler match  -> rewrite to /api/render/<original path>, which returns
-//                       a fully-rendered HTML snapshot (see render function).
-//   - Everything else -> fall through untouched, human visitors get the
-//                       normal fast client-side-rendered SPA, exactly as today.
+// Vercel Edge Middleware
 //
-// Uses @vercel/edge instead of next/server since this is a Vite project,
-// not Next.js. Install with: npm install @vercel/edge
+// Purpose:
+// - Detect search-engine/social-preview crawlers.
+// - Rewrite crawler requests for products, blogs and projects
+//   to the server-side rendering endpoint.
+// - Let normal visitors and Puppeteer reach the real React SPA.
+//
+// IMPORTANT:
+// Do not put a debug return before the bot check.
+// Puppeteer must be able to load /product/:id normally.
 
 import { rewrite } from '@vercel/edge';
 
-// Only run this middleware on routes that actually have dynamic,
-// crawlable content. No point paying the Edge invocation cost on
-// asset requests, API calls, etc.
 export const config = {
   matcher: [
     '/product/:path*',
@@ -24,36 +23,28 @@ export const config = {
   ],
 };
 
-// Known crawler / link-preview bot user-agent substrings.
-// Kept as one regex so it's cheap to test and easy to extend.
-// Add more as you find bots you care about (e.g. specific SEO tools).
 const BOT_UA_REGEX =
   /googlebot|bingbot|yandex(bot)?|baiduspider|duckduckbot|slurp|facebookexternalhit|twitterbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest\/?bot|slackbot|vkshare|w3c_validator|whatsapp|redditbot|applebot|telegrambot|discordbot/i;
 
 export default function middleware(request) {
-  // TEMP DEBUG: short-circuit every matched request with a visible,
-  // unmistakable response, bypassing bot-detection entirely. This proves
-  // (or disproves) that Vercel is executing this file as Edge Middleware
-  // at all. Remove this block once confirmed working, then restore the
-  // normal bot-detection flow below.
-  return new Response('MIDDLEWARE IS RUNNING', {
-    status: 200,
-    headers: { 'x-middleware-debug': 'yes' },
-  });
+  const userAgent =
+    request.headers.get('user-agent') || '';
 
-  const userAgent = request.headers.get('user-agent') || '';
-
+  // Normal visitors and Puppeteer:
+  // allow the request to continue to the React application.
   if (!BOT_UA_REGEX.test(userAgent)) {
-    // Human (or unrecognized) visitor — do nothing, let the normal
-    // SPA / static routing handle the request as it does today.
     return;
   }
 
-  // Crawler matched — rewrite (not redirect) so the URL in the browser/
-  // crawler's address bar stays the original clean URL, while the actual
-  // response comes from our rendering endpoint.
+  // Crawlers:
+  // rewrite the clean public URL to the render function.
   const url = new URL(request.url);
-  const renderUrl = new URL(`/api/render${url.pathname}`, url.origin);
+
+  const renderUrl = new URL(
+    `/api/render${url.pathname}`,
+    url.origin
+  );
 
   return rewrite(renderUrl);
 }
+

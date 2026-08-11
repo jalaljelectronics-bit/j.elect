@@ -223,6 +223,26 @@ exports.updateOrderStatus = async (req, res) => {
         res.status(500).json({ message: "Server Error" });
     }
 };
+
+// Admin only — permanently deletes an order and its line items
+exports.deleteOrder = async (req, res) => {
+    try {
+        const orderId = Number(req.params.id);
+        if (!Number.isInteger(orderId)) return res.status(400).json({ message: "Invalid order id." });
+
+        await prisma.$transaction(async (tx) => {
+            await tx.orderItem.deleteMany({ where: { orderId } });
+            await tx.order.delete({ where: { id: orderId } });
+        });
+
+        res.json({ message: "Order deleted." });
+    } catch (error) {
+        console.error(error);
+        if (error.code === "P2025") return res.status(404).json({ message: "Order not found." });
+        res.status(500).json({ message: "Server Error" });
+    }
+};
+
 // Admin only — deletes multiple orders at once
 exports.deleteOrders = async (req, res) => {
     try {

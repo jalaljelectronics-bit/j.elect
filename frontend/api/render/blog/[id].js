@@ -1,0 +1,609 @@
+// frontend/api/render/blog/[id].js
+//
+// Server-side blog post renderer for Vercel.
+//
+// Request:
+//   /api/render/blog/7
+//
+// Flow:
+//   1. Validate blog post ID.
+//   2. Fetch post from backend.
+//   3. Check Redis.
+//   4. Launch Chromium.
+//   5. Load the real React blog post page.
+//   6. Capture rendered HTML.
+//   7. Cache the HTML.
+//   8. Return HTML.
+//
+// Mirrors api/render/product/[id].js and api/render/project/[id].js —
+// same flow, same error-stage reporting shape, same
+// cache-failure-is-non-fatal behavior. Only the backend endpoint,
+// cache namespace, and site path differ.
+//
+// Redis namespace is "blog-v2" (parallel to "product-v2"/"project-v2")
+// so it never collides with those cache keyspaces.
+
+export const config = {
+  maxDuration: 60,
+};
+
+const SITE_ORIGIN =
+  process.env.SITE_ORIGIN ||
+  'https://www.jelectronics.store';
+
+const CACHE_TYPE = 'blog-v2';
+
+export default async function handler(request, response) {
+  const { id } = request.query;
+
+  // ---------------------------------------------------------
+  // 1. Validate ID
+  // ---------------------------------------------------------
+
+  if (!id || Array.isArray(id)) {
+    return response.status(400).json({
+      ok: false,
+      error: 'Invalid blog post ID',
+    });
+  }
+
+  const postId = String(id);
+
+  // ---------------------------------------------------------
+  // 2. Validate backend URL
+  // ---------------------------------------------------------
+
+  const backendUrl =
+    process.env.BACKEND_API_URL;
+
+  if (!backendUrl) {
+    console.error(
+      'BACKEND_API_URL is not configured'
+    );
+
+    return response.status(500).json({
+      ok: false,
+      stage: 'configuration',
+      error: 'BACKEND_API_URL is not configured',
+    });
+  }
+
+  try {
+    // -------------------------------------------------------
+    // 3. Load Redis
+    // -------------------------------------------------------
+
+    let getCachedRender;
+    let setCachedRender;
+
+    try {
+      const redis =
+        await import('../../../lib/redis.js');
+
+      getCachedRender =
+        redis.getCachedRender;
+
+      setCachedRender =
+        redis.setCachedRender;
+
+      if (
+        typeof getCachedRender !== 'function' ||
+        typeof setCachedRender !== 'function'
+      ) {
+        throw new Error(
+          'redis.js must export getCachedRender and setCachedRender'
+        );
+      }
+    } catch (error) {
+      console.error(
+        'Redis import error:',
+        error
+      );
+
+      return response.status(500).json({
+        ok: false,
+        stage: 'redis-import',
+        error:
+          error instanceof Error
+            ? error.message
+            : String(error),
+      });
+    }
+
+    // -------------------------------------------------------
+    // 4. Fetch blog post from backend
+    // -------------------------------------------------------
+
+    const cleanBackendUrl =
+      backendUrl.replace(/\/+$/, '');
+
+    // Confirmed via server.js: app.use('/api/blog', blogRoutes) —
+    // singular, unlike /api/products and /api/projects.
+    const blogApiUrl =
+      `${cleanBackendUrl}/api/blog/${encodeURIComponent(postId)}`;
+
+    console.log(
+      'Fetching blog post:',
+      blogApiUrl
+    );
+
+    let blogResponse;
+
+    try {
+      blogResponse = await fetch(
+        blogApiUrl,
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+          },
+        }
+      );
+    } catch (error) {
+      console.error(
+        'Backend connection error:',
+        error
+      );
+
+      return response.status(502).json({
+        ok: false,
+        stage: 'backend-fetch',
+        error:
+          error instanceof Error
+            ? error.message
+            : String(error),
+      });
+    }
+
+    if (!blogResponse.ok) {
+      console.error(
+        'Backend status:',
+        blogResponse.status
+      );
+
+      return response.status(
+        blogResponse.status === 404
+          ? 404
+          : 502
+      ).json({
+        ok: false,
+        stage: 'backend-response',
+        status: blogResponse.status,
+        error:
+          blogResponse.status === 404
+            ? 'Blog post not found'
+            : 'Backend request failed',
+      });
+    }
+
+    let post;
+
+    try {
+      // getBlogPostById returns res.json(post) directly — no
+      // wrapper object, unlike the project endpoint's { project }.
+      post = await blogResponse.json();
+    } catch (error) {
+      console.error(
+        'Backend JSON error:',
+        error
+      );
+
+      return response.status(502).json({
+        ok: false,
+        stage: 'backend-json',
+        error:
+          'Backend returned invalid JSON',
+      });
+    }
+
+    const currentUpdatedAt =
+      post?.updatedAt ??
+      post?.updated_at ??
+      null;
+
+    // -------------------------------------------------------
+    // 5. Redis cache lookup
+    // -------------------------------------------------------
+
+    try {
+      const cachedHtml =
+        await getCachedRender(
+          CACHE_TYPE,
+          postId,
+          currentUpdatedAt
+        );
+
+      if (
+        cachedHtml &&
+        typeof cachedHtml === 'string' &&
+        cachedHtml.length > 500
+      ) {
+        response.setHeader(
+          'Content-Type',
+          'text/html; charset=utf-8'
+        );
+
+        response.setHeader(
+          'X-Render-Cache',
+          'HIT'
+        );
+
+        response.setHeader(
+          'Cache-Control',
+          'private, no-store, max-age=0'
+        );
+
+        return response
+          .status(200)
+          .send(cachedHtml);
+      }
+    } catch (error) {
+      // Cache failure must not stop rendering.
+      console.error(
+        'Redis read error:',
+        error
+      );
+    }
+
+    // -------------------------------------------------------
+    // 6. Build real blog post URL
+    // -------------------------------------------------------
+
+    const siteOrigin =
+      SITE_ORIGIN.replace(/\/+$/, '');
+
+    const pageUrl =
+      `${siteOrigin}/blog/${encodeURIComponent(postId)}`;
+
+    console.log(
+      'Rendering blog post:',
+      pageUrl
+    );
+
+    // -------------------------------------------------------
+    // 7. Load browser dependencies
+    // -------------------------------------------------------
+
+    let chromium;
+    let puppeteer;
+
+    try {
+      const chromiumModule =
+        await import('@sparticuz/chromium');
+
+      const puppeteerModule =
+        await import('puppeteer-core');
+
+      chromium =
+        chromiumModule.default ||
+        chromiumModule;
+
+      puppeteer =
+        puppeteerModule.default ||
+        puppeteerModule;
+    } catch (error) {
+      console.error(
+        'Browser import error:',
+        error
+      );
+
+      return response.status(500).json({
+        ok: false,
+        stage: 'browser-import',
+        error:
+          error instanceof Error
+            ? error.message
+            : String(error),
+      });
+    }
+
+    // -------------------------------------------------------
+    // 8. Render blog post
+    // -------------------------------------------------------
+
+    let html;
+
+    try {
+      html = await renderPage({
+        url: pageUrl,
+        chromium,
+        puppeteer,
+      });
+    } catch (error) {
+      console.error(
+        'Browser rendering error:',
+        error
+      );
+
+      return response.status(500).json({
+        ok: false,
+        stage: 'browser-render',
+        error:
+          error instanceof Error
+            ? error.message
+            : String(error),
+      });
+    }
+
+    // -------------------------------------------------------
+    // 9. Reject middleware/debug responses
+    // -------------------------------------------------------
+
+    if (
+      html.trim() ===
+      'MIDDLEWARE IS RUNNING'
+    ) {
+      console.error(
+        'Middleware intercepted Puppeteer request.'
+      );
+
+      return response.status(500).json({
+        ok: false,
+        stage: 'middleware-interception',
+        error:
+          'Middleware returned its debug response instead of the blog post page.',
+      });
+    }
+
+    // -------------------------------------------------------
+    // 10. Validate rendered HTML
+    // -------------------------------------------------------
+
+    if (
+      !html ||
+      typeof html !== 'string' ||
+      html.length < 500
+    ) {
+      console.error(
+        'Invalid rendered HTML length:',
+        html?.length || 0
+      );
+
+      return response.status(500).json({
+        ok: false,
+        stage: 'invalid-render',
+        error:
+          'Rendered HTML is empty or unexpectedly small.',
+        length: html?.length || 0,
+      });
+    }
+
+    // -------------------------------------------------------
+    // 11. Save to Redis
+    // -------------------------------------------------------
+
+    try {
+      await setCachedRender(
+        CACHE_TYPE,
+        postId,
+        html,
+        currentUpdatedAt
+      );
+    } catch (error) {
+      // HTML is already valid, so cache failure
+      // should not turn the request into a 500.
+      console.error(
+        'Redis write error:',
+        error
+      );
+    }
+
+    // -------------------------------------------------------
+    // 12. Return HTML
+    // -------------------------------------------------------
+
+    response.setHeader(
+      'Content-Type',
+      'text/html; charset=utf-8'
+    );
+
+    response.setHeader(
+      'X-Render-Cache',
+      'MISS'
+    );
+
+    response.setHeader(
+      'Cache-Control',
+      'private, no-store, max-age=0'
+    );
+
+    return response
+      .status(200)
+      .send(html);
+
+  } catch (error) {
+    console.error(
+      'Unexpected blog renderer error:',
+      error
+    );
+
+    return response.status(500).json({
+      ok: false,
+      stage: 'unexpected',
+      error:
+        error instanceof Error
+          ? error.message
+          : String(error),
+    });
+  }
+}
+
+
+// ===========================================================
+// Puppeteer renderer (identical to product/project renderers)
+// ===========================================================
+
+async function renderPage({
+  url,
+  chromium,
+  puppeteer,
+}) {
+  let browser;
+
+  try {
+    const isVercel =
+      Boolean(process.env.VERCEL);
+
+    // -------------------------------------------------------
+    // Launch browser
+    // -------------------------------------------------------
+
+    if (isVercel) {
+      const executablePath =
+        await chromium.executablePath();
+
+      browser = await puppeteer.launch({
+        args: [
+          ...chromium.args,
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+        ],
+        executablePath,
+        headless: chromium.headless,
+      });
+    } else {
+      const executablePath =
+        process.env.LOCAL_CHROME_PATH ||
+        'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+
+      browser = await puppeteer.launch({
+        executablePath,
+        headless: true,
+      });
+    }
+
+    // -------------------------------------------------------
+    // New page
+    // -------------------------------------------------------
+
+    const page =
+      await browser.newPage();
+
+    await page.setViewport({
+      width: 1366,
+      height: 768,
+      deviceScaleFactor: 1,
+    });
+
+    // Important:
+    // This is NOT a crawler User-Agent.
+    // Therefore middleware lets /blog/:id continue
+    // to the real React application.
+    await page.setUserAgent(
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36'
+    );
+
+    // Prevent cached browser resources from interfering
+    // with rendering.
+    await page.setCacheEnabled(false);
+
+    try {
+      await page.setBypassServiceWorker(
+        true
+      );
+    } catch {
+      // Safe fallback for Puppeteer versions
+      // without this method.
+    }
+
+    // -------------------------------------------------------
+    // Browser diagnostics
+    // -------------------------------------------------------
+
+    page.on(
+      'console',
+      (message) => {
+        console.log(
+          `[browser:${message.type()}]`,
+          message.text()
+        );
+      }
+    );
+
+    page.on(
+      'pageerror',
+      (error) => {
+        console.error(
+          '[browser:pageerror]',
+          error
+        );
+      }
+    );
+
+    page.on(
+      'requestfailed',
+      (request) => {
+        console.error(
+          '[browser:requestfailed]',
+          request.url(),
+          request.failure()?.errorText
+        );
+      }
+    );
+
+    // -------------------------------------------------------
+    // Navigate to actual blog post page
+    // -------------------------------------------------------
+
+    const navigationResponse =
+      await page.goto(
+        url,
+        {
+          waitUntil: 'networkidle0',
+          timeout: 30000,
+        }
+      );
+
+    console.log(
+      'Navigation status:',
+      navigationResponse?.status()
+    );
+
+    console.log(
+      'Final URL:',
+      page.url()
+    );
+
+    // -------------------------------------------------------
+    // Allow React to finish rendering
+    // -------------------------------------------------------
+
+    await new Promise(
+      (resolve) =>
+        setTimeout(resolve, 1500)
+    );
+
+    // -------------------------------------------------------
+    // Capture final DOM
+    // -------------------------------------------------------
+
+    const html =
+      await page.content();
+
+    console.log(
+      'Rendered HTML length:',
+      html.length
+    );
+
+    console.log(
+      'Rendered title:',
+      await page.title()
+    );
+
+    return html;
+
+  } finally {
+    if (browser) {
+      try {
+        await browser.close();
+      } catch (error) {
+        console.error(
+          'Browser close error:',
+          error
+        );
+      }
+    }
+  }
+}

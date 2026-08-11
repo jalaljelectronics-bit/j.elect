@@ -1,86 +1,18 @@
 // scripts/generate-routes.js
-//
-// Runs BEFORE `vite build` (wired up as "prebuild" in package.json).
-// Pulls every published blog post ID, every project ID, and every
-// product ID from your live API, then writes them to routes.json so
-// vite.config.js can read them synchronously at build time.
-//
-// Uses the same public endpoints your frontend already calls
-// (see src/api/blogService.js, src/api/projectService.js, and
-// src/api/productService.js), so no extra backend work is needed.
-
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-// Same env var your axios clients use in production builds.
-const API_URL = process.env.VITE_API_URL || 'https://www.jelectronics.store';
-
-async function fetchBlogIds() {
-  const res = await fetch(`${API_URL}/api/blog?limit=1000`);
-  if (!res.ok) throw new Error(`Blog API returned ${res.status}`);
-  const data = await res.json();
-  const posts = data.posts || [];
-
-  // Mirror the same "only show published posts publicly" rule used in
-  // src/pages/Blog.jsx — never prerender/expose a draft's URL.
-  return posts
-    .filter((p) => p.status === 'Published')
-    .map((p) => p.id);
-}
-
-async function fetchProjectIds() {
-  // getProjects() is paginated (limit: 12 in the UI), so page through
-  // all results here to get every project, not just the first page.
-  const ids = [];
-  let page = 1;
-  let totalPages = 1;
-
-  do {
-    const res = await fetch(`${API_URL}/api/projects?page=${page}&limit=100`);
-    if (!res.ok) throw new Error(`Projects API returned ${res.status}`);
-    const data = await res.json();
-
-    (data.projects || []).forEach((p) => ids.push(p.id));
-    totalPages = data.totalPages || 1;
-    page += 1;
-  } while (page <= totalPages);
-
-  return ids;
-}
-
-async function fetchProductIds() {
-  // getProducts() is paginated (limit: 12 in the Products page UI), so
-  // page through all results here the same way fetchProjectIds() does,
-  // to get every product rather than just the first page. Using a large
-  // page size (200) keeps the number of round-trips reasonable even at
-  // ~700 products.
-  const ids = [];
-  let page = 1;
-  let totalPages = 1;
-
-  do {
-    const res = await fetch(`${API_URL}/api/products?page=${page}&limit=200`);
-    if (!res.ok) throw new Error(`Products API returned ${res.status}`);
-    const data = await res.json();
-
-    (data.products || []).forEach((p) => ids.push(p.id));
-    totalPages = data.totalPages || 1;
-    page += 1;
-  } while (page <= totalPages);
-
-  return ids;
-}
 
 async function main() {
   console.log(`[generate-routes] Fetching routes from ${API_URL} ...`);
 
-  const [blogIds, projectIds, productIds] = await Promise.all([
+  const [blogIds, projectIds] = await Promise.all([
     fetchBlogIds(),
     fetchProjectIds(),
-    fetchProductIds(),
+    // fetchProductIds() intentionally NOT called for prerendering anymore.
+    // Product pages are served to crawlers on-demand via
+    // /api/render/product/[id].js (Puppeteer + Redis cache), and to
+    // normal visitors via the SPA fallback in vercel.json. Build-time
+    // prerendering all ~688 products added ~7 of the ~8 minute build
+    // time for zero benefit, since crawlers never hit the static file
+    // anyway (middleware always rewrites them to the on-demand renderer).
   ]);
 
   const routes = [
@@ -93,22 +25,13 @@ async function main() {
     '/policies',
     ...blogIds.map((id) => `/blog/${id}`),
     ...projectIds.map((id) => `/project/${id}`),
-    ...productIds.map((id) => `/product/${id}`),
+    // no product routes here
   ];
 
   const outPath = path.join(__dirname, 'routes.json');
   fs.writeFileSync(outPath, JSON.stringify(routes, null, 2));
   console.log(
     `[generate-routes] Wrote ${routes.length} routes ` +
-    `(${blogIds.length} blog posts, ${projectIds.length} projects, ${productIds.length} products) to ${outPath}`
+    `(${blogIds.length} blog posts, ${projectIds.length} projects) to ${outPath}`
   );
 }
-
-main().catch((err) => {
-  console.error('[generate-routes] Failed:', err.message);
-  // Avoid process.exit(1) here — on Windows, forcing an exit while a
-  // fetch() is still tearing down its network handles can trigger a
-  // libuv assertion crash unrelated to the actual error. Setting
-  // exitCode and letting Node exit naturally avoids that.
-  process.exitCode = 1;
-});

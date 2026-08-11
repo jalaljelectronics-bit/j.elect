@@ -33,6 +33,28 @@ export default function ProductDetail() {
         setNotFound(true);
       });
   }, [id]);
+  useEffect(() => {
+  if (!product) return;
+
+  document.title = `${product.name} | J Electronics`;
+
+  const canonicalUrl = `https://www.jelectronics.store/product/${product.id}`;
+  let link = document.querySelector("link[rel='canonical']");
+  if (!link) {
+    link = document.createElement('link');
+    link.rel = 'canonical';
+    document.head.appendChild(link);
+  }
+  link.href = canonicalUrl;
+
+  let metaDesc = document.querySelector("meta[name='description']");
+  if (!metaDesc) {
+    metaDesc = document.createElement('meta');
+    metaDesc.name = 'description';
+    document.head.appendChild(metaDesc);
+  }
+  metaDesc.content = product.description?.slice(0, 155) || `${product.name} — available now at J Electronics.`;
+}, [product]);
 
   if (notFound) {
     return (

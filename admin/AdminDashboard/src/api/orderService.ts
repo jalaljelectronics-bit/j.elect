@@ -60,3 +60,12 @@ export const updateOrderStatus = async (
   const res = await api.put(`/${id}/status`, payload);
   return res.data;
 };
+// Admin only — matches DELETE /api/orders/:id
+export const deleteOrder = async (id: number): Promise<void> => {
+  await api.delete(`/${id}`);
+};
+
+// Admin only — matches DELETE /api/orders/bulk-delete
+export const deleteOrders = async (orderIds: number[]): Promise<void> => {
+  await api.delete('/bulk-delete', { data: { orderIds } });
+};

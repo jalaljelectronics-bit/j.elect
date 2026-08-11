@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getAllOrders, updateOrderStatus, Order } from '../api/orderService';
+import { getAllOrders, updateOrderStatus, deleteOrder, deleteOrders, Order } from '../api/orderService';
 
 const STATUS_OPTIONS: Order['status'][] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 const STATUS_LABELS: Record<Order['status'], string> = {
@@ -17,6 +17,9 @@ export const OrdersList: React.FC = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [trackingInput, setTrackingInput] = useState('');
   const [saving, setSaving] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   useEffect(() => {
     loadOrders();
@@ -68,6 +71,64 @@ export const OrdersList: React.FC = () => {
     }
   };
 
+  const handleDeleteOrder = async (orderId: number) => {
+    const confirmed = window.confirm(`Delete order #${orderId}? This cannot be undone.`);
+    if (!confirmed) return;
+
+    setDeletingId(orderId);
+    try {
+      await deleteOrder(orderId);
+      setOrders((prev) => prev.filter((o) => o.id !== orderId));
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(orderId);
+        return next;
+      });
+      if (selectedOrder?.id === orderId) setSelectedOrder(null);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Could not delete order.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const toggleSelect = (orderId: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(orderId)) {
+        next.delete(orderId);
+      } else {
+        next.add(orderId);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    setSelectedIds((prev) =>
+      prev.size === orders.length ? new Set() : new Set(orders.map((o) => o.id))
+    );
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    const confirmed = window.confirm(`Delete ${selectedIds.size} order(s)? This cannot be undone.`);
+    if (!confirmed) return;
+
+    setBulkDeleting(true);
+    try {
+      const ids = Array.from(selectedIds);
+      await deleteOrders(ids);
+      setOrders((prev) => prev.filter((o) => !selectedIds.has(o.id)));
+      if (selectedOrder && selectedIds.has(selectedOrder.id)) setSelectedOrder(null);
+      setSelectedIds(new Set());
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Could not delete orders.');
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
   if (loading) return <div style={{ padding: '2rem' }}>Loading orders...</div>;
   if (error) return <div style={{ padding: '2rem', color: '#c0392b' }}>{error}</div>;
 
@@ -78,10 +139,38 @@ export const OrdersList: React.FC = () => {
         <p style={{ color: '#64748b', marginTop: '0.25rem' }}>Update order status and add tracking numbers.</p>
       </div>
 
+      {selectedIds.size > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '0.375rem', padding: '0.75rem 1rem', marginTop: '1rem' }}>
+          <span style={{ fontSize: '0.875rem', color: '#991b1b', fontWeight: 500 }}>
+            {selectedIds.size} order(s) selected
+          </span>
+          <button
+            onClick={handleBulkDelete}
+            disabled={bulkDeleting}
+            style={{ padding: '0.375rem 0.75rem', backgroundColor: '#ef4444', color: '#fff', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600 }}
+          >
+            {bulkDeleting ? 'Deleting...' : 'Delete Selected'}
+          </button>
+          <button
+            onClick={() => setSelectedIds(new Set())}
+            style={{ padding: '0.375rem 0.75rem', backgroundColor: 'transparent', color: '#64748b', border: '1px solid #cbd5e1', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem' }}
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
       <div className="table-wrap" style={{ backgroundColor: '#fff', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflowX: 'auto', marginTop: '2rem' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '900px' }}>
           <thead>
             <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+              <th style={{ padding: '1rem', width: '2rem' }}>
+                <input
+                  type="checkbox"
+                  checked={orders.length > 0 && selectedIds.size === orders.length}
+                  onChange={toggleSelectAll}
+                />
+              </th>
               <th style={{ padding: '1rem', color: '#64748b', fontWeight: 600 }}>Order ID</th>
               <th style={{ padding: '1rem', color: '#64748b', fontWeight: 600 }}>Customer</th>
               <th style={{ padding: '1rem', color: '#64748b', fontWeight: 600 }}>Date</th>
@@ -93,6 +182,13 @@ export const OrdersList: React.FC = () => {
           <tbody>
             {orders.map((order) => (
               <tr key={order.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <td style={{ padding: '1rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(order.id)}
+                    onChange={() => toggleSelect(order.id)}
+                  />
+                </td>
                 <td
                   style={{ padding: '1rem', fontWeight: 600, color: '#3b82f6', cursor: 'pointer' }}
                   onClick={() => { setSelectedOrder(order); setTrackingInput(order.trackingNumber || ''); }}
@@ -119,9 +215,16 @@ export const OrdersList: React.FC = () => {
                 <td style={{ padding: '1rem', textAlign: 'right' }}>
                   <button
                     onClick={() => { setSelectedOrder(order); setTrackingInput(order.trackingNumber || ''); }}
-                    style={{ padding: '0.375rem 0.75rem', backgroundColor: '#3b82f6', color: '#fff', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500 }}
+                    style={{ padding: '0.375rem 0.75rem', backgroundColor: '#3b82f6', color: '#fff', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, marginRight: '0.5rem' }}
                   >
                     View Details
+                  </button>
+                  <button
+                    onClick={() => handleDeleteOrder(order.id)}
+                    disabled={deletingId === order.id}
+                    style={{ padding: '0.375rem 0.75rem', backgroundColor: '#ef4444', color: '#fff', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500 }}
+                  >
+                    {deletingId === order.id ? 'Deleting...' : 'Delete'}
                   </button>
                 </td>
               </tr>

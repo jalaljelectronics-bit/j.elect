@@ -8,7 +8,9 @@ const {
     getOrderById,
     getShippingOptions,
     updateOrderStatus,
-    getAllOrders
+    getAllOrders,
+    deleteOrder,
+    deleteOrders
 } = require("../controller/orderController");
 
 router.get("/shipping-options", getShippingOptions);
@@ -17,5 +19,7 @@ router.get("/", auth, getMyOrders);
 router.get("/admin/all", auth, admin, getAllOrders);
 router.get("/:id", auth, getOrderById);
 router.put("/:id/status", auth, admin, updateOrderStatus);
+router.delete("/bulk-delete", auth, admin, deleteOrders);
+router.delete("/:id", auth, admin, deleteOrder);
 
 module.exports = router;

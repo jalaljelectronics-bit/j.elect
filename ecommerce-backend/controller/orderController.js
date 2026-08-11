@@ -223,3 +223,27 @@ exports.updateOrderStatus = async (req, res) => {
         res.status(500).json({ message: "Server Error" });
     }
 };
+// Admin only — deletes multiple orders at once
+exports.deleteOrders = async (req, res) => {
+    try {
+        const { orderIds } = req.body;
+
+        if (!Array.isArray(orderIds) || orderIds.length === 0) {
+            return res.status(400).json({ message: "orderIds must be a non-empty array." });
+        }
+        const ids = orderIds.map(Number);
+        if (ids.some((id) => !Number.isInteger(id))) {
+            return res.status(400).json({ message: "All orderIds must be valid integers." });
+        }
+
+        await prisma.$transaction(async (tx) => {
+            await tx.orderItem.deleteMany({ where: { orderId: { in: ids } } });
+            await tx.order.deleteMany({ where: { id: { in: ids } } });
+        });
+
+        res.json({ message: `${ids.length} order(s) deleted.` });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+};

@@ -102,12 +102,17 @@ export default function BlogPost() {
         });
       })
       .catch((err) => {
-        console.error(err);
-        if (active) {
-          setNotFound(true);
-          setSeoTags({ title: 'Post Not Found – J Electronics', noindex: true });
-        }
-      })
+  console.error(err);
+  if (active) {
+    const isNotFound = err?.response?.status === 404 || err?.status === 404;
+    setNotFound(true);
+    setSeoTags(
+      isNotFound
+        ? { title: 'Post Not Found – J Electronics', noindex: true }
+        : { title: 'J Electronics' } // transient error — don't noindex
+    );
+  }
+})
       .finally(() => {
         if (active) {
           setLoading(false);

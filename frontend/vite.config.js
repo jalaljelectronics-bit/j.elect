@@ -107,7 +107,19 @@ function prerenderPlugin() {
         for (const rendered of renderedRoutes) {
           const outputDir = path.join(distDir, rendered.route)
           fs.mkdirSync(outputDir, { recursive: true })
-          fs.writeFileSync(path.join(outputDir, 'index.html'), rendered.html.trim())
+
+          // Strip AdSense's dynamically-injected DOM (ins.adsbygoogle,
+          // google_esf iframe, etc.) before freezing this snapshot. Ads
+          // must only ever run live in a real visitor's browser — baking
+          // in a build-time ad request (with a stale localhost URL and
+          // "done"/"unfilled" status) makes AdSense's script skip
+          // re-requesting an ad entirely for real visitors, since it sees
+          // the slot as already processed.
+          const cleanedHtml = rendered.html
+            .replace(/<ins class="adsbygoogle[\s\S]*?<\/ins>/g, '')
+            .replace(/<iframe id="google_esf"[\s\S]*?<\/iframe>/g, '')
+
+          fs.writeFileSync(path.join(outputDir, 'index.html'), cleanedHtml.trim())
         }
 
         console.log(`[prerender] Wrote ${renderedRoutes.length} prerendered pages.`)

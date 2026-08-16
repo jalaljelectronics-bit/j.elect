@@ -88,7 +88,7 @@ export default function Header() {
         <div className="announce-inner">
           <span className="announce-text">✦ Free Delivery on Orders Above Rs 25,000 ✦ </span>
           <div className="announce-links">
-  <a href="https://instagram.com/visiongiants" target="_blank" rel="noreferrer" title="Instagram">
+  <a href="https://www.instagram.com/jelectronicss/" target="_blank" rel="noreferrer" title="Instagram">
     <img src="/instagram.png" alt="Instagram" style={{ width: '25px', height: '25px', objectFit: 'contain' }} />
   </a>
   <a href="mailto:support@visiongiants.pk" title="Email">

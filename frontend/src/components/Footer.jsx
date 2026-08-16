@@ -147,7 +147,7 @@ export default function Footer() {
 
               {/* Instagram */}
               <a
-                href="https://instagram.com/visiongiants"
+                href="https://www.instagram.com/jelectronicss/"
                 target="_blank"
                 rel="noreferrer"
                 title="Instagram"

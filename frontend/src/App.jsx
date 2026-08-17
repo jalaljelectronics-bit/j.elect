@@ -16,7 +16,8 @@ import { CartProvider } from './context/CartContext';
 import { QuickViewProvider } from './context/QuickViewContext';
 import { AuthProvider } from './context/AuthContext';
 import { CategoryProvider } from './context/CategoryContext';
-import LoginRegister from './pages/LoginRegister';
+import Login from './pages/Login';
+import Register from './pages/Register';
 import AccountLayout from './pages/AccountLayout';
 import Dashboard from './pages/Dashboard';
 import Addresses from './pages/Addresses';
@@ -45,8 +46,9 @@ export default function App() {
                   <Route path="/blog/:id" element={<BlogPost />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/policies" element={<Policies />} />
-                  <Route path="/login" element={<LoginRegister />} />
-                  <Route path="/signup" element={<Navigate to="/login" replace />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/signup" element={<Navigate to="/register" replace />} />
 
                   <Route path="/account" element={<AccountLayout />}>
                     <Route index element={<Dashboard />} />

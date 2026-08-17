@@ -8,20 +8,25 @@ const router = express.Router();
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const GMAIL_REGEX = /^[^\s@]+@gmail\.com$/i;
+const PHONE_REGEX = /^[0-9+\-\s()]{7,15}$/;
 
 // ==========================
 // SIGNUP
 // ==========================
 router.post('/signup', async (req, res) => {
   try {
-    const { email, password, name } = req.body;
+    const { email, password, name, phone } = req.body;
 
-    if (!email || !password || !name) {
-      return res.status(400).json({ message: 'Please provide name, email and password.' });
+    if (!email || !password || !name || !phone) {
+      return res.status(400).json({ message: 'Please provide name, email, phone, and password.' });
     }
 
     if (!GMAIL_REGEX.test(email)) {
       return res.status(400).json({ message: 'Please sign up with a Gmail address (name@gmail.com).' });
+    }
+
+    if (!PHONE_REGEX.test(phone.trim())) {
+      return res.status(400).json({ message: 'Please provide a valid phone number.' });
     }
 
     const normalizedEmail = email.trim().toLowerCase();
@@ -34,7 +39,13 @@ router.post('/signup', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
-      data: { email: normalizedEmail, password: hashedPassword, name, role: 'USER' },
+      data: {
+        email: normalizedEmail,
+        password: hashedPassword,
+        name,
+        phone: phone.trim(),
+        role: 'USER'
+      },
     });
 
     const token = jwt.sign(
@@ -46,7 +57,7 @@ router.post('/signup', async (req, res) => {
     res.status(201).json({
       message: 'User created successfully.',
       token,
-      user: { id: user.id, name: user.name, email: user.email, role: user.role },
+      user: { id: user.id, name: user.name, email: user.email, phone: user.phone, role: user.role },
     });
   } catch (error) {
     console.error(error);
@@ -73,8 +84,6 @@ router.post('/login', async (req, res) => {
 
     const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
 
-    // Same message whether the email is unknown or the password is wrong —
-    // otherwise this endpoint tells attackers which emails are registered.
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password.' });
     }
@@ -109,7 +118,7 @@ router.get('/me', auth, async (req, res) => {
     const user = await prisma.user.findUnique({ where: { id: req.user.userId } });
     if (!user) return res.status(404).json({ message: 'User not found.' });
 
-    res.json({ id: user.id, name: user.name, email: user.email, role: user.role });
+    res.json({ id: user.id, name: user.name, email: user.email, phone: user.phone, role: user.role });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error.' });
@@ -121,13 +130,14 @@ router.get('/me', auth, async (req, res) => {
 // ==========================
 router.put('/me', auth, async (req, res) => {
   try {
-    const { name, email, currentPassword, newPassword } = req.body;
+    const { name, email, phone, currentPassword, newPassword } = req.body;
 
     const user = await prisma.user.findUnique({ where: { id: req.user.userId } });
     if (!user) return res.status(404).json({ message: 'User not found.' });
 
     const updateData = {};
     if (name) updateData.name = name;
+    if (phone) updateData.phone = phone.trim();
 
     if (email) {
       if (!EMAIL_REGEX.test(email)) {
@@ -154,7 +164,7 @@ router.put('/me', auth, async (req, res) => {
 
     res.json({
       message: 'Account updated successfully.',
-      user: { id: updated.id, name: updated.name, email: updated.email, role: updated.role },
+      user: { id: updated.id, name: updated.name, email: updated.email, phone: updated.phone, role: updated.role },
     });
   } catch (error) {
     console.error(error);

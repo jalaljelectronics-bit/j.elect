@@ -5,6 +5,26 @@ import { useAuth } from '../context/AuthContext';
 import { useCategories } from '../context/CategoryContext';
 import SearchBar from './SearchBar';
 
+const announceIconStyle = {
+  width: '26px',
+  height: '26px',
+  borderRadius: '50%',
+  overflow: 'hidden',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: '#fff',
+  padding: '4px',
+  boxSizing: 'border-box',
+  flexShrink: 0,
+};
+
+const announceImgStyle = {
+  width: '100%',
+  height: '100%',
+  objectFit: 'contain',
+};
+
 export default function Header() {
   const { cartCount } = useCart();
   const { isAuthenticated, user, logout } = useAuth();
@@ -18,13 +38,6 @@ export default function Header() {
   const mobileToggleRef = useRef(null);
   const productsCloseTimerRef = useRef(null);
 
-  // Drives the Products dropdown with JS state instead of pure CSS :hover.
-  // Pure :hover was closing the dropdown mid-move whenever the cursor
-  // crossed a small visual gap between the trigger and the panel — fast
-  // moves skipped over the gap, slow ones didn't. A short close-delay
-  // makes brief gap-crossings harmless: onMouseEnter (on either the
-  // trigger or the dropdown itself, since both live inside the same <li>)
-  // cancels the pending close before it fires.
   const openProductsDropdown = () => {
     clearTimeout(productsCloseTimerRef.current);
     setProductsOpen(true);
@@ -38,7 +51,6 @@ export default function Header() {
     return () => clearTimeout(productsCloseTimerRef.current);
   }, []);
 
-  // Close the profile dropdown when clicking anywhere outside it
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
@@ -49,7 +61,6 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Close the mobile menu when clicking anywhere outside it (or the toggle button)
   useEffect(() => {
     const handleClickOutsideMobile = (e) => {
       if (
@@ -66,7 +77,6 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutsideMobile);
   }, [mobileOpen]);
 
-  // Close the mobile menu (and profile dropdown) the moment the user scrolls
   useEffect(() => {
     const handleScroll = () => {
       if (mobileOpen) setMobileOpen(false);
@@ -87,40 +97,39 @@ export default function Header() {
       <div className="announcement-bar">
         <div className="announce-inner">
           <span className="announce-text">✦ Free Delivery on Orders Above Rs 25,000 ✦ </span>
-          <div className="announce-links">
-  <a href="https://www.instagram.com/jelectronicss/" target="_blank" rel="noreferrer" title="Instagram">
-    <img src="/instagram.png" alt="Instagram" style={{ width: '25px', height: '25px', objectFit: 'contain' }} />
-  </a>
-  <a href="mailto:support@visiongiants.pk" title="Email">
-    <img src="/email.png" alt="Email" style={{ width: '25px', height: '25px', objectFit: 'contain' }} />
-  </a>
- 
-  <a href="https://www.facebook.com/profile.php?id=61552590364369&sk=directory_links&fb_profile_edit_entry_point=%7B%22feature%22%3A%22profile_directory%22%2C%22click_point%22%3A%22pencil_edit_directory_section%22%2C%22additional_metadata%22%3A%7B%22section_type%22%3A%22links%22%7D%7" target="_blank" rel="noreferrer" title="Facebook">
-    <img src="/facebook.png" alt="Facebook" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
-  </a>
-  <a href="https://linkedin.com/company/jelectronics/?viewAsMember=true" target="_blank" rel="noreferrer" title="LinkedIn">
-    <img src="/linkedin.jpeg" alt="LinkedIn" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
-  </a>
-  <a href="https://www.daraz.pk/shop/duuuytiz" target="_blank" rel="noreferrer" title="Shop on Daraz">
-    <img src="/daraz.png" alt="Daraz" style={{ width: '25px', height: '25px', objectFit: 'contain' }} />
-  </a>
-   <a href="https://www.youtube.com/@JElectronicss" target="_blank" rel="noreferrer" title="YouTube">
-    <img src="/youtube.png" alt="YouTube" style={{ width: '36px', height: '36px', objectFit: 'contain' }} />
-  </a>
-</div>      
+          <div className="announce-links" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <a href="https://www.instagram.com/jelectronicss/" target="_blank" rel="noreferrer" title="Instagram" style={announceIconStyle}>
+              <img src="/instagram.png" alt="Instagram" style={announceImgStyle} />
+            </a>
+            <a href="mailto:support@visiongiants.pk" title="Email" style={announceIconStyle}>
+              <img src="/email.png" alt="Email" style={announceImgStyle} />
+            </a>
+            <a href="https://www.facebook.com/profile.php?id=61552590364369&sk=directory_links&fb_profile_edit_entry_point=%7B%22feature%22%3A%22profile_directory%22%2C%22click_point%22%3A%22pencil_edit_directory_section%22%2C%22additional_metadata%22%3A%7B%22section_type%22%3A%22links%22%7D%7" target="_blank" rel="noreferrer" title="Facebook" style={announceIconStyle}>
+              <img src="/facebook.png" alt="Facebook" style={announceImgStyle} />
+            </a>
+            <a href="https://linkedin.com/company/jelectronics/?viewAsMember=true" target="_blank" rel="noreferrer" title="LinkedIn" style={announceIconStyle}>
+              <img src="/linkedin.jpeg" alt="LinkedIn" style={announceImgStyle} />
+            </a>
+            <a href="https://www.daraz.pk/shop/duuuytiz" target="_blank" rel="noreferrer" title="Shop on Daraz" style={announceIconStyle}>
+              <img src="/daraz.png" alt="Daraz" style={announceImgStyle} />
+            </a>
+            <a href="https://www.youtube.com/@JElectronicss" target="_blank" rel="noreferrer" title="YouTube" style={announceIconStyle}>
+              <img src="/youtube.png" alt="YouTube" style={announceImgStyle} />
+            </a>
+          </div>
         </div>
       </div>
       <div className="nav-inner">
         <Link to="/" className="logo">
-  <img
-    src="/logo.png"
-    alt="J. Electronics"
-    className="logo-wordmark"
-  />
-  <span className="logo-text">
-    <span>Electronics</span>
-  </span>
-</Link>
+          <img
+            src="/logo.png"
+            alt="J. Electronics"
+            className="logo-wordmark"
+          />
+          <span className="logo-text">
+            <span>Electronics</span>
+          </span>
+        </Link>
 
         <ul className="nav-links">
           <li><Link to="/">Home</Link></li>
@@ -131,7 +140,7 @@ export default function Header() {
             onMouseLeave={closeProductsDropdownDelayed}
           >
             <span className="nav-link-btn" style={{ cursor: 'pointer' }}>
-             <Link to="/products">Products</Link>
+              <Link to="/products">Products</Link>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9" /></svg>
             </span>
             {productsOpen && (

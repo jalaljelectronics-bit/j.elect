@@ -1,4 +1,5 @@
 const prisma = require("../prisma/client");
+const { invalidateResource } = require("../utils/cacheInvalidation");
 
 // Create Category
 exports.createCategory = async (req, res) => {

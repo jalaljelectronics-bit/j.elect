@@ -1,5 +1,6 @@
 const prisma = require("../prisma/client");
 const { triggerFrontendRedeploy } = require("../utils/deployHook");
+const { invalidateResource } = require("../utils/cacheInvalidation");
 
 
 // =============================

@@ -3,6 +3,7 @@ const router  = express.Router();
 
 const auth  = require("../middleware/auth");
 const admin = require("../middleware/admin");
+const cacheMiddleware = require("../middleware/cache");
 
 const {
     getBlogPosts,
@@ -13,8 +14,8 @@ const {
 } = require("../controller/blogController");
 
 // Public
-router.get("/",    getBlogPosts);
-router.get("/:id", getBlogPostById);
+router.get("/",    cacheMiddleware('blogs', 1800), getBlogPosts);
+router.get("/:id", cacheMiddleware('blog', 1800), getBlogPostById);
 
 // Admin
 router.post("/",     auth, admin, createBlogPost);

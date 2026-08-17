@@ -3,6 +3,7 @@ const router = express.Router();
 
 const auth = require("../middleware/auth");
 const admin = require("../middleware/admin");
+const cacheMiddleware = require("../middleware/cache");
 
 const {
     getProjects,
@@ -16,8 +17,8 @@ const {
 } = require("../controller/projectController");
 
 // Public
-router.get("/", getProjects);
-router.get("/:id", getProjectById);
+router.get("/", cacheMiddleware('projects', 300), getProjects);
+router.get("/:id", cacheMiddleware('project', 900), getProjectById);
 router.post("/:id/queries", createProjectQuery);   // customer submits inquiry — no auth
 
 // Admin

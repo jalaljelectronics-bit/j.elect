@@ -3,6 +3,8 @@
     "@sparticuz/chromium": "^149.0.0",
     "multer": "^2.2.0",
     "react-markdown": "^10.1.0",
+    "redi": "^0.1.0",
+    "redis": "^6.2.1",
     "remark-gfm": "^4.0.1"
   },
   "devDependencies": {

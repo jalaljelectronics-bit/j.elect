@@ -1,6 +1,7 @@
 // controller/blogController.js
 const prisma = require("../prisma/client");
 const { triggerFrontendRedeploy } = require("../utils/deployHook");
+const { invalidateResource } = require("../utils/cacheInvalidation");
 
 // Normalize whatever the client sends for linkedProducts into a predictable
 // array of { id, productId, label, url } objects. `productId` is the real

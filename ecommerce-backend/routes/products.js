@@ -3,6 +3,7 @@ const router = express.Router();
 
 const auth = require("../middleware/auth");
 const admin = require("../middleware/admin");
+const cacheMiddleware = require("../middleware/cache");
 
 const {
     createProduct,
@@ -15,8 +16,8 @@ const {
 } = require("../controller/productController");
 
 // Public
-router.get("/", getProducts);
-router.get("/:id", getProductById);
+router.get("/", cacheMiddleware('products', 300), getProducts);
+router.get("/:id", cacheMiddleware('product', 900), getProductById);
 
 // Admin
 router.post("/", auth, admin, createProduct);

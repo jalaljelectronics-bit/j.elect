@@ -37,7 +37,7 @@ export const ProjectForm: React.FC = () => {
   const [title, setTitle] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [category, setCategory] = useState<'Commercial' | 'University' | 'Both'>('Commercial');
-  const [status, setStatus] = useState<'In Progress' | 'Completed' | 'On Hold'>('In Progress');
+  const [status, setStatus] = useState<'In Progress' | 'Completed' | 'On Hold'>('Completed');
   const [isFeatured, setIsFeatured] = useState(false);
   const [isNewArrival, setIsNewArrival] = useState(false);
   const [githubUrl, setGithubUrl] = useState('');

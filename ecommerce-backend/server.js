@@ -23,16 +23,7 @@ const app = express();
 app.use(express.json());
 const nodemailer = require("nodemailer");
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  family: 4, // force IPv4 — Railway can't route the IPv6 address Node tries by default
-});
+
 
 const allowedOrigins = [
   'http://localhost:3000',

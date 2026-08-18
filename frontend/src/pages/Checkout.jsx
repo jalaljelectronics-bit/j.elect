@@ -122,7 +122,7 @@ export default function Checkout() {
         <div style={{ fontSize: '3rem', marginBottom: '16px' }}>✅</div>
         <h1 style={{ fontFamily: 'Space Grotesk, sans-serif', marginBottom: '10px' }}>Order Placed!</h1>
         <p style={{ color: 'var(--text-sub)', marginBottom: '24px' }}>
-          Thanks for shopping with Vision Giants{user?.email ? ` — a confirmation will be sent to ${user.email}` : ''}.
+          Thanks for shopping with JElectronics!{user?.email ? ` A confirmation will be sent to ${user.email}` : ''}.
         </p>
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
           <button className="btn-primary" onClick={() => navigate(`/orders/${placedOrderId}`)}>View Order</button>

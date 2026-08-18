@@ -131,21 +131,21 @@ exports.checkout = async (req, res) => {
             include: { items: true }
         });
 
-        res.status(201).json({ message: "Order placed successfully.", order: fullOrder });
-
-        // Fire-and-forget, fully isolated from the response above — the
-        // order already succeeded and the client already has its
-        // response, so nothing in here should ever be able to throw
-        // back into the outer catch (which would try to send a second
-        // response and crash with ERR_HTTP_HEADERS_SENT).
+        // Sent BEFORE the response, and awaited, so the function can't be
+        // frozen/torn down (common on serverless hosts like Vercel) before
+        // the email actually finishes sending. sendOrderConfirmation has
+        // its own internal try/catch and never throws, so this can't crash
+        // the order — worst case the order succeeds and the email is skipped.
         try {
             const user = await prisma.user.findUnique({ where: { id: userId } });
             if (user?.email) {
-                sendOrderConfirmation(fullOrder, user.email);
+                await sendOrderConfirmation(fullOrder, user.email);
             }
         } catch (emailErr) {
             console.error("Failed to look up user / send confirmation email:", emailErr);
         }
+
+        res.status(201).json({ message: "Order placed successfully.", order: fullOrder });
 
     } catch (error) {
         console.error(error);

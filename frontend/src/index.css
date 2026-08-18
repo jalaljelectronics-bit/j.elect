@@ -180,6 +180,24 @@ header.site-header {
 .search-results::-webkit-scrollbar-track { background: transparent; }
 .search-results::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 .search-results::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
+
+/* ═══ ICON BUTTONS (account / cart / mobile toggle) ═══
+   position: relative lives here as a BASE rule (not inside any media
+   query) so the .cartCount badge — which is position: absolute — always
+   anchors to this button at every breakpoint, instead of escaping to
+   the nearest other positioned ancestor (which was sending it to the
+   corner of the header/page). Width/height/sizing stays controlled by
+   the responsive rules further down, so this only adds positioning +
+   flex-centering and never fights those overrides. */
+.icon-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+}
 .icon-btn:hover { background: var(--cyan-glow); color: var(--cyan); }
 .icon-btn svg { width: 18px; height: 18px; }
 .cartCount {
@@ -600,34 +618,6 @@ footer.site-footer .container {
 }
 .cart-toast.show { transform: translateY(0); opacity: 1; }
 
-.search-results {
-  position: absolute; top: calc(100% + 8px); left: 0; right: 0;
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 14px; padding: 8px;
-  max-height: 320px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.35); opacity: 0; pointer-events: none;
-  transform: translateY(-6px); transition: opacity 0.18s, transform 0.18s; z-index: 1500;
-}
-.search-results::-webkit-scrollbar { width: 6px; }
-.search-results::-webkit-scrollbar-track { background: transparent; }
-.search-results::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-.search-results::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
-.search-results.open { opacity: 1; pointer-events: auto; transform: translateY(0); }
-.search-result-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: background 0.15s; }
-.search-result-item:hover, .search-result-item.active { background: var(--cyan-glow); }
-.search-result-icon { width: 38px; height: 38px; border-radius: 9px; flex-shrink: 0; background: var(--bg3); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
-.search-result-info { flex: 1; min-width: 0; }
-.search-result-name { font-size: 0.85rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.search-result-meta { font-size: 0.74rem; color: var(--gray-mid); margin-top: 1px; }
-.search-result-price { font-family: 'Orbitron', monospace; font-size: 0.82rem; font-weight: 700; color: var(--cyan); white-space: nowrap; flex-shrink: 0; }
-.search-empty { padding: 18px 12px; text-align: center; font-size: 0.82rem; color: var(--gray-mid); }
-
-/* ═══ PAGE HEADER (used by Products/Projects/Blog/Contact/Policies) ═══ */
-/* ═══ PAGE BANNER (every page except Home) ═══ */
 .page-banner-glow {
   position: absolute;
   inset: -60% -10% auto -10%;
@@ -947,7 +937,6 @@ footer.site-footer .container {
   inset: 0;
   background: linear-gradient(100deg, rgba(10,15,25,0.15) 0%, rgba(10,15,25,0.55) 45%, rgba(10,15,25,0.15) 100%);
 }
-
 
 .projects-slide-dots {
   position: absolute;

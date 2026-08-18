@@ -133,9 +133,18 @@ exports.checkout = async (req, res) => {
 
         res.status(201).json({ message: "Order placed successfully.", order: fullOrder });
 
-        const user = await prisma.user.findUnique({ where: { id: userId } });
-        if (user?.email) {
-            sendOrderConfirmation(fullOrder, user.email);
+        // Fire-and-forget, fully isolated from the response above — the
+        // order already succeeded and the client already has its
+        // response, so nothing in here should ever be able to throw
+        // back into the outer catch (which would try to send a second
+        // response and crash with ERR_HTTP_HEADERS_SENT).
+        try {
+            const user = await prisma.user.findUnique({ where: { id: userId } });
+            if (user?.email) {
+                sendOrderConfirmation(fullOrder, user.email);
+            }
+        } catch (emailErr) {
+            console.error("Failed to look up user / send confirmation email:", emailErr);
         }
 
     } catch (error) {

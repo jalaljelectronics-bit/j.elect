@@ -1,6 +1,13 @@
 import { Link } from 'react-router-dom';
 import { useCategories } from '../context/CategoryContext';
 import { useEffect, useRef } from 'react';
+import {
+  FaInstagram,
+  FaFacebookF,
+  FaLinkedinIn,
+  FaYoutube,
+} from 'react-icons/fa';
+import { SiGmail } from 'react-icons/si';
 
 const socialIconStyle = {
   background: 'none',
@@ -13,6 +20,7 @@ const socialIconStyle = {
   justifyContent: 'center',
   padding: 0,
   overflow: 'hidden',
+  color: 'inherit',
 };
 
 const socialImgStyle = {
@@ -23,10 +31,12 @@ const socialImgStyle = {
   objectFit: 'contain',
 };
 
-// For icons with extra internal padding baked into the file
-const socialImgStyleZoomed = {
+// daraz.png has extra padding baked into the file and no react-icon
+// equivalent exists, so it stays an <img>, zoomed to visually match
+// the other icons (same fix/value used in Header.jsx)
+const socialImgStyleDaraz = {
   ...socialImgStyle,
-  transform: 'scale(1.4)',
+  transform: 'scale(1.9)',
 };
 
 export default function Footer() {
@@ -129,20 +139,13 @@ export default function Footer() {
             >
               {/* Facebook */}
               <a
-              
                 href="https://www.facebook.com/profile.php?id=61552590364369"
                 target="_blank"
                 rel="noreferrer"
                 title="Facebook"
                 style={socialIconStyle}
               >
-                <img
-                  src="/facebook.png"
-                  alt="Facebook"
-                  style={socialImgStyle}
-                  width={25}
-                  height={25}
-                />
+                <FaFacebookF size={20} />
               </a>
 
               {/* Instagram */}
@@ -153,13 +156,16 @@ export default function Footer() {
                 title="Instagram"
                 style={socialIconStyle}
               >
-                <img
-                  src="/instagram.png"
-                  alt="Instagram"
-                  style={socialImgStyleZoomed}
-                  width={25}
-                  height={25}
-                />
+                <FaInstagram size={20} />
+              </a>
+
+              {/* Email */}
+              <a
+                href="mailto:jelectronics.store@gmail.com"
+                title="Email"
+                style={socialIconStyle}
+              >
+                <SiGmail size={20} />
               </a>
 
               {/* LinkedIn */}
@@ -170,18 +176,11 @@ export default function Footer() {
                 title="LinkedIn"
                 style={socialIconStyle}
               >
-                <img
-                  src="/linkedin.jpeg"
-                  alt="LinkedIn"
-                  style={socialImgStyle}
-                  width={25}
-                  height={25}
-                />
+                <FaLinkedinIn size={20} />
               </a>
 
               {/* Daraz */}
               <a
-              
                 href="https://www.daraz.pk/shop/duuuytiz"
                 target="_blank"
                 rel="noreferrer"
@@ -191,14 +190,13 @@ export default function Footer() {
                 <img
                   src="/daraz.png"
                   alt="Daraz"
-                  style={socialImgStyleZoomed}
+                  style={socialImgStyleDaraz}
                   width={25}
                   height={25}
                 />
               </a>
 
               {/* YouTube */}
-               
               <a
                 href="https://www.youtube.com/@JElectronicss"
                 target="_blank"
@@ -206,13 +204,7 @@ export default function Footer() {
                 title="YouTube"
                 style={socialIconStyle}
               >
-                <img
-                  src="/youtube.png"
-                  alt="YouTube"
-                  style={socialImgStyleZoomed}
-                  width={25}
-                  height={25}
-                />
+                <FaYoutube size={20} />
               </a>
             </div>
           </div>

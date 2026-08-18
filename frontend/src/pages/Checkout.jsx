@@ -240,7 +240,7 @@ export default function Checkout() {
           <button
             className="btn-primary"
             type="submit"
-            disabled={submitting}
+            disabled={submitting} 
             style={{ width: '100%', justifyContent: 'center', marginTop: '16px' }}
           >
             {submitting ? 'Placing Order...' : 'Place Order'}

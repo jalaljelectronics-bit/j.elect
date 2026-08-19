@@ -140,7 +140,7 @@ exports.checkout = async (req, res) => {
         try {
             const user = await prisma.user.findUnique({ where: { id: userId } });
             if (user?.email) {
-                await sendOrderConfirmation(fullOrder, user.email);
+                await sendOrderConfirmation(fullOrder, user.email, user.name);
                 await sendAdminOrderNotification(fullOrder, user.email);
             }
         } catch (emailErr) {

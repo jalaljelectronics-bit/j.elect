@@ -35,18 +35,14 @@ function formatDate(date) {
 }
 
 /**
- * Renders an invoice PDF for the given order onto the response stream.
- * @param {object} order - order with items[] and customer info attached
+ * Draws the full invoice layout onto an already-created PDFDocument.
+ * Shared by both the streaming (download route) and buffer (email
+ * attachment) code paths below, so the layout only lives in one place.
+ * @param {PDFKit.PDFDocument} doc
+ * @param {object} order - order with items[] attached
  * @param {object} customer - { name, email }
- * @param {import('http').ServerResponse} res - express response to pipe into
  */
-function generateInvoicePdf(order, customer, res) {
-  const doc = new PDFDocument({ size: "A4", margin: 0 });
-
-  res.setHeader("Content-Type", "application/pdf");
-  res.setHeader("Content-Disposition", `attachment; filename="invoice-${order.id}.pdf"`);
-  doc.pipe(res);
-
+function drawInvoice(doc, order, customer) {
   const pageWidth = doc.page.width;
   const margin = 48;
 
@@ -185,8 +181,45 @@ function generateInvoicePdf(order, customer, res) {
   // ---- Bottom blue banner ----
   const pageHeight = doc.page.height;
   doc.rect(0, pageHeight - 40, pageWidth, 40).fill(DARK_BLUE);
+}
 
+/**
+ * Streams an invoice PDF directly to an Express response (download route).
+ * @param {object} order
+ * @param {object} customer - { name, email }
+ * @param {import('http').ServerResponse} res
+ */
+function generateInvoicePdf(order, customer, res) {
+  const doc = new PDFDocument({ size: "A4", margin: 0 });
+
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", `attachment; filename="invoice-${order.id}.pdf"`);
+  doc.pipe(res);
+
+  drawInvoice(doc, order, customer);
   doc.end();
 }
 
-module.exports = { generateInvoicePdf };
+/**
+ * Renders an invoice PDF into memory and resolves with a Buffer — used for
+ * attaching the invoice to the order confirmation email (Brevo attachments
+ * need base64 content, not a live response stream).
+ * @param {object} order
+ * @param {object} customer - { name, email }
+ * @returns {Promise<Buffer>}
+ */
+function renderInvoicePdfBuffer(order, customer) {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ size: "A4", margin: 0 });
+    const chunks = [];
+
+    doc.on("data", (chunk) => chunks.push(chunk));
+    doc.on("end", () => resolve(Buffer.concat(chunks)));
+    doc.on("error", reject);
+
+    drawInvoice(doc, order, customer);
+    doc.end();
+  });
+}
+
+module.exports = { generateInvoicePdf, renderInvoicePdfBuffer };

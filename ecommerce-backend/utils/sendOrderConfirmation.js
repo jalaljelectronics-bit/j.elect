@@ -1,4 +1,5 @@
 const { BrevoClient } = require("@getbrevo/brevo");
+const { renderInvoicePdfBuffer } = require("./generateInvoice");
 
 const brevo = new BrevoClient({
   apiKey: process.env.BREVO_API_KEY,
@@ -39,8 +40,12 @@ function formatOrderEmailHtml(order) {
         <strong>Payment:</strong> ${order.paymentMethod}
       </p>
 
+      <p style="margin-top:16px;font-size:14px;color:#475569;">
+        Your invoice is attached to this email as a PDF.
+      </p>
+
       <p style="margin-top:24px;font-size:13px;color:#94a3b8;">
-        We'll notify you again once your order ships. Questions? Reply to this email or contact us at +923176572690.
+        We'll notify you again once your order ships. Questions? Reply to this email or contact us at support@visiongiants.pk.
       </p>
     </div>
   `;
@@ -80,13 +85,24 @@ function formatAdminNotificationHtml(order, customerEmail) {
   `;
 }
 
-exports.sendOrderConfirmation = async (order, userEmail) => {
+exports.sendOrderConfirmation = async (order, userEmail, customerName) => {
   try {
+    // Render the invoice once, in memory, and attach it — Brevo attachments
+    // take base64 content, not a file path or stream, so the PDF never
+    // touches disk here.
+    const pdfBuffer = await renderInvoicePdfBuffer(order, { name: customerName, email: userEmail });
+
     await brevo.transactionalEmails.sendTransacEmail({
       sender: SENDER,
       to: [{ email: userEmail }],
       subject: `Order Confirmed — #${order.id}`,
       htmlContent: formatOrderEmailHtml(order),
+      attachment: [
+        {
+          content: pdfBuffer.toString("base64"),
+          name: `invoice-${order.id}.pdf`,
+        },
+      ],
     });
   } catch (error) {
     // Never let an email failure break the order itself — it already

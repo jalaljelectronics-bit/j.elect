@@ -1,10 +1,8 @@
-const brevo = require("@getbrevo/brevo");
+const { BrevoClient } = require("@getbrevo/brevo");
 
-const apiInstance = new brevo.TransactionalEmailsApi();
-apiInstance.setApiKey(
-  brevo.TransactionalEmailsApiApiKeys.apiKey,
-  process.env.BREVO_API_KEY
-);
+const brevo = new BrevoClient({
+  apiKey: process.env.BREVO_API_KEY,
+});
 
 const SENDER = {
   email: process.env.BREVO_SENDER_EMAIL,
@@ -84,32 +82,30 @@ function formatAdminNotificationHtml(order, customerEmail) {
 
 exports.sendOrderConfirmation = async (order, userEmail) => {
   try {
-    const email = new brevo.SendSmtpEmail();
-    email.sender = SENDER;
-    email.to = [{ email: userEmail }];
-    email.subject = `Order Confirmed — #${order.id}`;
-    email.htmlContent = formatOrderEmailHtml(order);
-
-    await apiInstance.sendTransacEmail(email);
+    await brevo.transactionalEmails.sendTransacEmail({
+      sender: SENDER,
+      to: [{ email: userEmail }],
+      subject: `Order Confirmed — #${order.id}`,
+      htmlContent: formatOrderEmailHtml(order),
+    });
   } catch (error) {
     // Never let an email failure break the order itself — it already
     // succeeded in the DB by the time this runs, so just log it.
-    console.error("Failed to send order confirmation email:", error.response?.body || error.message);
+    console.error("Failed to send order confirmation email:", error.body || error.message || error);
   }
 };
 
 exports.sendAdminOrderNotification = async (order, customerEmail) => {
   try {
-    const email = new brevo.SendSmtpEmail();
-    email.sender = SENDER;
-    email.to = [{ email: process.env.ADMIN_EMAIL }];
-    email.subject = `🛒 New Order #${order.id} — Rs ${order.total.toLocaleString()}`;
-    email.htmlContent = formatAdminNotificationHtml(order, customerEmail);
-
-    await apiInstance.sendTransacEmail(email);
+    await brevo.transactionalEmails.sendTransacEmail({
+      sender: SENDER,
+      to: [{ email: process.env.ADMIN_EMAIL }],
+      subject: `🛒 New Order #${order.id} — Rs ${order.total.toLocaleString()}`,
+      htmlContent: formatAdminNotificationHtml(order, customerEmail),
+    });
   } catch (error) {
     // Same reasoning as above — an admin-notification failure should
     // never affect the order or the customer's confirmation email.
-    console.error("Failed to send admin order notification:", error.response?.body || error.message);
+    console.error("Failed to send admin order notification:", error.body || error.message || error);
   }
 };

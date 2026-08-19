@@ -1,3 +1,4 @@
+const path = require("path");
 const PDFDocument = require("pdfkit");
 
 const BLUE = "#2196f3";
@@ -5,9 +6,11 @@ const DARK_BLUE = "#1565c0";
 const TEXT = "#1e293b";
 const MUTED = "#64748b";
 
+// logo.png = cropped icon + "J ELECTRONICS" wordmark (tagline strip removed).
+// Place the file at <project-root>/assets/logo.png.
+const LOGO_PATH = path.join(__dirname, "..", "assets", "logo.png");
+
 const COMPANY = {
-  name: "Electronics",
-  brandPrefix: "J",
   phone: "+923176572690",
   addressLine1: "Citi Mall, Near Zavia School",
   addressLine2: "Gulgasht Colony, Multan",
@@ -49,26 +52,22 @@ function drawInvoice(doc, order, customer) {
   // ---- Top blue banner ----
   doc.rect(0, 0, pageWidth, 28).fill(BLUE);
 
-  // ---- Logo circle + brand name ----
-  const logoY = 55;
-  doc.circle(margin + 30, logoY + 30, 30).lineWidth(2).stroke(BLUE);
-  doc
-    .fillColor(BLUE)
-    .font("Helvetica-Bold")
-    .fontSize(24)
-    .text(COMPANY.brandPrefix, margin + 30 - 8, logoY + 17);
-
-  doc
-    .fillColor(BLUE)
-    .font("Helvetica")
-    .fontSize(30)
-    .text(COMPANY.name, margin + 78, logoY + 5);
+  // ---- Logo (icon + wordmark, from the real logo file) ----
+  const logoY = 45;
+  const logoWidth = 130; // scaled proportionally by pdfkit from the source aspect ratio
+  try {
+    doc.image(LOGO_PATH, margin, logoY, { width: logoWidth });
+  } catch (err) {
+    // Falls back to no logo rather than crashing invoice generation if the
+    // asset is ever missing — logs so it's easy to notice in deploy logs.
+    console.error("Invoice logo not found at", LOGO_PATH, err.message);
+  }
 
   doc
     .fillColor(BLUE)
     .font("Helvetica")
     .fontSize(11)
-    .text(`\u260E  ${COMPANY.phone}`, margin + 78, logoY + 42);
+    .text(`\u260E  ${COMPANY.phone}`, margin, logoY + 108);
 
   // ---- Diagonal accent shape (top right) ----
   doc
@@ -85,9 +84,9 @@ function drawInvoice(doc, order, customer) {
   // ---- Company + date block ----
   let y = 210;
   doc.fillColor(TEXT).font("Helvetica").fontSize(11);
-  doc.text("j Electronics", margin, y);
+  doc.text("J Electronics", margin, y);
   y += 18;
-  doc.font("Helvetica-Bold").text("Address ", margin, y, { continued: true });
+  doc.font("Helvetica-Bold").text("Address: ", margin, y, { continued: true });
   doc.font("Helvetica").text(`, ${COMPANY.addressLine1}`);
   y += 15;
   doc.text(COMPANY.addressLine2, margin, y);

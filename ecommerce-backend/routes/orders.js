@@ -10,13 +10,15 @@ const {
     updateOrderStatus,
     getAllOrders,
     deleteOrder,
-    deleteOrders
+    deleteOrders,
+    downloadInvoice
 } = require("../controller/orderController");
 
 router.get("/shipping-options", getShippingOptions);
 router.post("/", auth, checkout);
 router.get("/", auth, getMyOrders);
 router.get("/admin/all", auth, admin, getAllOrders);
+router.get("/:id/invoice", auth, downloadInvoice);
 router.get("/:id", auth, getOrderById);
 router.put("/:id/status", auth, admin, updateOrderStatus);
 router.delete("/bulk-delete", auth, admin, deleteOrders);

@@ -1,5 +1,6 @@
 const prisma = require("../prisma/client");
 const { sendOrderConfirmation, sendAdminOrderNotification } = require("../utils/sendOrderConfirmation");
+const { generateInvoicePdf } = require("../utils/generateInvoice");
 
 const SHIPPING_OPTIONS = {
   daewoo:     { label: "Delivery via Daewoo FastEx", cost: 350, taxable: true },
@@ -272,6 +273,31 @@ exports.deleteOrders = async (req, res) => {
         });
 
         res.json({ message: `${ids.length} order(s) deleted.` });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+};
+
+// Downloads a PDF invoice for an order. Customers can only fetch their own
+// order's invoice; admins (req.user.role === "ADMIN") can fetch any order's.
+exports.downloadInvoice = async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const orderId = Number(req.params.id);
+        if (!Number.isInteger(orderId)) return res.status(400).json({ message: "Invalid order id." });
+
+        const order = await prisma.order.findUnique({
+            where: { id: orderId },
+            include: { items: true, user: { select: { name: true, email: true } } }
+        });
+
+        if (!order) return res.status(404).json({ message: "Order not found." });
+        if (order.userId !== userId && req.user.role !== "ADMIN") {
+            return res.status(403).json({ message: "Forbidden." });
+        }
+
+        generateInvoicePdf(order, order.user, res);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Server Error" });

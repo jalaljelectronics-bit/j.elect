@@ -1,0 +1,192 @@
+const PDFDocument = require("pdfkit");
+
+const BLUE = "#2196f3";
+const DARK_BLUE = "#1565c0";
+const TEXT = "#1e293b";
+const MUTED = "#64748b";
+
+const COMPANY = {
+  name: "Electronics",
+  brandPrefix: "J",
+  phone: "+923176572690",
+  addressLine1: "Citi Mall, Near Zavia School",
+  addressLine2: "Gulgasht Colony, Multan",
+  email: "jelectronics.store@gmail.com",
+  phoneLabel: "03176572690",
+};
+
+const PAYMENT_INFO = {
+  method: "Bank Transfer",
+  bankName: "UBL (United Bank Limited)",
+  accountDetails: "0346310890016",
+  accountTitle: "Jalal Khan",
+};
+
+function formatMoney(n) {
+  return `PKR ${Number(n || 0).toLocaleString()}`;
+}
+
+function formatDate(date) {
+  return new Date(date).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+/**
+ * Renders an invoice PDF for the given order onto the response stream.
+ * @param {object} order - order with items[] and customer info attached
+ * @param {object} customer - { name, email }
+ * @param {import('http').ServerResponse} res - express response to pipe into
+ */
+function generateInvoicePdf(order, customer, res) {
+  const doc = new PDFDocument({ size: "A4", margin: 0 });
+
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", `attachment; filename="invoice-${order.id}.pdf"`);
+  doc.pipe(res);
+
+  const pageWidth = doc.page.width;
+  const margin = 48;
+
+  // ---- Top blue banner ----
+  doc.rect(0, 0, pageWidth, 28).fill(BLUE);
+
+  // ---- Logo circle + brand name ----
+  const logoY = 55;
+  doc.circle(margin + 30, logoY + 30, 30).lineWidth(2).stroke(BLUE);
+  doc
+    .fillColor(BLUE)
+    .font("Helvetica-Bold")
+    .fontSize(24)
+    .text(COMPANY.brandPrefix, margin + 30 - 8, logoY + 17);
+
+  doc
+    .fillColor(BLUE)
+    .font("Helvetica")
+    .fontSize(30)
+    .text(COMPANY.name, margin + 78, logoY + 5);
+
+  doc
+    .fillColor(BLUE)
+    .font("Helvetica")
+    .fontSize(11)
+    .text(`\u260E  ${COMPANY.phone}`, margin + 78, logoY + 42);
+
+  // ---- Diagonal accent shape (top right) ----
+  doc
+    .polygon([pageWidth - 220, 28], [pageWidth, 28], [pageWidth, 100], [pageWidth - 160, 100])
+    .fill(BLUE);
+
+  // ---- INVOICE title ----
+  doc
+    .fillColor(TEXT)
+    .font("Helvetica-Bold")
+    .fontSize(28)
+    .text("INVOICE", 0, 150, { align: "center" });
+
+  // ---- Company + date block ----
+  let y = 210;
+  doc.fillColor(TEXT).font("Helvetica").fontSize(11);
+  doc.text("j Electronics", margin, y);
+  y += 18;
+  doc.font("Helvetica-Bold").text("Address ", margin, y, { continued: true });
+  doc.font("Helvetica").text(`, ${COMPANY.addressLine1}`);
+  y += 15;
+  doc.text(COMPANY.addressLine2, margin, y);
+  y += 22;
+  doc.font("Helvetica-Bold").text("Email: ", margin, y, { continued: true });
+  doc.font("Helvetica").text(COMPANY.email);
+  y += 18;
+  doc.font("Helvetica-Bold").text("Phone: ", margin, y, { continued: true });
+  doc.font("Helvetica").text(COMPANY.phoneLabel);
+
+  // Date, right-aligned
+  const dateLabel = `Date: ${formatDate(order.createdAt || Date.now())}`;
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(12)
+    .text(dateLabel, pageWidth - margin - 200, 210, { width: 200, align: "right", underline: true });
+
+  // ---- Bill To ----
+  y += 40;
+  doc.font("Helvetica").fontSize(11).text("Bill To", margin, y);
+  y += 16;
+  doc.font("Helvetica-Bold").fontSize(12).text(customer.name || customer.email, margin, y);
+
+  // ---- Items table ----
+  y += 40;
+  const tableTop = y;
+  const colX = {
+    desc: margin,
+    price: margin + 220,
+    qty: margin + 340,
+    amount: margin + 440,
+  };
+  const tableWidth = pageWidth - margin * 2;
+
+  doc.rect(margin, tableTop, tableWidth, 26).fill(BLUE);
+  doc.fillColor("#ffffff").font("Helvetica-Bold").fontSize(11);
+  doc.text("Description", colX.desc + 10, tableTop + 7);
+  doc.text("Price", colX.price, tableTop + 7);
+  doc.text("Quantity", colX.qty, tableTop + 7);
+  doc.text("Amount", colX.amount, tableTop + 7, { width: pageWidth - margin - colX.amount, align: "right" });
+
+  let rowY = tableTop + 26 + 10;
+  doc.fillColor(TEXT).font("Helvetica-Bold").fontSize(10.5);
+
+  order.items.forEach((item) => {
+    const lineAmount = item.priceAtOrder * item.quantity;
+
+    doc.text(`\u2022 ${item.itemName}`, colX.desc + 10, rowY, { width: colX.price - colX.desc - 20 });
+    doc.text(formatMoney(item.priceAtOrder), colX.price, rowY);
+    doc.text(`${item.quantity} pcs`, colX.qty, rowY);
+    doc.text(formatMoney(lineAmount), colX.amount, rowY, {
+      width: pageWidth - margin - colX.amount,
+      align: "right",
+    });
+
+    rowY += 24;
+  });
+
+  // ---- Payment info + totals ----
+  const paymentY = rowY + 50;
+  doc.font("Helvetica-Bold").fontSize(12).fillColor(TEXT).text("Payment Information", margin, paymentY);
+
+  doc.font("Helvetica").fontSize(10.5).fillColor(TEXT);
+  let py = paymentY + 20;
+  doc.text(`Payment Method:  ${order.paymentMethod === "COD" ? "Cash on Delivery" : order.paymentMethod}`, margin, py);
+  py += 16;
+  doc.text(`Bank Name:  ${PAYMENT_INFO.bankName}`, margin, py);
+  py += 16;
+  doc.text(`Account Details: ${PAYMENT_INFO.accountDetails}`, margin, py);
+  py += 16;
+  doc.text(`Account Title: ${PAYMENT_INFO.accountTitle}`, margin, py);
+
+  // Totals, right side
+  const totalsX = pageWidth - margin - 220;
+  let ty = paymentY;
+  doc.font("Helvetica").fontSize(11).fillColor(MUTED);
+  doc.text("Subtotal", totalsX, ty, { width: 130, align: "left" });
+  doc.fillColor(TEXT).text(formatMoney(order.subtotal), totalsX, ty, { width: 220, align: "right" });
+  ty += 18;
+  doc.fillColor(MUTED).text("Shipping", totalsX, ty, { width: 130, align: "left" });
+  doc.fillColor(TEXT).text(formatMoney(order.shippingCost), totalsX, ty, { width: 220, align: "right" });
+  ty += 18;
+  doc.fillColor(MUTED).text("Tax", totalsX, ty, { width: 130, align: "left" });
+  doc.fillColor(TEXT).text(formatMoney(order.taxAmount), totalsX, ty, { width: 220, align: "right" });
+  ty += 24;
+
+  doc.font("Helvetica-Bold").fontSize(16).fillColor(TEXT);
+  doc.text("Total", totalsX, ty);
+  doc.text(formatMoney(order.total), totalsX, ty, { width: 220, align: "right" });
+
+  // ---- Bottom blue banner ----
+  const pageHeight = doc.page.height;
+  doc.rect(0, pageHeight - 40, pageWidth, 40).fill(DARK_BLUE);
+
+  doc.end();
+}
+
+module.exports = { generateInvoicePdf };

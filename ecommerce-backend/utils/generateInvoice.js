@@ -12,8 +12,7 @@ const LOGO_PATH = path.join(__dirname, "..", "assets", "logo.png");
 
 const COMPANY = {
   phone: "+923176572690",
-  addressLine1: "Citi Mall, Near Zavia School",
-  addressLine2: "Gulgasht Colony, Multan",
+  address: "Citi Mall 2nd Floor, Near Zavia School, Multan",
   email: "jelectronics.store@gmail.com",
   phoneLabel: "03176572690",
 };
@@ -63,8 +62,6 @@ function drawInvoice(doc, order, customer) {
     console.error("Invoice logo not found at", LOGO_PATH, err.message);
   }
 
- 
-
   // ---- Diagonal accent shape (top right) ----
   doc
     .polygon([pageWidth - 220, 28], [pageWidth, 28], [pageWidth, 100], [pageWidth - 160, 100])
@@ -82,11 +79,10 @@ function drawInvoice(doc, order, customer) {
   doc.fillColor(TEXT).font("Helvetica").fontSize(11);
   doc.text("J Electronics", margin, y);
   y += 18;
-  doc.font("Helvetica-Bold").text("Address: ", margin, y, { continued: true });
-  doc.font("Helvetica").text(` ${COMPANY.addressLine1}`);
+  doc.font("Helvetica-Bold").text("Address:", margin, y);
   y += 15;
-  doc.text(COMPANY.addressLine2, margin, y);
-  y += 22;
+  doc.font("Helvetica").text(COMPANY.address, margin, y, { width: 260 });
+  y += 30; // reserves room for the address wrapping onto 2 lines
   doc.font("Helvetica-Bold").text("Email: ", margin, y, { continued: true });
   doc.font("Helvetica").text(COMPANY.email);
   y += 18;

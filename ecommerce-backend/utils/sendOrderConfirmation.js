@@ -45,7 +45,7 @@ function formatOrderEmailHtml(order) {
       </p>
 
       <p style="margin-top:24px;font-size:13px;color:#94a3b8;">
-        We'll notify you again once your order ships. Questions? Reply to this email or contact us at +923176572690
+        We'll notify you again once your order ships. Questions? Reply to this email or contact us at support@visiongiants.pk or call +92 317 6572690.
       </p>
     </div>
   `;

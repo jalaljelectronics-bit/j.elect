@@ -63,11 +63,7 @@ function drawInvoice(doc, order, customer) {
     console.error("Invoice logo not found at", LOGO_PATH, err.message);
   }
 
-  doc
-    .fillColor(BLUE)
-    .font("Helvetica")
-    .fontSize(11)
-    .text(`\u260E  ${COMPANY.phone}`, margin, logoY + 108);
+ 
 
   // ---- Diagonal accent shape (top right) ----
   doc
@@ -87,7 +83,7 @@ function drawInvoice(doc, order, customer) {
   doc.text("J Electronics", margin, y);
   y += 18;
   doc.font("Helvetica-Bold").text("Address: ", margin, y, { continued: true });
-  doc.font("Helvetica").text(`, ${COMPANY.addressLine1}`);
+  doc.font("Helvetica").text(` ${COMPANY.addressLine1}`);
   y += 15;
   doc.text(COMPANY.addressLine2, margin, y);
   y += 22;

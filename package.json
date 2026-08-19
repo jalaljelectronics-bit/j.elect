@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@getbrevo/brevo": "^6.0.3",
     "@sparticuz/chromium": "^149.0.0",
     "multer": "^2.2.0",
     "react-icons": "^5.7.0",

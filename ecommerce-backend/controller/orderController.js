@@ -1,5 +1,5 @@
 const prisma = require("../prisma/client");
-const { sendOrderConfirmation } = require("../utils/sendOrderConfirmation");
+const { sendOrderConfirmation, sendAdminOrderNotification } = require("../utils/sendOrderConfirmation");
 
 const SHIPPING_OPTIONS = {
   daewoo:     { label: "Delivery via Daewoo FastEx", cost: 350, taxable: true },
@@ -133,13 +133,14 @@ exports.checkout = async (req, res) => {
 
         // Sent BEFORE the response, and awaited, so the function can't be
         // frozen/torn down (common on serverless hosts like Vercel) before
-        // the email actually finishes sending. sendOrderConfirmation has
-        // its own internal try/catch and never throws, so this can't crash
-        // the order — worst case the order succeeds and the email is skipped.
+        // the email actually finishes sending. Both senders have their own
+        // internal try/catch and never throw, so this can't crash the
+        // order — worst case the order succeeds and an email is skipped.
         try {
             const user = await prisma.user.findUnique({ where: { id: userId } });
             if (user?.email) {
                 await sendOrderConfirmation(fullOrder, user.email);
+                await sendAdminOrderNotification(fullOrder, user.email);
             }
         } catch (emailErr) {
             console.error("Failed to look up user / send confirmation email:", emailErr);

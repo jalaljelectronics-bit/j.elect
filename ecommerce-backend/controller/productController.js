@@ -66,6 +66,11 @@ exports.createProduct = async (req, res) => {
             }
         });
 
+        // Wipe the "products:*" list cache so the new product shows up on
+        // the next read — no single-item cache exists yet for a
+        // brand-new id.
+        await invalidateResource("products");
+
         // New product's page is live client-side immediately; trigger a
         // redeploy so it also gets prerendered with real content + SEO
         // tags (title/description/canonical) on the next build, instead
@@ -279,17 +284,37 @@ exports.updateProduct = async (req, res) => {
             });
         }
 
-        const category = await prisma.category.findUnique({
-            where: {
-                id: Number(categoryId)
-            }
-        });
+        // categoryId must actually be present before we try to look it up —
+        // Number(undefined) is NaN, and passing that into a Prisma where
+        // clause throws instead of giving a clean 400. Only validate/look
+        // up a new category if the request is actually trying to change it;
+        // otherwise keep the product's existing category untouched.
+        let resolvedCategoryId = existingProduct.categoryId;
 
-        if (!category) {
-            return res.status(404).json({
-                message: "Category not found."
+        if (categoryId !== undefined) {
+            const numericCategoryId = Number(categoryId);
+
+            if (!categoryId || Number.isNaN(numericCategoryId)) {
+                return res.status(400).json({
+                    message: "A valid categoryId is required."
+                });
+            }
+
+            const category = await prisma.category.findUnique({
+                where: {
+                    id: numericCategoryId
+                }
             });
+
+            if (!category) {
+                return res.status(404).json({
+                    message: "Category not found."
+                });
+            }
+
+            resolvedCategoryId = numericCategoryId;
         }
+
         if (!imageUrl || !imageUrl.startsWith("http")) {
             return res.status(400).json({
                 message: "A valid image URL is required."
@@ -305,7 +330,7 @@ exports.updateProduct = async (req, res) => {
                 price: Number(price),
                 stock: Number(stock),
                 imageUrl,
-                categoryId: Number(categoryId),
+                categoryId: resolvedCategoryId,
                 // Preserve existing flag if the request doesn't send one at all
                 // (e.g. an older frontend build without the checkbox), rather
                 // than silently resetting it to false on every save.
@@ -313,6 +338,10 @@ exports.updateProduct = async (req, res) => {
                 isNewArrival: isNewArrival !== undefined ? Boolean(isNewArrival) : existingProduct.isNewArrival
             }
         });
+
+        // Wipe both the "products:*" list cache and the "product:*<id>*"
+        // single-item cache so the edit shows up immediately on next read.
+        await invalidateResource("products", id);
 
         // Content (name/description/price/image) may have changed —
         // redeploy so the prerendered page for this product picks up the
@@ -358,6 +387,12 @@ exports.toggleFeatured = async (req, res) => {
             data: { isFeatured: !existingProduct.isFeatured }
         });
 
+        // This flips whether the product shows up under ?featured=true on
+        // the list endpoint and on its own single-item response, both of
+        // which are cached — needs invalidating even though no redeploy
+        // is needed (see comment below).
+        await invalidateResource("products", id);
+
         // Doesn't change this product's own detail-page content, but it
         // does change which products appear in the homepage's Featured
         // carousel — that's driven by data fetched at runtime, not
@@ -397,6 +432,11 @@ exports.toggleNewArrival = async (req, res) => {
             where: { id },
             data: { isNewArrival: !existingProduct.isNewArrival }
         });
+
+        // Same reasoning as toggleFeatured above — this affects the
+        // ?newArrival=true cached list response and the single-item
+        // cache, so it still needs invalidating even without a redeploy.
+        await invalidateResource("products", id);
 
         // Same reasoning as toggleFeatured above — this only affects the
         // runtime-fetched New Arrivals carousel, not this product's own
@@ -441,6 +481,10 @@ exports.deleteProduct = async (req, res) => {
                 id
             }
         });
+
+        // Wipe list + single-item cache so a deleted product doesn't
+        // keep being served out of Redis after it's gone from the DB.
+        await invalidateResource("products", id);
 
         // A deleted product's URL should stop existing on the live site
         // too — otherwise Google (and visitors) keep seeing a stale

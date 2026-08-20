@@ -124,6 +124,10 @@ exports.createBlogPost = async (req, res) => {
             }
         });
 
+        // Wipe the "blogs:*" list cache so the new post shows up on the
+        // next read — no single-item cache exists yet for a brand-new id.
+        await invalidateResource("blogs");
+
         // Only worth rebuilding the frontend if this post is actually
         // going live — no point burning a Vercel build on a Draft save.
         if (post.status === "Published") {
@@ -173,6 +177,10 @@ exports.updateBlogPost = async (req, res) => {
             }
         });
 
+        // Wipe both the "blogs:*" list cache and the "blog:*<id>*"
+        // single-item cache so the edit shows up immediately on next read.
+        await invalidateResource("blogs", id);
+
         // Redeploy if the post is (or becomes) Published — covers both
         // "edited an already-live post's content/meta" and "just flipped
         // Draft -> Published". Skips the rebuild if it's still a Draft.
@@ -205,6 +213,10 @@ exports.deleteBlogPost = async (req, res) => {
         }
 
         await prisma.blogPost.delete({ where: { id } });
+
+        // Wipe list + single-item cache so a deleted post doesn't keep
+        // being served out of Redis after it's gone from the DB.
+        await invalidateResource("blogs", id);
 
         // A deleted post's URL should stop existing on the live site too —
         // otherwise Google (and visitors) keep seeing a stale prerendered

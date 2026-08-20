@@ -31,6 +31,11 @@ exports.createCategory = async (req, res) => {
             }
         });
 
+        // Wipe the "categories:*" list cache so the new category shows up
+        // on the next read — no single-item cache exists yet for a
+        // brand-new id.
+        await invalidateResource("categories");
+
         res.status(201).json({
             message: "Category created successfully.",
             category
@@ -145,6 +150,10 @@ exports.updateCategory = async (req, res) => {
             }
         });
 
+        // Wipe both the "categories:*" list cache and the "category:*<id>*"
+        // single-item cache so the edit shows up immediately on next read.
+        await invalidateResource("categories", id);
+
         res.json({
             message: "Category updated successfully.",
             updatedCategory
@@ -186,6 +195,10 @@ exports.deleteCategory = async (req, res) => {
                 id
             }
         });
+
+        // Wipe list + single-item cache so a deleted category doesn't
+        // keep being served out of Redis after it's gone from the DB.
+        await invalidateResource("categories", id);
 
         res.json({
             message: "Category deleted successfully."

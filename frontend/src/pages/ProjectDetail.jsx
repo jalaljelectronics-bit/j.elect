@@ -14,6 +14,14 @@ import { optimizeCloudinaryUrl } from '../utils/cloudinary';
 // content rendered correctly, but <title>/<meta>/<link> updates never
 // landed in the captured HTML. Plain DOM writes in a useEffect have no
 // such batching — they run as soon as the effect fires, guaranteed.
+//
+// IMPORTANT: `robots` is always written explicitly (index or noindex),
+// never skipped. The prerenderer reuses a single browser page instance
+// and client-side-navigates across every project URL in sequence. If
+// noindex is only ever added and never cleared, a noindex tag left by
+// one failed/not-found page silently survives into the next successful
+// page's captured HTML — poisoning every good page prerendered after a
+// bad one in the same crawl session.
 function setSeoTags({ title, description, canonical, ogImage, noindex }) {
   if (typeof document === 'undefined') return;
 
@@ -40,7 +48,10 @@ function setSeoTags({ title, description, canonical, ogImage, noindex }) {
   };
 
   if (description) setMeta('description', description);
-  if (noindex) setMeta('robots', 'noindex');
+
+  // Always set robots explicitly — clears any leftover noindex from a
+  // previous client-side navigation instead of only ever adding it.
+  setMeta('robots', noindex ? 'noindex' : 'index, follow');
 
   if (canonical) {
     let link = document.querySelector('link[rel="canonical"]');
@@ -50,6 +61,12 @@ function setSeoTags({ title, description, canonical, ogImage, noindex }) {
       document.head.appendChild(link);
     }
     link.setAttribute('href', canonical);
+  } else {
+    // No canonical for this page (e.g. not-found state) — remove a
+    // stale one left over from a previous successful page in the same
+    // prerender session so it doesn't get misattributed.
+    const existing = document.querySelector('link[rel="canonical"]');
+    if (existing) existing.remove();
   }
 
   if (description || canonical) {
@@ -88,10 +105,18 @@ export default function ProjectDetail() {
     setQuerySent(false);
     setQueryForm({ clientName: '', clientEmail: '', clientPhone: '', message: '' });
 
+    // Reset the fired-once flag per navigation so the prerenderer gets a
+    // fresh "ready" signal for every route it visits in the same session,
+    // not just the first one.
+    if (typeof window !== 'undefined') {
+      window.__prerenderReadyFired = false;
+    }
+
     getProjectById(id)
       .then((res) => {
         const found = res.project;
         if (!found) {
+          // Legit 404 — API responded, project genuinely doesn't exist.
           setNotFound(true);
           setSeoTags({ title: 'Project Not Found – J Electronics', noindex: true });
           signalPrerenderReady();
@@ -107,6 +132,7 @@ export default function ProjectDetail() {
           description: found.introDescription || `${found.title} — a project from J Electronics.`,
           canonical: `https://www.jelectronics.store/project/${found.id}`,
           ogImage: imgSrc,
+          noindex: false
         });
         signalPrerenderReady();
 
@@ -118,10 +144,15 @@ export default function ProjectDetail() {
         });
       })
       .catch((err) => {
+        // Fetch itself failed (timeout, network, 5xx) — this is NOT the
+        // same as a real 404. Don't noindex a page that might genuinely
+        // exist just because of a transient error during prerendering.
         console.error('Failed to load project:', err);
         setNotFound(true);
-        setSeoTags({ title: 'Project Not Found – J Electronics', noindex: true });
-        signalPrerenderReady();
+        // Deliberately no setSeoTags(noindex: true) here. We still want
+        // robots left in a known-good state though, so default to
+        // index/follow rather than leaving whatever was there before.
+        setSeoTags({ title: 'J Electronics', noindex: false });
       });
   }, [id]);
 

@@ -124,6 +124,10 @@ exports.createProject = async (req, res) => {
             }
         });
 
+        // Wipe cached list views (no single-item cache exists yet for a
+        // brand-new id, so no `id` is passed here).
+        await invalidateResource("projects");
+
         // New project is live immediately client-side; trigger a redeploy so
         // it also gets prerendered with correct SEO tags on the next build.
         triggerFrontendRedeploy();
@@ -176,6 +180,10 @@ exports.updateProject = async (req, res) => {
             }
         });
 
+        // Wipe both the "projects:*" list cache and the "project:*<id>*"
+        // single-item cache so the edit shows up immediately on next read.
+        await invalidateResource("projects", projectId);
+
         // Content/meta may have changed — redeploy so the prerendered page
         // for this project picks up the new title/description/images.
         triggerFrontendRedeploy();
@@ -208,6 +216,10 @@ exports.deleteProject = async (req, res) => {
         await prisma.project.delete({
             where: { id: projectId }
         });
+
+        // Wipe list + single-item cache so a deleted project doesn't keep
+        // being served out of Redis after it's gone from the DB.
+        await invalidateResource("projects", projectId);
 
         // A deleted project's URL should stop existing on the live site too —
         // otherwise Google (and visitors) keep seeing a stale prerendered

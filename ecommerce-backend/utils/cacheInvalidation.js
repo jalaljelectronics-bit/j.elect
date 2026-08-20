@@ -2,9 +2,14 @@
 const redisClient = require('../redisClient');
 
 async function invalidateResource(prefix, id) {
-    const keys = await redisClient.keys(`${prefix}:*`);
-    if (keys.length) await redisClient.del(keys);
-    if (id) await redisClient.del(`${prefix.replace(/s$/, '')}:${id}`);
+    const listKeys = await redisClient.keys(`${prefix}:*`);
+    if (listKeys.length) await redisClient.del(listKeys);
+
+    if (id) {
+        const singular = prefix.replace(/s$/, '');
+        const itemKeys = await redisClient.keys(`${singular}:*${id}*`);
+        if (itemKeys.length) await redisClient.del(itemKeys);
+    }
 }
 
 module.exports = { invalidateResource };

@@ -8,21 +8,18 @@ const CARDS = [
 ];
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
+  const firstName = user?.name?.trim().split(/\s+/)[0] || '';
 
   return (
     <div>
-      <h3 style={{ marginTop: 0 }}>
-        Hello <strong>{user?.name}</strong> (not <strong>{user?.name}</strong>?{' '}
-        <span onClick={logout} className="account-link" style={{ cursor: 'pointer', textDecoration: 'underline' }}>
-          Log out
-        </span>)
+      {/* The old "Hello X (not X? Log out)" line and its follow-up paragraph
+          were dropped — that identity info now lives in the sidebar's
+          avatar/greeting (see AccountLayout.jsx), and the paragraph just
+          repeated what these three cards already say. */}
+      <h3 style={{ marginTop: 0, fontWeight: 600, color: 'var(--text-sub)' }}>
+        Welcome back{firstName ? `, ${firstName}` : ''}.
       </h3>
-      <p style={{ color: 'var(--text-sub)', lineHeight: 1.6 }}>
-        From your account dashboard you can view your <Link className="account-link" to="/account/orders">recent orders</Link>, manage your{' '}
-        <Link className="account-link" to="/account/addresses">shipping and billing addresses</Link>, and edit your{' '}
-        <Link className="account-link" to="/account/details">password and account details</Link>.
-      </p>
 
       <div className="dashboard-cards">
         {CARDS.map(([to, label, description]) => (

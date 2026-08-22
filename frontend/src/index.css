@@ -736,10 +736,53 @@ footer.site-footer .container {
 .sidebar::-webkit-scrollbar-track { background: transparent; }
 .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 .sidebar::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
+
+/* ═══ MOBILE CATEGORY FILTER (≤860px) ═══
+   Previously the sidebar just unlocked its scroll on mobile and printed
+   the FULL category list inline above the product grid — forcing users
+   to scroll past dozens of categories before reaching "X products found".
+   Fix: turn the list into a collapsed accordion. The "Categories" header
+   becomes a tap target (.sidebar-toggle) with a rotating caret, and the
+   list itself (.sidebar-list) starts at max-height: 0 and only expands
+   when the user opts in — same content, no lost functionality. */
 @media (max-width: 860px) {
-  .sidebar { position: static; max-height: none; overflow-y: visible; padding: 20px; }
-  .sidebar h4 { position: static; padding: 0 0 12px; }
+  .sidebar { position: static; max-height: none; overflow-y: visible; padding: 6px 20px; }
+  .sidebar h4 { position: static; padding: 14px 0; }
+
+  .sidebar-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+  }
+  .sidebar-caret {
+    display: inline-block;
+    color: var(--cyan);
+    font-size: 0.8rem;
+    transition: transform 0.2s ease;
+  }
+  .sidebar-caret.open { transform: rotate(180deg); }
+
+  .sidebar-list {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease;
+  }
+  .sidebar-list.open {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding-bottom: 12px;
+  }
 }
+
+/* Desktop (>860px): list is always expanded, caret/toggle affordance hidden */
+@media (min-width: 861px) {
+  .sidebar-caret { display: none; }
+  .sidebar-toggle { cursor: default; }
+  .sidebar-list { display: block; }
+}
+
 .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
 .toolbar select { background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; }
 .empty-state { text-align: center; padding: 60px 20px; color: var(--gray-mid); }

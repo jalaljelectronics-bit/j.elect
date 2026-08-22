@@ -26,6 +26,11 @@ export default function Products() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Mobile-only: controls whether the category list under the "Categories"
+  // header is expanded or collapsed. Ignored on desktop (list is always
+  // visible there via CSS — see .sidebar-caret / .sidebar-list rules).
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
   const gridRef = useRef(null);
   const isFirstRender = useRef(true);
 
@@ -122,6 +127,13 @@ export default function Products() {
 
   const clearSearch = () => updateParams({ q: '' });
 
+  const selectCategory = (categoryId) => {
+    updateParams({ category: categoryId });
+    // Auto-collapse after picking a category — mobile only (no-op on
+    // desktop since the list is always open there regardless of this state).
+    setMobileFiltersOpen(false);
+  };
+
   return (
     <div className="page-wrap">
       <div
@@ -147,22 +159,31 @@ export default function Products() {
       <div className="container">
         <div className="shop-layout" style={{ paddingBottom: '80px', paddingTop: '32px' }}>
           <aside className="sidebar">
-            <h4>Categories</h4>
-            <div
-              className={`sidebar-cat${!activeCategory ? ' active' : ''}`}
-              onClick={() => updateParams({ category: '' })}
+            <h4
+              className="sidebar-toggle"
+              onClick={() => setMobileFiltersOpen((v) => !v)}
             >
-              <span>All Products</span>
-            </div>
-            {categories.map((cat) => (
+              <span>Categories</span>
+              <span className={`sidebar-caret${mobileFiltersOpen ? ' open' : ''}`} aria-hidden="true">▾</span>
+            </h4>
+
+            <div className={`sidebar-list${mobileFiltersOpen ? ' open' : ''}`}>
               <div
-                key={cat.id}
-                className={`sidebar-cat${Number(activeCategory) === cat.id ? ' active' : ''}`}
-                onClick={() => updateParams({ category: String(cat.id) })}
+                className={`sidebar-cat${!activeCategory ? ' active' : ''}`}
+                onClick={() => selectCategory('')}
               >
-                <span>{cat.name}</span>
+                <span>All Products</span>
               </div>
-            ))}
+              {categories.map((cat) => (
+                <div
+                  key={cat.id}
+                  className={`sidebar-cat${Number(activeCategory) === cat.id ? ' active' : ''}`}
+                  onClick={() => selectCategory(String(cat.id))}
+                >
+                  <span>{cat.name}</span>
+                </div>
+              ))}
+            </div>
           </aside>
 
           <div ref={gridRef} style={{ scrollMarginTop: '110px' }}>

@@ -844,6 +844,30 @@ footer.site-footer .container {
 .detail-img-col { display: flex; flex-direction: column; gap: 18px; }
 .detail-img { background: var(--bg3); border-radius: 20px; height: 380px; display: flex; align-items: center; justify-content: center; font-size: 7rem; position: relative; border: 1px solid var(--border); }
 .detail-name { font-family: 'Space Grotesk', sans-serif; font-size: 1.7rem; font-weight: 700; margin: 10px 0; }
+.detail-desc {
+  color: var(--text-sub);
+  line-height: 1.6;
+  font-size: 0.95rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.detail-desc.expanded {
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+.desc-toggle {
+  color: var(--cyan);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 8px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.desc-toggle:hover { color: var(--cyan-dim); text-decoration: underline; }
 .detail-price { font-family: 'Orbitron', monospace; font-size: 1.9rem; font-weight: 700; color: var(--cyan); margin: 14px 0; }
 .detail-price .old { font-family: 'Inter'; font-size: 1.1rem; font-weight: 400; text-decoration: line-through; color: var(--gray-mid); margin-right: 10px; }
 .spec-table { width: 100%; border-collapse: collapse; margin-top: 20px; }

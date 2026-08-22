@@ -12,6 +12,7 @@ export default function ProductDetail() {
   const [related, setRelated] = useState([]);
   const [qty, setQty] = useState(1);
   const [notFound, setNotFound] = useState(false);
+  const [descExpanded, setDescExpanded] = useState(false);
   const { addToCart } = useCart();
   const navigate = useNavigate();
 
@@ -19,6 +20,7 @@ export default function ProductDetail() {
     setQty(1);
     setNotFound(false);
     setProduct(null);
+    setDescExpanded(false);
 
     getProduct(id)
       .then((p) => {
@@ -127,7 +129,12 @@ export default function ProductDetail() {
             )}
           </div>
           <div className="detail-price">{formatPrice(product.price)}</div>
-          <p style={{ color: 'var(--text-sub)', lineHeight: 1.6, fontSize: '0.95rem' }}>{product.description}</p>
+          <p className={`detail-desc${descExpanded ? ' expanded' : ''}`}>{product.description}</p>
+          {product.description && product.description.length > 220 && (
+            <button className="desc-toggle" onClick={() => setDescExpanded((v) => !v)}>
+              {descExpanded ? 'View Less ▲' : 'View More ▼'}
+            </button>
+          )}
 
           {product.stock > 0 && product.stock <= 5 && (
             <p style={{ color: '#c0392b', fontSize: '0.85rem', marginTop: '4px' }}>Only {product.stock} left in stock</p>

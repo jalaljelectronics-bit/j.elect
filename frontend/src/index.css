@@ -592,6 +592,59 @@ footer.site-footer .container {
 }
 .footer-social a:hover { background: var(--cyan); color: #fff; }
 
+/* ═══ FOOTER ACCORDION (mobile) ═══
+   Previously every footer column printed its full link list at once, so
+   on a phone you'd scroll past 12+ links (Shop, Company, Support all
+   fully expanded) before reaching the copyright line — felt "way too
+   stretched". Now Shop/Company/Support collapse behind a tappable header
+   below 780px; the Brand column (logo/description/contact/social) is left
+   alone since it isn't a link list. Same accordion pattern already used
+   for .sidebar-toggle on the Products page and .account-nav-toggle on
+   the account dashboard. Controlled by Footer.jsx's openCol state via
+   the .footer-col-toggle / .footer-col-list / .footer-col-caret classes. */
+@media (max-width: 780px) {
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .footer-col-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+    padding: 14px 0;
+    margin-bottom: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .footer-col-caret {
+    display: inline-block;
+    color: var(--cyan);
+    font-size: 0.8rem;
+    transition: transform 0.2s ease;
+  }
+  .footer-col-caret.open { transform: rotate(180deg); }
+
+  .footer-col-list {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease;
+  }
+  .footer-col-list.open {
+    max-height: 400px;
+    padding: 14px 0 6px;
+  }
+}
+
+/* Desktop (>780px): lists always expanded, caret/toggle affordance hidden */
+@media (min-width: 781px) {
+  .footer-col-caret { display: none; }
+  .footer-col-toggle { cursor: default; }
+  .footer-col-list { max-height: none; }
+}
+
 .back-to-top {
   position: fixed; bottom: 28px; right: 92px; z-index: 500;
   width: 44px; height: 44px; border-radius: 50%; background: var(--card);

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useCategories } from '../context/CategoryContext';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   FaInstagram,
   FaFacebookF,
@@ -43,6 +43,11 @@ export default function Footer() {
   const { categories: allCategories } = useCategories();
   const categories = allCategories.slice(0, 6);
   const footerVideoRef = useRef(null);
+  // Mobile accordion state: which footer link column is expanded.
+  // 'shop' | 'company' | 'support' | null. Ignored entirely on desktop —
+  // see .footer-col-list / .footer-col-toggle CSS which forces lists open
+  // above the 780px breakpoint regardless of this value.
+  const [openCol, setOpenCol] = useState(null);
 
   // The footer is below the fold on every page load, so there's no reason to
   // download footer-bg.mp4 until the user actually scrolls near it — unlike
@@ -113,14 +118,16 @@ export default function Footer() {
             </p>
 
            <p
+          
   style={{
     color: '#9CA3AF',
     fontSize: '0.85rem',
     marginTop: '10px',
   }}
 >
+ 
   Contact us at{' '}
-  <a
+  < a
     href="tel:+923176572690"
     style={{ color: 'var(--cyan)', fontWeight: 600 }}
   >
@@ -138,7 +145,7 @@ export default function Footer() {
               }}
             >
               {/* Facebook */}
-              <a
+              < a
                 href="https://www.facebook.com/profile.php?id=61552590364369"
                 target="_blank"
                 rel="noreferrer"
@@ -149,7 +156,7 @@ export default function Footer() {
               </a>
 
               {/* Instagram */}
-              <a
+              < a
                 href="https://www.instagram.com/jelectronicss/"
                 target="_blank"
                 rel="noreferrer"
@@ -160,7 +167,7 @@ export default function Footer() {
               </a>
 
               {/* Email */}
-              <a
+              < a
                 href="mailto:jelectronics.store@gmail.com"
                 title="Email"
                 style={socialIconStyle}
@@ -169,7 +176,7 @@ export default function Footer() {
               </a>
 
               {/* LinkedIn */}
-              <a
+              < a
                 href="https://linkedin.com/company/jelectronics/?viewAsMember=true"
                 target="_blank"
                 rel="noreferrer"
@@ -180,7 +187,7 @@ export default function Footer() {
               </a>
 
               {/* Daraz */}
-              <a
+              < a
                 href="https://www.daraz.pk/shop/duuuytiz"
                 target="_blank"
                 rel="noreferrer"
@@ -197,7 +204,7 @@ export default function Footer() {
               </a>
 
               {/* YouTube */}
-              <a
+              < a
                 href="https://www.youtube.com/@JElectronicss"
                 target="_blank"
                 rel="noreferrer"
@@ -211,8 +218,14 @@ export default function Footer() {
 
           {/* Shop */}
           <div className="footer-col">
-            <h4>Shop</h4>
-            <ul id="footerShopLinks">
+            <h4
+              className="footer-col-toggle"
+              onClick={() => setOpenCol(openCol === 'shop' ? null : 'shop')}
+            >
+              Shop
+              <span className={`footer-col-caret${openCol === 'shop' ? ' open' : ''}`}>▾</span>
+            </h4>
+            <ul id="footerShopLinks" className={`footer-col-list${openCol === 'shop' ? ' open' : ''}`}>
               {categories.map((cat) => (
                 <li key={cat.id}>
                   <Link to={`/products?category=${cat.id}`}>
@@ -225,8 +238,14 @@ export default function Footer() {
 
           {/* Company */}
           <div className="footer-col">
-            <h4>Company</h4>
-            <ul>
+            <h4
+              className="footer-col-toggle"
+              onClick={() => setOpenCol(openCol === 'company' ? null : 'company')}
+            >
+              Company
+              <span className={`footer-col-caret${openCol === 'company' ? ' open' : ''}`}>▾</span>
+            </h4>
+            <ul className={`footer-col-list${openCol === 'company' ? ' open' : ''}`}>
               <li>
                 <Link to="/about">About Us</Link>
               </li>
@@ -244,8 +263,14 @@ export default function Footer() {
 
           {/* Support */}
           <div className="footer-col">
-            <h4>Support</h4>
-            <ul>
+            <h4
+              className="footer-col-toggle"
+              onClick={() => setOpenCol(openCol === 'support' ? null : 'support')}
+            >
+              Support
+              <span className={`footer-col-caret${openCol === 'support' ? ' open' : ''}`}>▾</span>
+            </h4>
+            <ul className={`footer-col-list${openCol === 'support' ? ' open' : ''}`}>
               <li>
                 <Link to="/policies?tab=shipping">Shipping Info</Link>
               </li>

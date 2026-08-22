@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { optimizeCloudinaryUrl } from "../utils/cloudinary";
 
-const WHATSAPP_NUMBER = "923000000000";
+const WHATSAPP_NUMBER = "923176572690";
 
 export default function ProjectCard({ project }) {
   const navigate = useNavigate();

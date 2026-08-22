@@ -63,7 +63,7 @@ export default function Contact() {
             </div>
             <div className="form-card" style={{ marginBottom: '16px' }}>
               <h3 style={{ marginBottom: '4px' }}>✉️ Email Us</h3>
-              <p style={{ color: 'var(--text-sub)', fontSize: '0.9rem' }}>support@visiongiants.pk</p>
+              <p style={{ color: 'var(--text-sub)', fontSize: '0.9rem' }}>jelectronics.store@gmail.com</p>
             </div>
             <div className="form-card">
               <h3 style={{ marginBottom: '4px' }}>📍 Visit Us</h3>

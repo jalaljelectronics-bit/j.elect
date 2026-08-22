@@ -127,6 +127,12 @@ export default function Products() {
 
   const clearSearch = () => updateParams({ q: '' });
 
+  // Drives the mobile toggle label — "Categories" when nothing's selected,
+  // otherwise the active category's name (e.g. "3D Printers Accessories").
+  const activeCategoryName = activeCategory
+    ? categories.find((cat) => Number(activeCategory) === cat.id)?.name
+    : null;
+
   const selectCategory = (categoryId) => {
     updateParams({ category: categoryId });
     // Auto-collapse after picking a category — mobile only (no-op on
@@ -163,7 +169,7 @@ export default function Products() {
               className="sidebar-toggle"
               onClick={() => setMobileFiltersOpen((v) => !v)}
             >
-              <span>Categories</span>
+              <span>{activeCategoryName || 'Categories'}</span>
               <span className={`sidebar-caret${mobileFiltersOpen ? ' open' : ''}`} aria-hidden="true">▾</span>
             </h4>
 

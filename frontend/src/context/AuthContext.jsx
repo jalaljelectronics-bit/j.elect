@@ -14,6 +14,11 @@ export function AuthProvider({ children }) {
     const storedToken = authService.getStoredToken();
     if (storedUser && storedToken) {
       setUser(storedUser);
+      // Fallback: refresh from /api/auth/me in the background in case the
+      // cached user object (from login/signup) is missing fields — e.g. if
+      // that response shape ever gets trimmed down without email included.
+      // Silently ignored on failure; the cached user still works fine either way.
+      authService.getMe().then(setUser).catch(() => {});
     }
     setLoading(false);
   }, []);

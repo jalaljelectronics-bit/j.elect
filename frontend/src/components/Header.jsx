@@ -396,11 +396,23 @@ export default function Header() {
                     </div>
                   )}
 
+                  {/* Links match the nested /account/* routes in App.jsx:
+                      <Route path="/account" element={<AccountLayout />}>
+                        <Route index element={<Dashboard />} />
+                        <Route path="orders" element={<Orders />} />
+                        <Route path="addresses" element={<Addresses />} />
+                        <Route path="details" element={<AccountDetails />} />
+                      </Route>
+                      Previously these pointed to /orders and /addresses
+                      (unregistered top-level routes that fell through to the
+                      "*" catch-all and rendered Home), and "Account details"
+                      duplicated the Dashboard link instead of going to
+                      /account/details. */}
                   {[
                     ['/account', 'Dashboard'],
-                    ['/orders', 'My Orders'],
-                    ['/account', 'Account details'],
-                    ['/addresses', 'Addresses'],
+                    ['/account/orders', 'My Orders'],
+                    ['/account/details', 'Account details'],
+                    ['/account/addresses', 'Addresses'],
                   ].map(([to, label]) => (
                     <Link
                       key={label}

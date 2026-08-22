@@ -21,15 +21,31 @@ export default function SearchBar() {
   const cacheRef = useRef(new Map());
 
   // Width of the category <select>, in px. Recomputed whenever the selected
-  // category changes so the pill hugs "All" tightly but widens enough to
-  // show a longer category name like "3D Printer Filaments" without
-  // truncating it into ellipsis.
+  // category changes, categories load, or the viewport is resized, so the
+  // pill hugs "All" tightly but widens enough to show a longer category
+  // name like "3D Printer Filaments" without truncating it into ellipsis —
+  // while still respecting a smaller ceiling on narrow screens so it never
+  // crowds out the actual search input.
   const [catSelectWidth, setCatSelectWidth] = useState(58);
   const measureCanvasRef = useRef(null);
 
   const CAT_SELECT_MIN = 58;   // just enough for "All" + chevron
-  const CAT_SELECT_MAX = 190;  // don't let a very long name eat the whole bar
+  const CAT_SELECT_MAX = 190;  // desktop ceiling — don't let a long name eat the whole bar
   const CAT_SELECT_H_PADDING = 30; // left + right padding + chevron space (10px left, 18px right, ~2px slack)
+
+  // Viewport-aware ceiling. This is what was missing before: the select's
+  // width was set via an inline style, which always wins over the
+  // @media (max-width: 480px) rules in styles.css — so on phones a long
+  // category name was still being measured against the 190px desktop cap
+  // and rendered at nearly full width, squeezing the search input down to
+  // almost nothing.
+  const getCatSelectMaxForViewport = () => {
+    if (typeof window === 'undefined') return CAT_SELECT_MAX;
+    const w = window.innerWidth;
+    if (w <= 480) return 90;
+    if (w <= 1080) return 140;
+    return CAT_SELECT_MAX;
+  };
 
   const measureCatSelectWidth = (label) => {
     if (!measureCanvasRef.current) {
@@ -41,14 +57,20 @@ export default function SearchBar() {
     ctx.font = "600 0.76rem 'Inter', sans-serif";
     const textWidth = ctx.measureText(label).width;
     const raw = textWidth + CAT_SELECT_H_PADDING;
-    return Math.min(CAT_SELECT_MAX, Math.max(CAT_SELECT_MIN, Math.ceil(raw)));
+    const max = getCatSelectMaxForViewport();
+    return Math.min(max, Math.max(CAT_SELECT_MIN, Math.ceil(raw)));
   };
 
   useEffect(() => {
     const selectedLabel = categoryId
       ? (categories.find((c) => String(c.id) === String(categoryId))?.name || 'All')
       : 'All';
-    setCatSelectWidth(measureCatSelectWidth(selectedLabel));
+
+    const recalc = () => setCatSelectWidth(measureCatSelectWidth(selectedLabel));
+    recalc();
+
+    window.addEventListener('resize', recalc);
+    return () => window.removeEventListener('resize', recalc);
   }, [categoryId, categories]);
 
   useEffect(() => {

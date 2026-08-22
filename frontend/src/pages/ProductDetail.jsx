@@ -83,30 +83,19 @@ export default function ProductDetail() {
       </div>
 
       <div className="detail-layout" style={{ marginTop: '20px' }}>
-        <div className="detail-img">
-          <img src={imgSrc} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          {outOfStock && (
-            <span className="badge-new" style={{ position: 'absolute', top: 16, left: 16, background: '#c0392b' }}>Out of Stock</span>
-          )}
-        </div>
-
-        <div>
-          <div className="qv-cat">{product.category?.name}</div>
-          <div className="detail-name">{product.name}</div>
-          <div className="qv-rating">
-            {product.reviewCount > 0 ? (
-              <>{stars} <span>({rating.toFixed(1)} · {product.reviewCount.toLocaleString()} reviews)</span></>
-            ) : (
-              <span>No reviews yet</span>
+        <div className="detail-img-col">
+          <div className="detail-img">
+            <img src={imgSrc} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            {outOfStock && (
+              <span className="badge-new" style={{ position: 'absolute', top: 16, left: 16, background: '#c0392b' }}>Out of Stock</span>
             )}
           </div>
-          <div className="detail-price">{formatPrice(product.price)}</div>
-          <p style={{ color: 'var(--text-sub)', lineHeight: 1.6, fontSize: '0.95rem' }}>{product.description}</p>
 
-          {product.stock > 0 && product.stock <= 5 && (
-            <p style={{ color: '#c0392b', fontSize: '0.85rem', marginTop: '4px' }}>Only {product.stock} left in stock</p>
-          )}
-
+          {/* Qty + Buy Now/Add to Cart now live right under the image, so they're
+              always visible near the picture instead of getting pushed below a
+              long description on the right column (that's where they used to
+              be — after product.description — which could push them off-screen
+              on products with a lot of specs/text, like this one). */}
           <div className="qty-select-detail">
             <div className="qty-control">
               <button onClick={() => setQty((q) => Math.max(1, q - 1))} disabled={outOfStock}>−</button>
@@ -125,6 +114,24 @@ export default function ProductDetail() {
             </button>
             <button className="btn-ghost" disabled={outOfStock} onClick={() => addToCart(product.id, 'product', qty)}>🛒 Add to Cart</button>
           </div>
+        </div>
+
+        <div>
+          <div className="qv-cat">{product.category?.name}</div>
+          <div className="detail-name">{product.name}</div>
+          <div className="qv-rating">
+            {product.reviewCount > 0 ? (
+              <>{stars} <span>({rating.toFixed(1)} · {product.reviewCount.toLocaleString()} reviews)</span></>
+            ) : (
+              <span>No reviews yet</span>
+            )}
+          </div>
+          <div className="detail-price">{formatPrice(product.price)}</div>
+          <p style={{ color: 'var(--text-sub)', lineHeight: 1.6, fontSize: '0.95rem' }}>{product.description}</p>
+
+          {product.stock > 0 && product.stock <= 5 && (
+            <p style={{ color: '#c0392b', fontSize: '0.85rem', marginTop: '4px' }}>Only {product.stock} left in stock</p>
+          )}
         </div>
       </div>
 

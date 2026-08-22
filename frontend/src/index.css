@@ -841,6 +841,7 @@ footer.site-footer .container {
 
 .detail-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
 @media (max-width: 860px) { .detail-layout { grid-template-columns: 1fr; } }
+.detail-img-col { display: flex; flex-direction: column; gap: 18px; }
 .detail-img { background: var(--bg3); border-radius: 20px; height: 380px; display: flex; align-items: center; justify-content: center; font-size: 7rem; position: relative; border: 1px solid var(--border); }
 .detail-name { font-family: 'Space Grotesk', sans-serif; font-size: 1.7rem; font-weight: 700; margin: 10px 0; }
 .detail-price { font-family: 'Orbitron', monospace; font-size: 1.9rem; font-weight: 700; color: var(--cyan); margin: 14px 0; }
@@ -852,7 +853,7 @@ footer.site-footer .container {
 .feature-list { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
 .feature-list li { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: var(--text-sub); }
 .feature-list li::before { content: '✓'; color: var(--cyan); font-weight: 700; }
-.qty-select-detail { display: flex; align-items: center; gap: 14px; margin: 20px 0; }
+.qty-select-detail { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 @media (max-width: 640px) {
   .footer-grid { grid-template-columns: 1fr; }
   .detail-layout { gap: 24px; }

@@ -78,7 +78,7 @@ export default function AccountLayout() {
   const activeLabel = activeItem?.label || 'My Account';
 
   return (
-    <div className="container" style={{ padding: '64px 0 40px' }}>
+    <div className="container" style={{ paddingTop: '64px', paddingBottom: '40px' }}>
       <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '16px', marginBottom: '32px' }}>
         <h1 style={{ fontSize: '1.6rem', letterSpacing: '0.03em' }}>MY ACCOUNT</h1>
       </div>
